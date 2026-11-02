@@ -5,6 +5,7 @@ struct OfferView: View {
     let offer: RideOffer
 
     var body: some View {
+        // The stack provides the standard title, which a section header can't match in color or alignment.
         NavigationStack {
             List {
                 Section {
@@ -32,15 +33,8 @@ struct OfferView: View {
     OfferView(
         offer: RideOffer(
             id: UUID(),
-            ride: Ride(
-                id: UUID(),
-                rider: Rider(id: UUID(), name: PersonNameComponents(givenName: "Ada", familyName: "Lovelace")),
-                pickup: Place(name: "Union Station", address: "50 Massachusetts Ave NE"),
-                dropoff: Place(name: "National Mall", address: "900 Ohio Dr SW"),
-                fare: Fare(amount: 18.40, currencyCode: "USD"),
-                requestedAt: .now
-            ),
-            driverID: UUID(),
+            ride: MockRideData.makeRide(sequence: 0, requestedAt: .now),
+            driverID: MockRideData.driver.id,
             expiresAt: .now.addingTimeInterval(30)
         )
     )

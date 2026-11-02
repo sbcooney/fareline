@@ -12,7 +12,7 @@ Fareline is a simplified rideshare app for drivers, built in Swift and SwiftUI f
 
 ## Status
 
-Work proceeds top to bottom. Each row merges as its own PR and leaves the app working, so work can stop after any row and still produce a complete submission. Anything unfinished moves to "What I'd do with more time" in the README.
+Work proceeds top to bottom. Each row merges as its own PR and leaves the app working, so work can stop after any row and still produce a complete submission. Anything unfinished moves to "What I'd do with more time" in the README. The exception is #5, which needs #6: until then a driver sees offers but can't respond to them.
 
 | Status | Issue | Work | Area |
 |---|---|---|---|
@@ -165,7 +165,7 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 - A ride is offered to one driver at a time. It goes to another driver only after the current offer is declined or expires.
 - The app runs in portrait only, not upside down or in landscape, even though drivers may mount phones sideways.
 - *Provisional:* a driver can't go offline during an active ride.
-- *Provisional:* an offer expires if ignored, and the driver stays available.
+- An offer expires if ignored, and the driver stays available.
 
 ## Decision log
 
