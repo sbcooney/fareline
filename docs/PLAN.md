@@ -18,7 +18,7 @@ Work proceeds top to bottom. Each row merges as its own PR and leaves the app wo
 |---|---|---|---|
 | ✅ | #1 | Project setup | Setup |
 | ✅ | #2 | Domain models and state machines | Foundation |
-| ⬜ | #3 | Mock ride service and app store | Foundation |
+| ✅ | #3 | Mock ride service and driver store | Foundation |
 | ⬜ | #4 | Change availability status | Required |
 | ⬜ | #5 | View an incoming ride request | Required |
 | ⬜ | #6 | Accept or decline a request | Required |
@@ -48,9 +48,9 @@ Issue numbers follow the order they were filed, not the order of work. Status ke
 ## Architecture
 
 ```
-SwiftUI views  →  AppStore (@Observable, @MainActor)  →  RideService protocol  →  MockRideService
-                          ↓
-                  Domain state machines (pure, no UI or service dependencies)
+SwiftUI views  →  DriverStore (@Observable, @MainActor)  →  RideService protocol  →  MockRideService
+                                                                                  ↓
+                                                            Domain state machines (pure, no UI or service dependencies)
 ```
 
 ### Domain
@@ -69,15 +69,15 @@ A ride can also become `cancelled` before it starts.
 
 **Ride offers** connect the two. An offer is a proposal of one ride to one driver, with an expiry time. It moves from `pending` to `accepted`, `declined`, or `expired`. Declining or ignoring an offer ends the offer, not the ride, which stays `awaitingDriver`. This also lets the rider queue and self-assign reuse the same model.
 
-Each type enforces only its own rules. The store (#3) coordinates changes across a ride, a driver, and an offer.
+Each type enforces only its own rules. The service coordinates changes across a ride, a driver, and an offer.
 
 ### State management
 
-A single `@Observable`, `@MainActor` store is the source of truth. Views render its state and call its intent methods, such as `accept(offer:)`. Because every action goes through the store, offline support can later queue actions in one place.
+A single `@Observable`, `@MainActor` `DriverStore` is the app's source of truth. Views render its state and call its intent methods, such as `acceptPendingOffer()`. The store holds no business rules: it sends requests and replaces its state with the complete `DriverSession` the service returns. Sessions carry a version, so one that arrives late is ignored. Because every action goes through the store, offline support can later queue actions in one place.
 
 ### Services
 
-`RideService` is the boundary a real backend would sit behind. `MockRideService` implements it with fixed data, delivers offers through an `AsyncStream`, and takes an injected clock so tests don't wait on real delays. It can also simulate failures, which lets error handling be exercised and demonstrated.
+`RideService` is the boundary a real backend would sit behind. `MockRideService` implements it as an actor with fixed data. It delivers session changes, including new offers, through an `AsyncStream`, and takes an injected `TimeSource` so tests don't wait on real delays. It can also simulate failures and events from elsewhere in the system, such as a rider cancelling.
 
 ### Project structure
 
@@ -113,6 +113,7 @@ Every issue must meet all of these before it closes:
 - [ ] New logic has Swift Testing coverage.
 - [ ] Types, protocols, and non-obvious methods have `///` documentation.
 - [ ] Inline comments explain why, not what.
+- [ ] Every protocol conformance and annotation has a current use.
 - [ ] `swiftlint lint` reports no violations.
 - [ ] The PR description names the Swift skills that reviewed the changes and what changed as a result.
 - [ ] `/code-review` has run on the PR, and its findings are fixed or have a recorded reason for being left.
@@ -186,6 +187,14 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 | 2026-11-02 | Leave `Codable` off domain types until #8 | Synthesized decoding would bypass the domain rules, and the storage choice isn't made yet. #8 adds whatever its choice needs, with validation if it uses `Codable`. |
 | 2026-11-02 | Keep `default:` in transition switches | Each table stays short and readable, and an unlisted pair is safely rejected. In exchange, the compiler doesn't force a decision when a case is added, so a new valid transition has to be added deliberately. |
 | 2026-11-02 | Offer a ride to one driver at a time | Drivers never lose a ride they've just accepted to another offer, and the flow is simpler. A ride can take longer to match than if several drivers were offered it at once, as each offer must end first. A driver can still claim a ride from the rider queue while it's offered to someone else, so accepting must check the current ride. |
+| 2026-11-02 | Send complete, versioned session snapshots rather than individual changes | The app can't merge changes incorrectly or end up with an offer, ride, and driver that disagree, and ordering problems reduce to a version check. Snapshots would be wasteful with large data or a real network, where a backend might send changes instead. |
+| 2026-11-02 | Name the store `DriverStore` rather than `AppStore` | Avoids confusion with Apple's App Store, and says what it holds. |
+| 2026-11-02 | Use a small `TimeSource` protocol rather than the standard `Clock` | Domain rules work in `Date`s, and a custom `Clock` would need its own instant type. It's less standard, but simpler for one app. |
+| 2026-11-02 | Let the mock decide when offers expire | A backend would own this rule, so the app only displays the countdown. A slow connection could show the expiry late, and the expiry rule still rejects a late response. |
+| 2026-11-02 | Add conformances and annotations only when the code uses or requires them | Every line stays justifiable, and the code doesn't suggest uses that don't exist. Some, such as `Hashable` for navigation, may have to be added back later, and the compiler shows where. `Identifiable` is the exception: every type with an identity declares it, even before anything relies on it, because it describes what the type is. |
+| 2026-11-02 | Accept and decline take an offer ID | A driver can't take a ride they never saw if the offer changes just before a tap. Views must pass the ID of the offer on screen. |
+| 2026-11-02 | Treat declining an ended offer as success | The driver wanted to not take the ride, so an error would be misleading. The app can't tell the driver that the offer had already ended. |
+| 2026-11-02 | Accept that a large system clock change can delay offer expiry in the mock | Expiry compares wall-clock dates, so moving the clock back delays expiry by that amount. Fixing this needs monotonic deadlines, which aren't worth it for a mock. A real backend would own expiry. |
 | 2026-11-02 | Run tests in Debug only | `@testable import` needs testability, which is on only for Debug. Optimizer-only bugs wouldn't be caught, which is acceptable for this project's size. |
 
 ## Open questions

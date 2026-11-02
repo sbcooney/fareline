@@ -1,5 +1,5 @@
 /// Something that happens to a driver and can change their availability.
-enum DriverEvent: CaseIterable, Hashable, Sendable {
+enum DriverEvent: CaseIterable, Sendable {
     /// The driver chose to start taking rides.
     case wentOnline
 

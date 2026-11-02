@@ -1,5 +1,5 @@
 /// The outcome of a ride offer.
-enum RideOfferStatus: CaseIterable, Hashable, Sendable {
+enum RideOfferStatus: Sendable {
     /// The offer is waiting for a response.
     case pending
 

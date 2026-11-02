@@ -13,7 +13,7 @@
 /// | `onRide`    | `rideEnded`    | `available` |
 ///
 /// A driver on a ride can't go offline until the ride ends.
-enum DriverAvailability: CaseIterable, Hashable, Sendable {
+enum DriverAvailability: CaseIterable, Sendable {
     case offline
     case available
     case onRide
