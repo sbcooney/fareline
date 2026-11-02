@@ -18,6 +18,26 @@ final class DriverStore {
     /// The most recent failed action, if the driver hasn't dismissed it.
     private(set) var lastError: RideServiceError?
 
+    /// Whether an error is waiting to be shown. Setting this to `false` dismisses the error.
+    var isShowingError: Bool {
+        get { lastError != nil }
+        set {
+            if newValue == false {
+                dismissError()
+            }
+        }
+    }
+
+    /// Whether the driver can change their availability now.
+    ///
+    /// This only decides what the control offers. The service still enforces the rule.
+    var canChangeAvailability: Bool {
+        guard isPerformingAction == false, let availability = session?.driver.availability else {
+            return false
+        }
+        return availability != .onRide
+    }
+
     private let service: any RideService
 
     init(service: any RideService) {

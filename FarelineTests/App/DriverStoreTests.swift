@@ -9,18 +9,7 @@ struct DriverStoreTests {
     private let ride = TestFixtures.ride()
 
     private func makeService(responseDelay: TimeInterval = 0) -> MockRideService {
-        MockRideService(
-            configuration: MockRideServiceConfiguration(
-                offerDelay: nil,
-                offerLifetime: 30,
-                responseDelay: responseDelay
-            ),
-            timeSource: time,
-            driver: Driver(
-                id: TestFixtures.driverID,
-                name: PersonNameComponents(givenName: "Grace", familyName: "Hopper")
-            )
-        )
+        .forStoreTests(time: time, responseDelay: responseDelay)
     }
 
     /// Returns a store whose driver has a pending offer for the fixture ride.
@@ -52,13 +41,6 @@ struct DriverStoreTests {
             activeRide: nil,
             completedRides: []
         )
-    }
-
-    /// Waits for a condition on the store, without relying on delays.
-    private func waitUntil(_ condition: @escaping @MainActor () -> Bool) async {
-        for await isMet in Observations(condition) where isMet {
-            return
-        }
     }
 
     @Test func startReceivesSessionsFromTheService() async {
