@@ -16,7 +16,7 @@ Work proceeds top to bottom. Each row merges as its own PR and leaves the app wo
 
 | Status | Issue | Work | Area |
 |---|---|---|---|
-| ⬜ | #1 | Project setup | Setup |
+| ✅ | #1 | Project setup | Setup |
 | ⬜ | #2 | Domain models and state machines | Foundation |
 | ⬜ | #3 | Mock ride service and app store | Foundation |
 | ⬜ | #4 | Change availability status | Required |
@@ -40,7 +40,7 @@ Issue numbers follow the order they were filed, not the order of work. Status ke
 
 - **Platform:** iOS 27.2, built with Xcode 27.2 and Swift 6.4.
 - **UI:** SwiftUI, avoiding UIKit.
-- **Concurrency:** Swift Concurrency with strict checking. No `@unchecked Sendable` to silence diagnostics.
+- **Concurrency:** Swift Concurrency in Swift 6 language mode, with complete strict checking. Types aren't main-actor isolated by default. No `@unchecked Sendable` to silence diagnostics.
 - **Tests:** Swift Testing for unit and integration tests.
 - **Dependencies:** none beyond Apple frameworks. SwiftLint is a development tool only.
 
@@ -78,7 +78,7 @@ A single `@Observable`, `@MainActor` store is the source of truth. Views render 
 
 ### Project structure
 
-Folders follow features, with one primary type per file:
+Folders follow features, with one primary type per file. Each folder is created when its first file is added:
 
 ```
 Fareline/
@@ -87,8 +87,11 @@ Fareline/
   Services/    RideService protocol and mock implementation
   Persistence/ Local storage
   Features/    Availability, Offers, CurrentRide, RideHistory, ...
+  Resources/   Asset catalog
 FarelineTests/
 ```
+
+The Xcode project uses folder-synced groups, so files added to these folders join their target automatically.
 
 ## Rider Companion considerations
 
@@ -141,6 +144,9 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 | 2026-11-02 | Separate ride state from driver state | Takes slightly more modeling than one combined state machine. It avoids mixing unrelated concerns and matches what a rider app would need. |
 | 2026-11-02 | File every extended feature, built after the required ones | All are intended, but together they may exceed the time-box. Separate PRs and a fixed order mean stopping early still leaves a finished app. Offline goes last among the features because it touches the most code. |
 | 2026-11-02 | Treat the Rider Companion as documentation and an audit | The assignment describes it as a possible future app, so building for it now would be speculative. |
+| 2026-11-02 | Don't make types main-actor isolated by default | Domain types and the mock service shouldn't be tied to the main actor, so only UI-facing types are marked `@MainActor`. This takes more annotations than Xcode's newer default, but makes isolation explicit. |
+| 2026-11-02 | Run SwiftLint separately, not as a build phase | Reviewers can build without installing SwiftLint, and script sandboxing stays on. In exchange, lint violations don't appear during builds, so linting has to be run deliberately. |
+| 2026-11-02 | Support iPhone only | The assignment describes a driver's flow, and limiting devices keeps layout work focused. iPad would need its own layout pass. |
 
 ## Open questions
 
