@@ -12,7 +12,7 @@ Fareline is a simplified rideshare app for drivers, built in Swift and SwiftUI f
 
 ## Status
 
-Work proceeds top to bottom. Each row merges as its own PR and leaves the app working, so work can stop after any row and still produce a complete submission. Anything unfinished moves to "What I'd do with more time" in the README. The exception is #5, which needs #6: until then a driver sees offers but can't respond to them.
+Work proceeds top to bottom. Each row merges as its own PR and leaves the app working, so work can stop after any row and still produce a complete submission. Anything unfinished moves to "What I'd do with more time" in the README. The exception is #5 through #7, which belong together: until #7, a driver who accepts a ride can't finish it.
 
 | Status | Issue | Work | Area |
 |---|---|---|---|
@@ -21,7 +21,7 @@ Work proceeds top to bottom. Each row merges as its own PR and leaves the app wo
 | ✅ | #3 | Mock ride service and driver store | Foundation |
 | ✅ | #4 | Change availability status | Required |
 | ✅ | #5 | View an incoming ride request | Required |
-| ⬜ | #6 | Accept or decline a request | Required |
+| ✅ | #6 | Accept or decline a request | Required |
 | ⬜ | #7 | View current ride information | Required |
 | ⬜ | #8 | Review past rides | Required |
 | ⬜ | #9 | Error, empty, and accessibility states | Quality |
