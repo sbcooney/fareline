@@ -5,7 +5,7 @@ extension RideServiceError {
     var message: LocalizedStringResource {
         switch self {
         case .networkUnavailable:
-            "Fareline couldn't connect. Nothing changed, so you can try again."
+            "Fareline couldn't connect. Check your connection and try again."
         case .offerNoLongerAvailable:
             "This ride offer is no longer available."
         case .rideNoLongerAvailable:

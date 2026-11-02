@@ -7,15 +7,17 @@ struct RootView: View {
     var body: some View {
         @Bindable var store = store
 
-        if let session = store.session {
-            AvailabilityView(availability: session.driver.availability)
-                .alert("Something Went Wrong", isPresented: $store.isShowingError, presenting: store.lastError) { _ in
-                    Button("OK", role: .cancel) {}
-                } message: { error in
-                    Text(error.message)
-                }
-        } else {
-            ProgressView("Connecting")
+        Group {
+            if let session = store.session {
+                AvailabilityView(availability: session.driver.availability)
+            } else {
+                ProgressView("Connecting")
+            }
+        }
+        .alert("Something Went Wrong", isPresented: $store.isShowingError, presenting: store.lastError) { _ in
+            Button("OK", role: .cancel) {}
+        } message: { error in
+            Text(error.message)
         }
     }
 }

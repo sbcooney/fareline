@@ -21,17 +21,25 @@ struct AvailabilityButton: View {
         .buttonStyle(.borderedProminent)
         .controlSize(.large)
         .disabled(store.canChangeAvailability == false)
+        // VoiceOver can skip fully transparent text, so the name is set explicitly.
+        .accessibilityLabel(Text(availability.actionTitle))
         .accessibilityValue(store.isPerformingAction ? Text("Updating") : Text(""))
     }
 
+    /// Requests the change this button's title describes.
+    ///
+    /// This uses the status the button was drawn with rather than the latest one, so that a tap can
+    /// never do the opposite of what the driver read.
     private func changeAvailability() {
         Task {
-            await store.changeAvailability()
+            switch availability {
+            case .offline:
+                await store.goOnline()
+            case .available:
+                await store.goOffline()
+            case .onRide:
+                break
+            }
         }
     }
-}
-
-#Preview {
-    AvailabilityButton(availability: .offline)
-        .environment(DriverStore(service: MockRideService()))
 }

@@ -5,17 +5,27 @@ struct AvailabilityView: View {
     let availability: DriverAvailability
 
     var body: some View {
-        AvailabilityStatusView(availability: availability)
-            .padding()
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .safeAreaInset(edge: .bottom) {
-                AvailabilityButton(availability: availability)
-                    .padding()
-            }
+        // Scrolling keeps the status readable at the largest text sizes.
+        ScrollView {
+            AvailabilityStatusView(availability: availability)
+                .padding()
+                .frame(maxWidth: .infinity)
+        }
+        .defaultScrollAnchor(.center)
+        .scrollBounceBehavior(.basedOnSize)
+        .safeAreaInset(edge: .bottom) {
+            AvailabilityButton(availability: availability)
+                .padding()
+        }
     }
 }
 
 #Preview {
+    @Previewable @State var store = DriverStore(service: MockRideService())
+
     AvailabilityView(availability: .offline)
-        .environment(DriverStore(service: MockRideService()))
+        .environment(store)
+        .task {
+            await store.start()
+        }
 }

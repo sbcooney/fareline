@@ -73,18 +73,6 @@ final class DriverStore {
         }
     }
 
-    /// Switches between offline and available. This does nothing during a ride.
-    func changeAvailability() async {
-        switch session?.driver.availability {
-        case .offline:
-            await goOnline()
-        case .available:
-            await goOffline()
-        case .onRide, nil:
-            break
-        }
-    }
-
     /// Accepts the offer the driver is looking at.
     ///
     /// This takes an ID rather than using the current offer, because the offer can change between

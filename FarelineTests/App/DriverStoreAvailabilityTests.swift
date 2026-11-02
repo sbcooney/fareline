@@ -7,21 +7,6 @@ import Testing
 struct DriverStoreAvailabilityTests {
     private let time = ManualTimeSource()
 
-    private func makeService(responseDelay: TimeInterval = 0) -> MockRideService {
-        MockRideService(
-            configuration: MockRideServiceConfiguration(
-                offerDelay: nil,
-                offerLifetime: 30,
-                responseDelay: responseDelay
-            ),
-            timeSource: time,
-            driver: Driver(
-                id: TestFixtures.driverID,
-                name: PersonNameComponents(givenName: "Grace", familyName: "Hopper")
-            )
-        )
-    }
-
     /// Returns a store whose driver has accepted a ride and is on it.
     private func makeStoreOnARide(service: MockRideService) async throws -> DriverStore {
         let ride = TestFixtures.ride()
@@ -37,37 +22,27 @@ struct DriverStoreAvailabilityTests {
         return store
     }
 
-    private func waitUntil(_ condition: @escaping @MainActor () -> Bool) async {
-        for await isMet in Observations(condition) where isMet {
-            return
-        }
-    }
-
-    @Test func changingSwitchesBetweenOfflineAndAvailable() async {
-        let store = DriverStore(service: makeService())
-        await store.goOnline()
-
-        await store.changeAvailability()
-        #expect(store.session?.driver.availability == .offline)
-
-        await store.changeAvailability()
-        #expect(store.session?.driver.availability == .available)
+    /// Lets a request's simulated response delay finish.
+    private func finish(_ request: Task<Void, Never>) async {
+        await time.waitForSleeper()
+        time.advance(by: 1)
+        await request.value
     }
 
     @Test func failedChangeKeepsTheStatusAndShowsAnError() async {
-        let service = makeService()
+        let service = MockRideService.forStoreTests(time: time)
         let store = DriverStore(service: service)
         await store.goOnline()
         await service.failNextRequest(with: .networkUnavailable)
 
-        await store.changeAvailability()
+        await store.goOffline()
 
         #expect(store.session?.driver.availability == .available)
         #expect(store.isShowingError)
     }
 
     @Test func dismissingTheAlertClearsTheError() async {
-        let service = makeService()
+        let service = MockRideService.forStoreTests(time: time)
         let store = DriverStore(service: service)
         await service.failNextRequest(with: .networkUnavailable)
         await store.goOnline()
@@ -78,33 +53,27 @@ struct DriverStoreAvailabilityTests {
     }
 
     @Test func availabilityCantChangeBeforeTheFirstSession() {
-        let store = DriverStore(service: makeService())
+        let store = DriverStore(service: MockRideService.forStoreTests(time: time))
 
         #expect(store.canChangeAvailability == false)
     }
 
     @Test func availabilityCantChangeWhileARequestIsInProgress() async {
-        let store = DriverStore(service: makeService(responseDelay: 1))
+        let store = DriverStore(service: MockRideService.forStoreTests(time: time, responseDelay: 1))
+        await finish(Task { await store.goOnline() })
+        #expect(store.canChangeAvailability)
 
-        let request = Task { await store.goOnline() }
+        let request = Task { await store.goOffline() }
         await waitUntil { store.isPerformingAction }
         #expect(store.canChangeAvailability == false)
 
-        await time.waitForSleeper()
-        time.advance(by: 1)
-        await request.value
-
+        await finish(request)
         #expect(store.canChangeAvailability)
     }
 
     @Test func availabilityCantChangeDuringARide() async throws {
-        let store = try await makeStoreOnARide(service: makeService())
-        let original = store.session
-
-        await store.changeAvailability()
+        let store = try await makeStoreOnARide(service: .forStoreTests(time: time))
 
         #expect(store.canChangeAvailability == false)
-        #expect(store.session == original)
-        #expect(store.lastError == nil)
     }
 }
