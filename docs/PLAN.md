@@ -17,7 +17,7 @@ Work proceeds top to bottom. Each row merges as its own PR and leaves the app wo
 | Status | Issue | Work | Area |
 |---|---|---|---|
 | ✅ | #1 | Project setup | Setup |
-| ⬜ | #2 | Domain models and state machines | Foundation |
+| ✅ | #2 | Domain models and state machines | Foundation |
 | ⬜ | #3 | Mock ride service and app store | Foundation |
 | ⬜ | #4 | Change availability status | Required |
 | ⬜ | #5 | View an incoming ride request | Required |
@@ -67,7 +67,9 @@ A ride can also become `cancelled` before it starts.
 
 **Driver availability** describes only the driver: `offline`, `available`, or `onRide`.
 
-**Ride offers** connect the two. An offer is a proposal of one ride to one driver, with an expiry time. Declining or ignoring an offer ends the offer, not the ride, which stays `awaitingDriver`. This also lets the rider queue and self-assign reuse the same model.
+**Ride offers** connect the two. An offer is a proposal of one ride to one driver, with an expiry time. It moves from `pending` to `accepted`, `declined`, or `expired`. Declining or ignoring an offer ends the offer, not the ride, which stays `awaitingDriver`. This also lets the rider queue and self-assign reuse the same model.
+
+Each type enforces only its own rules. The store (#3) coordinates changes across a ride, a driver, and an offer.
 
 ### State management
 
@@ -176,6 +178,9 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 | 2026-11-02 | Run SwiftLint separately, not as a build phase | Reviewers can build without installing SwiftLint, and script sandboxing stays on. In exchange, lint violations don't appear during builds, so linting has to be run deliberately. |
 | 2026-11-02 | Support iPhone only | The assignment describes a driver's flow, and limiting devices keeps layout work focused. iPad would need its own layout pass. |
 | 2026-11-02 | Support portrait only | Avoids layout and testing work on every screen. In exchange, the app doesn't suit a phone mounted sideways. |
+| 2026-11-02 | Pass times into domain methods, rather than reading the clock | Keeps expiry and completion rules deterministic and easy to test, including exact boundaries. Callers must supply a time on each call. |
+| 2026-11-02 | Treat a response at the exact expiry time as too late | Gives one clear boundary, so an offer can't be both accepted and expired. A tap at the last instant loses, which the UI must explain. |
+| 2026-11-02 | Use typed throws for domain rules | Each rule has one known error type, so callers and tests can handle exact cases. It's less flexible if a method later needs to throw other errors, which is unlikely for pure rules. |
 | 2026-11-02 | Run tests in Debug only | `@testable import` needs testability, which is on only for Debug. Optimizer-only bugs wouldn't be caught, which is acceptable for this project's size. |
 
 ## Open questions
