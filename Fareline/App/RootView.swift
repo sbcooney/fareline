@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The app's top-level view, which chooses a screen and shows errors from any driver action.
+/// The app's top-level view, which provides navigation and shows errors from any driver action.
 struct RootView: View {
     @Environment(DriverStore.self) private var store
 
@@ -8,20 +8,8 @@ struct RootView: View {
         @Bindable var store = store
 
         NavigationStack {
-            Group {
-                if let session = store.session {
-                    if let offer = session.pendingOffer {
-                        OfferView(offer: offer)
-                    } else {
-                        AvailabilityView(availability: session.driver.availability)
-                    }
-                } else {
-                    ProgressView("Connecting")
-                }
-            }
-            .navigationDestination(for: AppDestination.self) { destination in
-                AppDestinationView(destination: destination)
-            }
+            CurrentScreenView(session: store.session)
+                .navigationDestination(for: AppDestination.self, destination: AppDestinationView.init)
         }
         .alert("Something Went Wrong", isPresented: $store.isShowingError, presenting: store.lastError) { _ in
             Button("OK", role: .cancel) {}
