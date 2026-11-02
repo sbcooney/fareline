@@ -207,6 +207,7 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 Decide these in the issue noted, then record the outcome in the decision log.
 
 - **#8:** How should completed rides be stored? Start by comparing a `Codable` JSON file with SwiftData, keeping in mind what #15 will need.
+- **#9:** Should an offer take over the whole screen, or should the driver choose to open it, such as from a banner? This revisits the decision to show offers as the whole screen.
 - **#15:** Which actions can queue offline, and what happens when a queued action conflicts with the server state on reconnect?
 
 ## Deliverables checklist
