@@ -16,7 +16,7 @@ Work proceeds top to bottom. Each row merges as its own PR and leaves the app wo
 
 | Status | Issue | Work | Area |
 |---|---|---|---|
-| ⬜ | #1 | Project setup | Setup |
+| ✅ | #1 | Project setup | Setup |
 | ⬜ | #2 | Domain models and state machines | Foundation |
 | ⬜ | #3 | Mock ride service and app store | Foundation |
 | ⬜ | #4 | Change availability status | Required |
@@ -25,6 +25,7 @@ Work proceeds top to bottom. Each row merges as its own PR and leaves the app wo
 | ⬜ | #7 | View current ride information | Required |
 | ⬜ | #8 | Review past rides | Required |
 | ⬜ | #9 | Error, empty, and accessibility states | Quality |
+| ⬜ | #19 | App icon | Quality |
 | ⬜ | #10 | README and visual reference | Deliverable |
 | ⬜ | #12 | See a queue of waiting riders | Extended |
 | ⬜ | #13 | Self-assign to a ride | Extended |
@@ -40,7 +41,7 @@ Issue numbers follow the order they were filed, not the order of work. Status ke
 
 - **Platform:** iOS 27.2, built with Xcode 27.2 and Swift 6.4.
 - **UI:** SwiftUI, avoiding UIKit.
-- **Concurrency:** Swift Concurrency with strict checking. No `@unchecked Sendable` to silence diagnostics.
+- **Concurrency:** Swift Concurrency in Swift 6 language mode, with complete strict checking. Types aren't main-actor isolated by default. No `@unchecked Sendable` to silence diagnostics.
 - **Tests:** Swift Testing for unit and integration tests.
 - **Dependencies:** none beyond Apple frameworks. SwiftLint is a development tool only.
 
@@ -78,7 +79,7 @@ A single `@Observable`, `@MainActor` store is the source of truth. Views render 
 
 ### Project structure
 
-Folders follow features, with one primary type per file:
+Folders follow features, with one primary type per file. Each folder is created when its first file is added:
 
 ```
 Fareline/
@@ -87,8 +88,11 @@ Fareline/
   Services/    RideService protocol and mock implementation
   Persistence/ Local storage
   Features/    Availability, Offers, CurrentRide, RideHistory, ...
+  Resources/   Asset catalog
 FarelineTests/
 ```
+
+The Xcode project uses folder-synced groups, so files added to these folders join their target automatically.
 
 ## Rider Companion considerations
 
@@ -107,8 +111,34 @@ Every issue must meet all of these before it closes:
 - [ ] New logic has Swift Testing coverage.
 - [ ] Types, protocols, and non-obvious methods have `///` documentation.
 - [ ] Inline comments explain why, not what.
-- [ ] The relevant Swift skills have reviewed the changes: `swiftui-pro`, `swift-concurrency-pro`, `swift-testing-pro`.
+- [ ] `swiftlint lint` reports no violations.
+- [ ] The PR description names the Swift skills that reviewed the changes and what changed as a result.
+- [ ] `/code-review` has run on the PR, and its findings are fixed or have a recorded reason for being left.
 - [ ] This plan is updated.
+
+## Development flow
+
+Each issue follows the same steps:
+
+1. **While writing:** load the relevant Swift skills before starting, not just at the end.
+2. **Before the PR:** review the changes against those skills' checklists, loading only the relevant reference files. Fix real problems and list unrelated modernization separately.
+3. **On the PR:** run `/code-review` to check for correctness bugs. Run `/simplify` after larger changes, as a guard against over-engineering.
+4. **Before merging:** a person reads and questions the code. Every part of it has to be explainable at the onsite.
+
+| Issue | `swiftui-pro` | `swift-concurrency-pro` | `swift-testing-pro` |
+|---|---|---|---|
+| #2 Domain models | | Light (`Sendable`) | Main |
+| #3 Mock service and store | Data flow only | Main | Main |
+| #4–#8 Required features | Main | Where async work is involved | Yes |
+| #9 Error and accessibility states | Main (accessibility, resizing, localization) | | |
+| #11, #12, #14 Map and queues | Main | Live updates | Yes |
+| #13 Self-assign | Main | Main (the conflict case) | Main |
+| #15 Offline | Yes | Main (replay and ordering) | Main |
+
+Skill findings are suggestions:
+
+- If a skill suggests an API that Xcode 27.2 rejects, the toolchain wins.
+- Skip a fix that adds complexity for little benefit, and record any significant skip in the decision log.
 
 ## Keeping this plan current
 
@@ -128,6 +158,7 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 - There is one driver, with no sign-in.
 - Locations, riders, and other drivers come from fixed mock data.
 - A driver handles one ride at a time.
+- The app runs in portrait only, not upside down or in landscape, even though drivers may mount phones sideways.
 - *Provisional:* a driver can't go offline during an active ride.
 - *Provisional:* an offer expires if ignored, and the driver stays available.
 
@@ -141,6 +172,11 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 | 2026-11-02 | Separate ride state from driver state | Takes slightly more modeling than one combined state machine. It avoids mixing unrelated concerns and matches what a rider app would need. |
 | 2026-11-02 | File every extended feature, built after the required ones | All are intended, but together they may exceed the time-box. Separate PRs and a fixed order mean stopping early still leaves a finished app. Offline goes last among the features because it touches the most code. |
 | 2026-11-02 | Treat the Rider Companion as documentation and an audit | The assignment describes it as a possible future app, so building for it now would be speculative. |
+| 2026-11-02 | Don't make types main-actor isolated by default | Domain types and the mock service shouldn't be tied to the main actor, so only UI-facing types are marked `@MainActor`. This takes more annotations than Xcode's newer default, but makes isolation explicit. |
+| 2026-11-02 | Run SwiftLint separately, not as a build phase | Reviewers can build without installing SwiftLint, and script sandboxing stays on. In exchange, lint violations don't appear during builds, so linting has to be run deliberately. |
+| 2026-11-02 | Support iPhone only | The assignment describes a driver's flow, and limiting devices keeps layout work focused. iPad would need its own layout pass. |
+| 2026-11-02 | Support portrait only | Avoids layout and testing work on every screen. In exchange, the app doesn't suit a phone mounted sideways. |
+| 2026-11-02 | Run tests in Debug only | `@testable import` needs testability, which is on only for Debug. Optimizer-only bugs wouldn't be caught, which is acceptable for this project's size. |
 
 ## Open questions
 
@@ -153,6 +189,7 @@ Decide these in the issue noted, then record the outcome in the decision log.
 
 - [ ] Public GitHub repository, with the link sent to the recruiting contact
 - [ ] Clear build and run instructions
+- [ ] Clean-clone check passed: the public repo clones and runs using only the README (see #17)
 - [ ] One screenshot or a short recording of the primary flow
 - [ ] README design section covering:
   - [ ] Architecture and state management
