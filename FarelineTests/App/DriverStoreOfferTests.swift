@@ -44,14 +44,16 @@ struct DriverStoreOfferTests {
         await waitUntil { store.session?.pendingOffer != nil }
         let offerID = try #require(store.session?.pendingOffer?.id)
 
-        // The accept is sent just before the expiry, and its response arrives just after.
+        // The accept is sent just before the expiry. The two timers are advanced separately, so the offer
+        // always expires first and the test always takes the same path.
         await time.waitForSleeper()
         time.advance(by: 29.5)
         let accepting = Task { await store.acceptOffer(id: offerID) }
         await time.waitForSleeper(count: 2)
-        time.advance(by: 1)
-        await accepting.value
+        time.advance(by: 0.5)
         await waitUntil { store.session?.pendingOffer == nil }
+        time.advance(by: 0.5)
+        await accepting.value
 
         #expect(store.lastError == .offerNoLongerAvailable)
         #expect(store.session?.activeRide == nil)

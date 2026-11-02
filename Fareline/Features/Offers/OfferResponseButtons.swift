@@ -17,12 +17,14 @@ struct OfferResponseButtons: View {
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.bordered)
+            .accessibilityValue(store.isPerformingAction ? Text("Updating") : Text(""))
 
             Button(action: accept) {
                 Text("Accept")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
+            .accessibilityValue(store.isPerformingAction ? Text("Updating") : Text(""))
         }
         .controlSize(.large)
         .disabled(store.isPerformingAction)

@@ -33,6 +33,8 @@ struct OfferView: View {
 }
 
 #Preview {
+    @Previewable @State var store = DriverStore(service: MockRideService())
+
     NavigationStack {
         OfferView(
             offer: RideOffer(
@@ -43,5 +45,5 @@ struct OfferView: View {
             )
         )
     }
-    .environment(DriverStore(service: MockRideService()))
+    .environment(store)
 }
