@@ -32,14 +32,6 @@ struct RideOfferTests {
         #expect(offer.status == .declined)
     }
 
-    @Test func decliningLeavesTheRideAvailable() throws {
-        var offer = TestFixtures.offer()
-
-        try offer.decline(at: beforeExpiry)
-
-        #expect(offer.ride.status == .awaitingDriver)
-    }
-
     /// Covers a tap that arrives just as the countdown ends.
     @Test func responseAtExpiryIsTooLate() {
         var offer = TestFixtures.offer()

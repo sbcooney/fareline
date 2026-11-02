@@ -3,7 +3,7 @@ import Foundation
 /// A person who gives rides.
 ///
 /// A new driver starts `offline`, and their availability changes only through ``apply(_:)``.
-struct Driver: Identifiable, Hashable, Codable, Sendable {
+struct Driver: Identifiable, Hashable, Sendable {
     let id: UUID
     let name: PersonNameComponents
 

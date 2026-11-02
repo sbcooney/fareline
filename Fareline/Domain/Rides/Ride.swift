@@ -5,7 +5,7 @@ import Foundation
 /// A new ride always starts as `awaitingDriver`. Its status, driver, and completion time change only
 /// through ``apply(_:)``, so a ride can't be in a state its lifecycle doesn't allow, such as
 /// `driverEnRoute` with no driver.
-struct Ride: Identifiable, Hashable, Codable, Sendable {
+struct Ride: Identifiable, Hashable, Sendable {
     let id: UUID
     let rider: Rider
     let pickup: Place

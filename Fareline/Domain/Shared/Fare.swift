@@ -1,7 +1,7 @@
 import Foundation
 
 /// The price of a ride.
-struct Fare: Hashable, Codable, Sendable {
+struct Fare: Hashable, Sendable {
     /// The amount, stored as a `Decimal` because binary floating point can't represent all currency values exactly.
     let amount: Decimal
 

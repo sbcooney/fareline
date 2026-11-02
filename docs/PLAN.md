@@ -181,6 +181,8 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 | 2026-11-02 | Pass times into domain methods, rather than reading the clock | Keeps expiry and completion rules deterministic and easy to test, including exact boundaries. Callers must supply a time on each call. |
 | 2026-11-02 | Treat a response at the exact expiry time as too late | Gives one clear boundary, so an offer can't be both accepted and expired. A tap at the last instant loses, which the UI must explain. |
 | 2026-11-02 | Use typed throws for domain rules | Each rule has one known error type, so callers and tests can handle exact cases. It's less flexible if a method later needs to throw other errors, which is unlikely for pure rules. |
+| 2026-11-02 | Leave `Codable` off domain types until #8 | Synthesized decoding would bypass the domain rules, and the storage choice isn't made yet. #8 adds whatever its choice needs, with validation if it uses `Codable`. |
+| 2026-11-02 | Keep `default:` in transition switches | Each table stays short and readable, and an unlisted pair is safely rejected. In exchange, the compiler doesn't force a decision when a case is added, so a new valid transition has to be added deliberately. |
 | 2026-11-02 | Run tests in Debug only | `@testable import` needs testability, which is on only for Debug. Optimizer-only bugs wouldn't be caught, which is acceptable for this project's size. |
 
 ## Open questions

@@ -2,8 +2,10 @@ import Testing
 @testable import Fareline
 
 struct RideStatusTests {
-    /// Every status is paired with every event, so adding a case can't silently skip coverage.
-    /// The expected result is written out separately from the production switch to catch mistakes in it.
+    /// Pairs every status with every event in `TestFixtures.rideEvents`.
+    ///
+    /// New statuses are covered automatically. `RideEvent` has associated values and can't be `CaseIterable`,
+    /// so new events must also be added to that list.
     @Test(arguments: RideStatus.allCases, TestFixtures.rideEvents)
     func transitionMatchesTheLifecycle(status: RideStatus, event: RideEvent) throws {
         if let expected = expectedStatus(from: status, on: event) {

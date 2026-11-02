@@ -53,14 +53,4 @@ struct RideTests {
         }
         #expect(ride.driverID == TestFixtures.driverID)
     }
-
-    @Test func rideSurvivesEncoding() throws {
-        var ride = TestFixtures.ride()
-        try ride.apply(.driverAssigned(driverID: TestFixtures.driverID))
-
-        let data = try JSONEncoder().encode(ride)
-        let decoded = try JSONDecoder().decode(Ride.self, from: data)
-
-        #expect(decoded == ride)
-    }
 }
