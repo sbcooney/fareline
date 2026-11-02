@@ -159,6 +159,7 @@ Decide these in the issue noted, then record the outcome in the decision log.
 
 - [ ] Public GitHub repository, with the link sent to the recruiting contact
 - [ ] Clear build and run instructions
+- [ ] Clean-clone check passed: the public repo clones and runs using only the README (see #17)
 - [ ] One screenshot or a short recording of the primary flow
 - [ ] README design section covering:
   - [ ] Architecture and state management
