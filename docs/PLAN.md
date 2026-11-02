@@ -111,8 +111,34 @@ Every issue must meet all of these before it closes:
 - [ ] New logic has Swift Testing coverage.
 - [ ] Types, protocols, and non-obvious methods have `///` documentation.
 - [ ] Inline comments explain why, not what.
-- [ ] The relevant Swift skills have reviewed the changes: `swiftui-pro`, `swift-concurrency-pro`, `swift-testing-pro`.
+- [ ] `swiftlint lint` reports no violations.
+- [ ] The PR description names the Swift skills that reviewed the changes and what changed as a result.
+- [ ] `/code-review` has run on the PR, and its findings are fixed or have a recorded reason for being left.
 - [ ] This plan is updated.
+
+## Development flow
+
+Each issue follows the same steps:
+
+1. **While writing:** load the relevant Swift skills before starting, not just at the end.
+2. **Before the PR:** review the changes against those skills' checklists, loading only the relevant reference files. Fix real problems and list unrelated modernization separately.
+3. **On the PR:** run `/code-review` to check for correctness bugs. Run `/simplify` after larger changes, as a guard against over-engineering.
+4. **Before merging:** a person reads and questions the code. Every part of it has to be explainable at the onsite.
+
+| Issue | `swiftui-pro` | `swift-concurrency-pro` | `swift-testing-pro` |
+|---|---|---|---|
+| #2 Domain models | | Light (`Sendable`) | Main |
+| #3 Mock service and store | Data flow only | Main | Main |
+| #4–#8 Required features | Main | Where async work is involved | Yes |
+| #9 Error and accessibility states | Main (accessibility, resizing, localization) | | |
+| #11, #12, #14 Map and queues | Main | Live updates | Yes |
+| #13 Self-assign | Main | Main (the conflict case) | Main |
+| #15 Offline | Yes | Main (replay and ordering) | Main |
+
+Skill findings are suggestions:
+
+- If a skill suggests an API that Xcode 27.2 rejects, the toolchain wins.
+- Skip a fix that adds complexity for little benefit, and record any significant skip in the decision log.
 
 ## Keeping this plan current
 
@@ -132,6 +158,7 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 - There is one driver, with no sign-in.
 - Locations, riders, and other drivers come from fixed mock data.
 - A driver handles one ride at a time.
+- The app runs in portrait only, not upside down or in landscape, even though drivers may mount phones sideways.
 - *Provisional:* a driver can't go offline during an active ride.
 - *Provisional:* an offer expires if ignored, and the driver stays available.
 
@@ -148,6 +175,8 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 | 2026-11-02 | Don't make types main-actor isolated by default | Domain types and the mock service shouldn't be tied to the main actor, so only UI-facing types are marked `@MainActor`. This takes more annotations than Xcode's newer default, but makes isolation explicit. |
 | 2026-11-02 | Run SwiftLint separately, not as a build phase | Reviewers can build without installing SwiftLint, and script sandboxing stays on. In exchange, lint violations don't appear during builds, so linting has to be run deliberately. |
 | 2026-11-02 | Support iPhone only | The assignment describes a driver's flow, and limiting devices keeps layout work focused. iPad would need its own layout pass. |
+| 2026-11-02 | Support portrait only | Avoids layout and testing work on every screen. In exchange, the app doesn't suit a phone mounted sideways. |
+| 2026-11-02 | Run tests in Debug only | `@testable import` needs testability, which is on only for Debug. Optimizer-only bugs wouldn't be caught, which is acceptable for this project's size. |
 
 ## Open questions
 
