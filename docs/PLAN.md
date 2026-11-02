@@ -25,6 +25,7 @@ Work proceeds top to bottom. Each row merges as its own PR and leaves the app wo
 | ⬜ | #7 | View current ride information | Required |
 | ⬜ | #8 | Review past rides | Required |
 | ⬜ | #9 | Error, empty, and accessibility states | Quality |
+| ⬜ | #19 | App icon | Quality |
 | ⬜ | #10 | README and visual reference | Deliverable |
 | ⬜ | #12 | See a queue of waiting riders | Extended |
 | ⬜ | #13 | Self-assign to a ride | Extended |
