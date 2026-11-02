@@ -18,7 +18,7 @@ final class DriverStore {
     /// The most recent failed action, if the driver hasn't dismissed it.
     private(set) var lastError: RideServiceError?
 
-    @ObservationIgnored private let service: any RideService
+    private let service: any RideService
 
     init(service: any RideService) {
         self.service = service
