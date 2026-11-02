@@ -7,15 +7,20 @@ struct RootView: View {
     var body: some View {
         @Bindable var store = store
 
-        Group {
-            if let session = store.session {
-                if let offer = session.pendingOffer {
-                    OfferView(offer: offer)
+        NavigationStack {
+            Group {
+                if let session = store.session {
+                    if let offer = session.pendingOffer {
+                        OfferView(offer: offer)
+                    } else {
+                        AvailabilityView(availability: session.driver.availability)
+                    }
                 } else {
-                    AvailabilityView(availability: session.driver.availability)
+                    ProgressView("Connecting")
                 }
-            } else {
-                ProgressView("Connecting")
+            }
+            .navigationDestination(for: AppDestination.self) { destination in
+                AppDestinationView(destination: destination)
             }
         }
         .alert("Something Went Wrong", isPresented: $store.isShowingError, presenting: store.lastError) { _ in
