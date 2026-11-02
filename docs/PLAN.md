@@ -19,7 +19,7 @@ Work proceeds top to bottom. Each row merges as its own PR and leaves the app wo
 | ✅ | #1 | Project setup | Setup |
 | ✅ | #2 | Domain models and state machines | Foundation |
 | ✅ | #3 | Mock ride service and driver store | Foundation |
-| ⬜ | #4 | Change availability status | Required |
+| ✅ | #4 | Change availability status | Required |
 | ⬜ | #5 | View an incoming ride request | Required |
 | ⬜ | #6 | Accept or decline a request | Required |
 | ⬜ | #7 | View current ride information | Required |
@@ -73,7 +73,7 @@ Each type enforces only its own rules. The service coordinates changes across a 
 
 ### State management
 
-A single `@Observable`, `@MainActor` `DriverStore` is the app's source of truth. Views render its state and call its intent methods, such as `acceptPendingOffer()`. The store holds no business rules: it sends requests and replaces its state with the complete `DriverSession` the service returns. Sessions carry a version, so one that arrives late is ignored. Because every action goes through the store, offline support can later queue actions in one place.
+A single `@Observable`, `@MainActor` `DriverStore` is the app's source of truth. Views render its state and call its intent methods, such as `acceptOffer(id:)`. The store holds no business rules: it sends requests and replaces its state with the complete `DriverSession` the service returns. Sessions carry a version, so one that arrives late is ignored. Because every action goes through the store, offline support can later queue actions in one place.
 
 ### Services
 
@@ -195,6 +195,8 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 | 2026-11-02 | Accept and decline take an offer ID | A driver can't take a ride they never saw if the offer changes just before a tap. Views must pass the ID of the offer on screen. |
 | 2026-11-02 | Treat declining an ended offer as success | The driver wanted to not take the ride, so an error would be misleading. The app can't tell the driver that the offer had already ended. |
 | 2026-11-02 | Accept that a large system clock change can delay offer expiry in the mock | Expiry compares wall-clock dates, so moving the clock back delays expiry by that amount. Fixing this needs monotonic deadlines, which aren't worth it for a mock. A real backend would own expiry. |
+| 2026-11-02 | Don't adopt OpenSpec | Showing its worth would mean using it for every task with a custom workflow, and building that would take time from the app. In exchange, expected behavior stays in issues, tests, and PR descriptions rather than in one living spec. |
+| 2026-11-02 | Use a button rather than a `Toggle` to change availability | The change waits on the service, while a toggle suggests it has already happened. A button can show progress and only reports the new status once it's confirmed. |
 | 2026-11-02 | Run tests in Debug only | `@testable import` needs testability, which is on only for Debug. Optimizer-only bugs wouldn't be caught, which is acceptable for this project's size. |
 
 ## Open questions

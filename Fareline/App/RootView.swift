@@ -1,18 +1,31 @@
 import SwiftUI
 
-/// The app's top-level view.
-///
-/// This is a placeholder until the driver flow is built.
+/// The app's top-level view, which chooses a screen and shows errors from any driver action.
 struct RootView: View {
+    @Environment(DriverStore.self) private var store
+
     var body: some View {
-        ContentUnavailableView(
-            "Fareline",
-            systemImage: "car.fill",
-            description: Text("The driver flow is coming soon.")
-        )
+        @Bindable var store = store
+
+        if let session = store.session {
+            AvailabilityView(availability: session.driver.availability)
+                .alert("Something Went Wrong", isPresented: $store.isShowingError, presenting: store.lastError) { _ in
+                    Button("OK", role: .cancel) {}
+                } message: { error in
+                    Text(error.message)
+                }
+        } else {
+            ProgressView("Connecting")
+        }
     }
 }
 
 #Preview {
+    @Previewable @State var store = DriverStore(service: MockRideService())
+
     RootView()
+        .environment(store)
+        .task {
+            await store.start()
+        }
 }
