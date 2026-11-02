@@ -5,6 +5,9 @@ import Foundation
 /// An offer's outcome is separate from the ride's status. Declining or ignoring an offer ends the offer,
 /// while the ride stays `awaitingDriver` and can be offered to someone else or claimed from the rider queue.
 ///
+/// A ride is offered to one driver at a time. This type describes a single offer, so it doesn't enforce that
+/// rule. Whatever creates offers must not open a second one while a ride's current offer is pending.
+///
 /// Valid transitions:
 ///
 /// | From      | Action      | Requires              | To         |
