@@ -14,7 +14,7 @@ struct MockRideServiceTests {
         service = Self.makeService(time: time, offerDelay: nil)
     }
 
-    private static func makeService(time: ManualTimeSource, offerDelay: TimeInterval?) -> MockRideService {
+    private static func makeService(time: any TimeSource, offerDelay: TimeInterval?) -> MockRideService {
         MockRideService(
             configuration: MockRideServiceConfiguration(
                 offerDelay: offerDelay,
@@ -163,6 +163,22 @@ struct MockRideServiceTests {
         let session = await waitForSession { $0.pendingOffer == nil }
 
         #expect(session?.driver.availability == .available)
+        #expect(await service.ride(id: ride.id)?.status == .awaitingDriver)
+    }
+
+    /// If the expiry timer gave up after waking early, the offer would stay pending and this test would time out.
+    @Test func offerStillExpiresIfTheTimerWakesEarly() async throws {
+        let service = Self.makeService(time: EarlyWakingTimeSource(base: time), offerDelay: nil)
+        await service.addRide(ride)
+        _ = try await service.goOnline()
+        try await service.offerRide(id: ride.id)
+
+        await time.waitForSleeper()
+        time.advance(by: Self.offerLifetime)
+
+        for await session in await service.sessionUpdates() where session.pendingOffer == nil {
+            break
+        }
         #expect(await service.ride(id: ride.id)?.status == .awaitingDriver)
     }
 

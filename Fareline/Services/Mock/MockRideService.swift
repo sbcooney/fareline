@@ -92,7 +92,6 @@ actor MockRideService: RideService {
         }
 
         clearPendingOffer()
-        nextOfferTask?.cancel()
         rides[ride.id] = ride
         driver = updatedDriver
         activeRideID = ride.id
@@ -172,15 +171,15 @@ actor MockRideService: RideService {
     }
 
     private func updateRide(id: Ride.ID, with event: RideEvent) throws(RideServiceError) {
+        guard var ride = rides[id] else {
+            throw .rideNoLongerAvailable
+        }
         do {
-            guard var ride = rides[id] else {
-                throw RideServiceError.rideNoLongerAvailable
-            }
             try ride.apply(event)
-            rides[id] = ride
         } catch {
             throw .rideNoLongerAvailable
         }
+        rides[id] = ride
     }
 
     private func updateActiveRide(id: Ride.ID, with event: RideEvent) throws(RideServiceError) {
@@ -240,7 +239,9 @@ actor MockRideService: RideService {
     }
 
     private func offerNextRide() {
-        guard driver.availability == .available, pendingOffer == nil else {
+        // This must be checked here, on the actor. A task can be cancelled after its sleep ends but before
+        // it gets its turn on the actor, and running then would create an offer ahead of its replacement timer.
+        guard Task.isCancelled == false, driver.availability == .available, pendingOffer == nil else {
             return
         }
         let ride = MockRideData.makeRide(sequence: rideSequence, requestedAt: timeSource.now)
@@ -253,18 +254,28 @@ actor MockRideService: RideService {
     private func scheduleExpiry(of offer: RideOffer) {
         expiryTask?.cancel()
         let timeSource = timeSource
+        let id = offer.id
+        let expiresAt = offer.expiresAt
         expiryTask = Task { [weak self] in
             do {
-                try await timeSource.sleep(until: offer.expiresAt)
+                try await timeSource.sleep(until: expiresAt)
             } catch {
                 return
             }
-            await self?.expireOffer(id: offer.id)
+            await self?.expireOffer(id: id)
         }
     }
 
     private func expireOffer(id: RideOffer.ID) {
-        guard var offer = pendingOffer, offer.id == id, (try? offer.expire(at: timeSource.now)) != nil else {
+        guard var offer = pendingOffer, offer.id == id else {
+            return
+        }
+        do {
+            try offer.expire(at: timeSource.now)
+        } catch {
+            // The wait can end early if the system clock changes. Without another timer, the offer would stay
+            // pending forever, accepting no responses and blocking new offers.
+            scheduleExpiry(of: offer)
             return
         }
         clearPendingOffer()

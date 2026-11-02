@@ -104,6 +104,9 @@ final class DriverStore {
     }
 
     /// Runs one request at a time, so a double tap can't send the same action twice.
+    ///
+    /// Any other action sent during a request is also dropped, without an error. Views must disable their
+    /// controls while ``isPerformingAction`` is true, so that a driver's tap is never silently ignored.
     private func perform(_ request: () async throws(RideServiceError) -> DriverSession) async {
         guard isPerformingAction == false else {
             return

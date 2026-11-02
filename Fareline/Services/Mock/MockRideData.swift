@@ -8,6 +8,14 @@ enum MockRideData {
         name: PersonNameComponents(givenName: "Sam", familyName: "Rivera")
     )
 
+    /// The parts of a ride that repeat each time it's offered.
+    private struct Template {
+        let rider: Rider
+        let pickup: Place
+        let dropoff: Place
+        let fare: Fare
+    }
+
     private static let templates = [
         makeTemplate(
             givenName: "Ada",
@@ -51,14 +59,12 @@ enum MockRideData {
         pickup: Place,
         dropoff: Place,
         cents: Int
-    ) -> Ride {
-        Ride(
-            id: UUID(),
+    ) -> Template {
+        Template(
             rider: Rider(id: UUID(), name: PersonNameComponents(givenName: givenName, familyName: familyName)),
             pickup: pickup,
             dropoff: dropoff,
-            fare: Fare(amount: Decimal(cents) / 100, currencyCode: "USD"),
-            requestedAt: .distantPast
+            fare: Fare(amount: Decimal(cents) / 100, currencyCode: "USD")
         )
     }
 }

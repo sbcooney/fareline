@@ -53,6 +53,16 @@ final class ManualTimeSource: TimeSource {
         }
     }
 
+    /// Waits until something is sleeping.
+    ///
+    /// Tests call this before ``advance(by:)`` when the sleeper's deadline is based on the current time,
+    /// because advancing first would move that deadline as well.
+    func waitForSleeper() async {
+        while state.withLock({ $0.sleepers.isEmpty }) {
+            await Task.yield()
+        }
+    }
+
     /// Moves time forward and wakes anything whose wait has finished.
     func advance(by interval: TimeInterval) {
         state.withLock { state in

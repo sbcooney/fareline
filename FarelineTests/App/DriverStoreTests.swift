@@ -137,6 +137,7 @@ struct DriverStoreTests {
         let store = DriverStore(service: service)
         await service.failNextRequest(with: .networkUnavailable)
         await store.goOnline()
+        #expect(store.lastError == .networkUnavailable)
 
         store.dismissError()
 
@@ -163,6 +164,7 @@ struct DriverStoreTests {
         await store.goOnline()
         #expect(store.isPerformingAction)
 
+        await time.waitForSleeper()
         time.advance(by: 1)
         await firstTap.value
 
