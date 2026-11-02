@@ -1,5 +1,5 @@
 /// A reason a ride offer can't change as requested.
-enum RideOfferError: Error, Equatable, Sendable {
+enum RideOfferError: Error, Equatable {
     /// The offer has already been accepted, declined, or expired.
     case alreadyResolved(RideOfferStatus)
 

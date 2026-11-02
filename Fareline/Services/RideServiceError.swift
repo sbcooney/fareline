@@ -1,5 +1,5 @@
 /// A reason a ride service request failed.
-enum RideServiceError: Error, Equatable, Sendable {
+enum RideServiceError: Error {
     /// The service couldn't be reached. Nothing changed, so the request can be retried.
     case networkUnavailable
 

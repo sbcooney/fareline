@@ -1,7 +1,7 @@
 import Foundation
 
 /// A person requesting or taking a ride.
-struct Rider: Identifiable, Hashable, Sendable {
+struct Rider: Equatable, Sendable {
     let id: UUID
     let name: PersonNameComponents
 }

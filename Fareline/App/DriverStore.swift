@@ -42,13 +42,13 @@ final class DriverStore {
     }
 
     func goOnline() async {
-        await perform { [service] () async throws(RideServiceError) in
+        await perform { () async throws(RideServiceError) in
             try await service.goOnline()
         }
     }
 
     func goOffline() async {
-        await perform { [service] () async throws(RideServiceError) in
+        await perform { () async throws(RideServiceError) in
             try await service.goOffline()
         }
     }
@@ -57,7 +57,7 @@ final class DriverStore {
         guard let id = session?.pendingOffer?.id else {
             return
         }
-        await perform { [service] () async throws(RideServiceError) in
+        await perform { () async throws(RideServiceError) in
             try await service.acceptOffer(id: id)
         }
     }
@@ -66,7 +66,7 @@ final class DriverStore {
         guard let id = session?.pendingOffer?.id else {
             return
         }
-        await perform { [service] () async throws(RideServiceError) in
+        await perform { () async throws(RideServiceError) in
             try await service.declineOffer(id: id)
         }
     }
@@ -75,7 +75,7 @@ final class DriverStore {
         guard let id = session?.activeRide?.id else {
             return
         }
-        await perform { [service] () async throws(RideServiceError) in
+        await perform { () async throws(RideServiceError) in
             try await service.markArrived(rideID: id)
         }
     }
@@ -84,7 +84,7 @@ final class DriverStore {
         guard let id = session?.activeRide?.id else {
             return
         }
-        await perform { [service] () async throws(RideServiceError) in
+        await perform { () async throws(RideServiceError) in
             try await service.startTrip(rideID: id)
         }
     }
@@ -93,7 +93,7 @@ final class DriverStore {
         guard let id = session?.activeRide?.id else {
             return
         }
-        await perform { [service] () async throws(RideServiceError) in
+        await perform { () async throws(RideServiceError) in
             try await service.completeTrip(rideID: id)
         }
     }

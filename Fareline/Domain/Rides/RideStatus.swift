@@ -16,7 +16,7 @@
 /// | `driverArrived`  | `cancelled`      | `cancelled`      |
 ///
 /// `completed` and `cancelled` are terminal. A ride can't be cancelled once it's in progress.
-enum RideStatus: CaseIterable, Hashable, Sendable {
+enum RideStatus: CaseIterable, Sendable {
     case awaitingDriver
     case driverEnRoute
     case driverArrived

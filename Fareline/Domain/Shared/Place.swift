@@ -1,5 +1,5 @@
 /// A named location, such as a pickup or drop-off point.
-struct Place: Hashable, Sendable {
+struct Place: Equatable, Sendable {
     /// A short name, such as "Union Station".
     let name: String
 

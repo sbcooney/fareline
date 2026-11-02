@@ -1,7 +1,7 @@
 import Foundation
 
 /// Something that happens to a ride and can change its status.
-enum RideEvent: Hashable, Sendable {
+enum RideEvent: Equatable, Sendable {
     /// A driver took the ride.
     case driverAssigned(driverID: Driver.ID)
 

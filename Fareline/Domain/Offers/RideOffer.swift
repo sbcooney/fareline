@@ -18,7 +18,7 @@ import Foundation
 ///
 /// Accepting an offer doesn't update the ride or driver. Whatever coordinates the three applies those changes,
 /// so this type stays limited to the offer's own rules.
-struct RideOffer: Identifiable, Hashable, Sendable {
+struct RideOffer: Identifiable, Equatable, Sendable {
     let id: UUID
 
     /// The ride being offered, as it was when the offer was made.
