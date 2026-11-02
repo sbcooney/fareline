@@ -12,7 +12,7 @@ Fareline is a simplified rideshare app for drivers, built in Swift and SwiftUI f
 
 ## Status
 
-Work proceeds top to bottom. Each row merges as its own PR and leaves the app working, so work can stop after any row and still produce a complete submission. Anything unfinished moves to "What I'd do with more time" in the README.
+Work proceeds top to bottom. Each row merges as its own PR and leaves the app working, so work can stop after any row and still produce a complete submission. Anything unfinished moves to "What I'd do with more time" in the README. The exception is #5, which needs #6: until then a driver sees offers but can't respond to them.
 
 | Status | Issue | Work | Area |
 |---|---|---|---|
@@ -20,7 +20,7 @@ Work proceeds top to bottom. Each row merges as its own PR and leaves the app wo
 | ✅ | #2 | Domain models and state machines | Foundation |
 | ✅ | #3 | Mock ride service and driver store | Foundation |
 | ✅ | #4 | Change availability status | Required |
-| ⬜ | #5 | View an incoming ride request | Required |
+| ✅ | #5 | View an incoming ride request | Required |
 | ⬜ | #6 | Accept or decline a request | Required |
 | ⬜ | #7 | View current ride information | Required |
 | ⬜ | #8 | Review past rides | Required |
@@ -165,7 +165,7 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 - A ride is offered to one driver at a time. It goes to another driver only after the current offer is declined or expires.
 - The app runs in portrait only, not upside down or in landscape, even though drivers may mount phones sideways.
 - *Provisional:* a driver can't go offline during an active ride.
-- *Provisional:* an offer expires if ignored, and the driver stays available.
+- An offer expires if ignored, and the driver stays available.
 
 ## Decision log
 
@@ -197,6 +197,9 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 | 2026-11-02 | Accept that a large system clock change can delay offer expiry in the mock | Expiry compares wall-clock dates, so moving the clock back delays expiry by that amount. Fixing this needs monotonic deadlines, which aren't worth it for a mock. A real backend would own expiry. |
 | 2026-11-02 | Don't adopt OpenSpec | Showing its worth would mean using it for every task with a custom workflow, and building that would take time from the app. In exchange, expected behavior stays in issues, tests, and PR descriptions rather than in one living spec. |
 | 2026-11-02 | Use a button rather than a `Toggle` to change availability | The change waits on the service, while a toggle suggests it has already happened. A button can show progress and only reports the new status once it's confirmed. |
+| 2026-11-02 | Show an offer as the whole screen rather than a sheet | A driver has one thing to decide, and a sheet could be swiped away and leave the offer running unseen. In exchange, the driver can't reach other screens until they respond or the offer expires. |
+| 2026-11-02 | Remove an expired offer without a message | The driver sees the available screen again, which keeps the flow simple. In exchange, nothing says why the offer disappeared. |
+| 2026-11-02 | Add a root `NavigationStack` and an `AppDestination` enum before any screen is pushed | Adding a screen means adding one case, and the compiler requires its view. This is a deliberate exception to adding code only when it's used, as navigation is structure the app will need. Its one case, `pastRides`, has a placeholder view and no link until #8, because Swift doesn't allow a `switch` with no cases. |
 | 2026-11-02 | Run tests in Debug only | `@testable import` needs testability, which is on only for Debug. Optimizer-only bugs wouldn't be caught, which is acceptable for this project's size. |
 
 ## Open questions
@@ -204,6 +207,7 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 Decide these in the issue noted, then record the outcome in the decision log.
 
 - **#8:** How should completed rides be stored? Start by comparing a `Codable` JSON file with SwiftData, keeping in mind what #15 will need.
+- **#9:** Should an offer take over the whole screen, or should the driver choose to open it, such as from a banner? This revisits the decision to show offers as the whole screen.
 - **#15:** Which actions can queue offline, and what happens when a queued action conflicts with the server state on reconnect?
 
 ## Deliverables checklist
