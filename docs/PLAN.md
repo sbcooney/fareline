@@ -159,6 +159,7 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 
 - There is one driver, with no sign-in.
 - Locations, riders, and other drivers come from fixed mock data.
+- Every pickup and drop-off has a recognizable name, such as "Union Station". Real addresses often don't, so with real data `Place.name` would need to become optional.
 - A driver handles one ride at a time.
 - A ride is offered to one driver at a time. It goes to another driver only after the current offer is declined or expires.
 - The app runs in portrait only, not upside down or in landscape, even though drivers may mount phones sideways.
