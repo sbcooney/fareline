@@ -20,7 +20,7 @@ Work proceeds top to bottom. Each row merges as its own PR and leaves the app wo
 | ✅ | #2 | Domain models and state machines | Foundation |
 | ✅ | #3 | Mock ride service and driver store | Foundation |
 | ✅ | #4 | Change availability status | Required |
-| ⬜ | #5 | View an incoming ride request | Required |
+| ✅ | #5 | View an incoming ride request | Required |
 | ⬜ | #6 | Accept or decline a request | Required |
 | ⬜ | #7 | View current ride information | Required |
 | ⬜ | #8 | Review past rides | Required |
@@ -197,6 +197,8 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 | 2026-11-02 | Accept that a large system clock change can delay offer expiry in the mock | Expiry compares wall-clock dates, so moving the clock back delays expiry by that amount. Fixing this needs monotonic deadlines, which aren't worth it for a mock. A real backend would own expiry. |
 | 2026-11-02 | Don't adopt OpenSpec | Showing its worth would mean using it for every task with a custom workflow, and building that would take time from the app. In exchange, expected behavior stays in issues, tests, and PR descriptions rather than in one living spec. |
 | 2026-11-02 | Use a button rather than a `Toggle` to change availability | The change waits on the service, while a toggle suggests it has already happened. A button can show progress and only reports the new status once it's confirmed. |
+| 2026-11-02 | Show an offer as the whole screen rather than a sheet | A driver has one thing to decide, and a sheet could be swiped away and leave the offer running unseen. In exchange, the driver can't reach other screens until they respond or the offer expires. |
+| 2026-11-02 | Remove an expired offer without a message | The driver sees the available screen again, which keeps the flow simple. In exchange, nothing says why the offer disappeared. |
 | 2026-11-02 | Run tests in Debug only | `@testable import` needs testability, which is on only for Debug. Optimizer-only bugs wouldn't be caught, which is acceptable for this project's size. |
 
 ## Open questions

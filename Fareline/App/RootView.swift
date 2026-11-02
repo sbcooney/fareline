@@ -8,7 +8,9 @@ struct RootView: View {
         @Bindable var store = store
 
         Group {
-            if let session = store.session {
+            if let offer = store.session?.pendingOffer {
+                OfferView(offer: offer)
+            } else if let session = store.session {
                 AvailabilityView(availability: session.driver.availability)
             } else {
                 ProgressView("Connecting")
