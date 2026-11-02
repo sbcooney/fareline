@@ -4,7 +4,7 @@ import Testing
 
 @Suite(.timeLimit(.minutes(1)))
 struct MockRideServiceTests {
-    private static let offerLifetime: TimeInterval = 30
+    static let offerLifetime: TimeInterval = 30
 
     private let time = ManualTimeSource()
     private let service: MockRideService
@@ -14,7 +14,7 @@ struct MockRideServiceTests {
         service = Self.makeService(time: time, offerDelay: nil)
     }
 
-    private static func makeService(time: any TimeSource, offerDelay: TimeInterval?) -> MockRideService {
+    static func makeService(time: any TimeSource, offerDelay: TimeInterval?) -> MockRideService {
         MockRideService(
             configuration: MockRideServiceConfiguration(
                 offerDelay: offerDelay,
@@ -190,7 +190,21 @@ struct MockRideServiceTests {
         await #expect(throws: RideServiceError.offerNoLongerAvailable) {
             try await service.acceptOffer(id: offer.id)
         }
-        #expect(try await currentSession().driver.availability == .available)
+
+        // The offer ends right away, rather than staying on screen until the timer runs.
+        let session = try await currentSession()
+        #expect(session.pendingOffer == nil)
+        #expect(session.driver.availability == .available)
+    }
+
+    @Test func decliningAnOfferThatAlreadyEndedSucceeds() async throws {
+        let offer = try await makeOffer()
+
+        time.advance(by: Self.offerLifetime)
+        let session = try await service.declineOffer(id: offer.id)
+
+        #expect(session.pendingOffer == nil)
+        #expect(session.driver.availability == .available)
     }
 
     @Test func acceptingFailsIfTheRideWasCancelled() async throws {
@@ -250,7 +264,7 @@ struct MockRideServiceTests {
     @Test func invalidStepLeavesTheRideUnchanged() async throws {
         try await startRide()
 
-        await #expect(throws: RideServiceError.rideNoLongerAvailable) {
+        await #expect(throws: RideServiceError.actionNotAllowed) {
             try await service.completeTrip(rideID: ride.id)
         }
 

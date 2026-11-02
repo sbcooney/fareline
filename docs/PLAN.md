@@ -192,6 +192,9 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 | 2026-11-02 | Use a small `TimeSource` protocol rather than the standard `Clock` | Domain rules work in `Date`s, and a custom `Clock` would need its own instant type. It's less standard, but simpler for one app. |
 | 2026-11-02 | Let the mock decide when offers expire | A backend would own this rule, so the app only displays the countdown. A slow connection could show the expiry late, and the expiry rule still rejects a late response. |
 | 2026-11-02 | Add conformances and annotations only when the code uses or requires them | Every line stays justifiable, and the code doesn't suggest uses that don't exist. Some, such as `Hashable` for navigation, may have to be added back later, and the compiler shows where. `Identifiable` is the exception: every type with an identity declares it, even before anything relies on it, because it describes what the type is. |
+| 2026-11-02 | Accept and decline take an offer ID | A driver can't take a ride they never saw if the offer changes just before a tap. Views must pass the ID of the offer on screen. |
+| 2026-11-02 | Treat declining an ended offer as success | The driver wanted to not take the ride, so an error would be misleading. The app can't tell the driver that the offer had already ended. |
+| 2026-11-02 | Accept that a large system clock change can delay offer expiry in the mock | Expiry compares wall-clock dates, so moving the clock back delays expiry by that amount. Fixing this needs monotonic deadlines, which aren't worth it for a mock. A real backend would own expiry. |
 | 2026-11-02 | Run tests in Debug only | `@testable import` needs testability, which is on only for Debug. Optimizer-only bugs wouldn't be caught, which is acceptable for this project's size. |
 
 ## Open questions

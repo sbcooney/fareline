@@ -9,6 +9,6 @@ enum RideServiceError: Error {
     /// The ride isn't the driver's current ride, or it has already ended.
     case rideNoLongerAvailable
 
-    /// The action isn't allowed in the current state, such as going offline during a ride.
+    /// The action isn't allowed in the current state, such as going offline during a ride or repeating a step.
     case actionNotAllowed
 }

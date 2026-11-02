@@ -75,6 +75,7 @@ actor MockRideService: RideService {
 
     func acceptOffer(id: RideOffer.ID) async throws(RideServiceError) -> DriverSession {
         try await beginRequest()
+        expireOfferIfDue()
         guard var offer = pendingOffer, offer.id == id, var ride = rides[offer.ride.id] else {
             throw .offerNoLongerAvailable
         }
@@ -100,8 +101,11 @@ actor MockRideService: RideService {
 
     func declineOffer(id: RideOffer.ID) async throws(RideServiceError) -> DriverSession {
         try await beginRequest()
+        expireOfferIfDue()
+
+        // An offer that has already ended gives the driver the outcome they wanted, so this isn't a failure.
         guard var offer = pendingOffer, offer.id == id else {
-            throw .offerNoLongerAvailable
+            return session
         }
         do {
             try offer.decline(at: timeSource.now)
@@ -152,12 +156,15 @@ actor MockRideService: RideService {
 
     /// Imitates the network. This is the only suspension point in a request.
     private func beginRequest() async throws(RideServiceError) {
+        // The failure is claimed before the delay, so it applies to this request and not one that arrives later.
+        let failure = nextFailure
+        nextFailure = nil
+
         if configuration.responseDelay > 0 {
             // Cancellation just ends the delay early. Like a request already sent to a server, it still completes.
             try? await timeSource.sleep(until: timeSource.now.addingTimeInterval(configuration.responseDelay))
         }
-        if let failure = nextFailure {
-            nextFailure = nil
+        if let failure {
             throw failure
         }
     }
@@ -186,7 +193,12 @@ actor MockRideService: RideService {
         guard activeRideID == id else {
             throw .rideNoLongerAvailable
         }
-        try updateRide(id: id, with: event)
+        do {
+            try updateRide(id: id, with: event)
+        } catch {
+            // The ride is still current here, so the problem is the step, such as a repeated tap.
+            throw .actionNotAllowed
+        }
     }
 
     private func endActiveRide() {
@@ -264,6 +276,14 @@ actor MockRideService: RideService {
             }
             await self?.expireOffer(id: id)
         }
+    }
+
+    /// Ends an offer whose time is up, in case a response arrives before the expiry timer has run.
+    private func expireOfferIfDue() {
+        guard let offer = pendingOffer, timeSource.now >= offer.expiresAt else {
+            return
+        }
+        expireOffer(id: offer.id)
     }
 
     private func expireOffer(id: RideOffer.ID) {

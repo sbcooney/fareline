@@ -2,7 +2,7 @@ import Observation
 
 /// The app's single source of truth, and the one path for every user action.
 ///
-/// Views read ``session`` and call intent methods such as ``acceptPendingOffer()``. The store doesn't apply
+/// Views read ``session`` and call intent methods such as ``acceptOffer(id:)``. The store doesn't apply
 /// business rules itself. It sends requests to the service and replaces its state with the result, so
 /// the app and the service can't disagree. Keeping all actions here also gives offline support one
 /// place to queue them.
@@ -53,19 +53,18 @@ final class DriverStore {
         }
     }
 
-    func acceptPendingOffer() async {
-        guard let id = session?.pendingOffer?.id else {
-            return
-        }
+    /// Accepts the offer the driver is looking at.
+    ///
+    /// This takes an ID rather than using the current offer, because the offer can change between
+    /// the driver seeing it and the tap being handled, and a driver must never take a ride they didn't review.
+    func acceptOffer(id: RideOffer.ID) async {
         await perform { () async throws(RideServiceError) in
             try await service.acceptOffer(id: id)
         }
     }
 
-    func declinePendingOffer() async {
-        guard let id = session?.pendingOffer?.id else {
-            return
-        }
+    /// Declines the offer the driver is looking at.
+    func declineOffer(id: RideOffer.ID) async {
         await perform { () async throws(RideServiceError) in
             try await service.declineOffer(id: id)
         }

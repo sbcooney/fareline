@@ -36,6 +36,14 @@ struct DriverStoreTests {
         return store
     }
 
+    private func acceptCurrentOffer(in store: DriverStore) async {
+        guard let id = store.session?.pendingOffer?.id else {
+            Issue.record("Expected a pending offer.")
+            return
+        }
+        await store.acceptOffer(id: id)
+    }
+
     private func makeSession(version: Int) -> DriverSession {
         DriverSession(
             version: version,
@@ -75,7 +83,7 @@ struct DriverStoreTests {
     @Test func acceptingUpdatesTheSession() async throws {
         let store = try await makeStoreWithOffer(service: makeService())
 
-        await store.acceptPendingOffer()
+        await acceptCurrentOffer(in: store)
 
         #expect(store.session?.pendingOffer == nil)
         #expect(store.session?.activeRide?.id == ride.id)
@@ -86,7 +94,7 @@ struct DriverStoreTests {
         let service = makeService()
         let store = try await makeStoreWithOffer(service: service)
 
-        await store.declinePendingOffer()
+        await store.declineOffer(id: try #require(store.session?.pendingOffer?.id))
 
         #expect(store.session?.pendingOffer == nil)
         #expect(await service.ride(id: ride.id)?.status == .awaitingDriver)
@@ -94,7 +102,7 @@ struct DriverStoreTests {
 
     @Test func rideProgressesToCompletion() async throws {
         let store = try await makeStoreWithOffer(service: makeService())
-        await store.acceptPendingOffer()
+        await acceptCurrentOffer(in: store)
 
         await store.markArrived()
         #expect(store.session?.activeRide?.status == .driverArrived)
@@ -113,7 +121,7 @@ struct DriverStoreTests {
         let original = store.session
         await service.failNextRequest(with: .networkUnavailable)
 
-        await store.acceptPendingOffer()
+        await acceptCurrentOffer(in: store)
 
         #expect(store.session == original)
         #expect(store.lastError == .networkUnavailable)
@@ -124,9 +132,9 @@ struct DriverStoreTests {
         let service = makeService()
         let store = try await makeStoreWithOffer(service: service)
         await service.failNextRequest(with: .networkUnavailable)
-        await store.acceptPendingOffer()
+        await acceptCurrentOffer(in: store)
 
-        await store.acceptPendingOffer()
+        await acceptCurrentOffer(in: store)
 
         #expect(store.lastError == nil)
         #expect(store.session?.activeRide?.id == ride.id)
@@ -172,11 +180,22 @@ struct DriverStoreTests {
         #expect(store.lastError == nil)
     }
 
-    @Test func actionsWithNothingToActOnDoNothing() async {
+    @Test func acceptingAnOfferThatIsNoLongerCurrentDoesntTakeTheNewOne() async throws {
+        let service = makeService()
+        let store = try await makeStoreWithOffer(service: service)
+        let staleID = UUID(testValue: 20)
+        let original = store.session
+
+        await store.acceptOffer(id: staleID)
+
+        #expect(store.lastError == .offerNoLongerAvailable)
+        #expect(store.session == original)
+        #expect(await service.ride(id: ride.id)?.status == .awaitingDriver)
+    }
+
+    @Test func actionsWithNoActiveRideDoNothing() async {
         let store = DriverStore(service: makeService())
 
-        await store.acceptPendingOffer()
-        await store.declinePendingOffer()
         await store.markArrived()
         await store.startTrip()
         await store.completeTrip()

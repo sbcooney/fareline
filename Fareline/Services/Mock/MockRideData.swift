@@ -5,7 +5,7 @@ enum MockRideData {
     /// The driver using the app.
     static let driver = Driver(
         id: UUID(),
-        name: PersonNameComponents(givenName: "Sam", familyName: "Rivera")
+        name: PersonNameComponents(givenName: "Grace", familyName: "Hopper")
     )
 
     /// The parts of a ride that repeat each time it's offered.
