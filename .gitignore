@@ -1,0 +1,20 @@
+# macOS
+.DS_Store
+
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xccheckout
+*.moved-aside
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# Assignment instructions are not ours to redistribute
+*Take_Home_Assignment_Instructions*.pdf
