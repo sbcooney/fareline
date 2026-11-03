@@ -10,7 +10,7 @@ Fareline looks finished and consistent: it has its own icon, a launch screen tha
 
 ### One place for each color
 
-The app's colors are defined once, as named tokens with light and dark values. Views refer to tokens by meaning, such as `brandPrimary` or `textSecondary`, never to raw colors or system defaults such as `.green`. Changing a token changes every screen that uses it.
+The app's colors are defined once, as named tokens with light and dark values. Views refer to tokens by meaning, such as `brandPrimary` or `textSecondary`, never to raw colors or system defaults such as `.green`. The one exception is the pending offer bar's shadow, a translucent black, which isn't read by anyone and follows the system's convention. Changing a token changes every screen that uses it.
 
 Tests:
 - Each token resolves in light and dark mode. A missing dark value would silently reuse the light one.
