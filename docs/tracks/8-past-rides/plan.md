@@ -38,7 +38,11 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Before the PR
 
-- [ ] Review with the relevant Swift skills, as listed in "Development flow" in docs/PLAN.md
-- [ ] `swiftlint lint` reports no violations
+- [x] Review with `swiftui-pro` (`Features/PastRides/`, `RootView`, `AppDestination`, `AvailabilityView`): no problems; suggested `alert(_:item:)` for #9
+- [x] Review with `swift-testing-pro` (new suites): added `statesCoverEveryStatus`
+- [x] Review with `swift-concurrency-pro` (`MockRideService`, `PastRideStore`, class test suites): no problems
+
+The skills were loaded for these reviews only, not while writing, which the plan template now prevents.
+- [x] `swiftlint lint` reports no violations
 - [ ] Run `/code-review`, and fix or record each finding
 - [ ] Update docs/PLAN.md: status, decision log, assumptions, the open questions for #8, and the `Features/` folder names in "Project structure"
