@@ -17,6 +17,13 @@ struct RideStatusTests {
         }
     }
 
+    @Test(arguments: RideStatus.allCases, [RideRole.rider, .driver])
+    func canBeCancelledMatchesTheLifecycle(status: RideStatus, role: RideRole) {
+        let cancellation = RideEvent.cancelled(by: role, date: TestFixtures.date)
+
+        #expect(status.canBeCancelled(by: role) == (expectedStatus(from: status, on: cancellation) != nil))
+    }
+
     private func expectedStatus(from status: RideStatus, on event: RideEvent) -> RideStatus? {
         switch event {
         case .driverAssigned:

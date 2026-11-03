@@ -1,3 +1,5 @@
+import Foundation
+
 /// The stage of a ride's lifecycle.
 ///
 /// Statuses describe the ride itself rather than one participant's view of it, so any
@@ -47,5 +49,13 @@ enum RideStatus: CaseIterable, Sendable, Codable {
         default:
             throw RideTransitionError(status: self, event: event)
         }
+    }
+
+    /// Whether a party can cancel a ride at this status.
+    ///
+    /// This asks the transition table, so the rule lives in one place. The date is required by the event but
+    /// doesn't affect whether it's allowed.
+    func canBeCancelled(by role: RideRole) -> Bool {
+        (try? applying(.cancelled(by: role, date: .distantPast))) != nil
     }
 }

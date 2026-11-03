@@ -29,7 +29,7 @@ struct PastRideDetailView: View {
                 }
                 LabeledContent("Rider", value: ride.rider.name.formatted())
                 // A cancelled ride earned nothing, so it has no fare to show.
-                if ride.status != .cancelled {
+                if ride.cancelledBy == nil {
                     LabeledContent(
                         "Fare",
                         value: ride.fare.amount,

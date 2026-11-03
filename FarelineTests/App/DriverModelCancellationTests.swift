@@ -26,6 +26,55 @@ struct DriverModelCancellationTests {
         try #require(model.session?.activeRide?.id == ride.id)
     }
 
+    /// Puts the driver on the fixture ride, with a service that takes a second to respond, and returns its model.
+    private func startRideWithResponseDelay() async throws -> DriverModel {
+        let service = MockRideService.forModelTests(time: time, responseDelay: 1)
+        let model = DriverModel(service: service)
+        await service.addRide(ride)
+        await waitForResponse { await model.goOnline() }
+        try await service.offerRide(id: ride.id)
+        model.apply(try await service.currentSession())
+        let offerID = try #require(model.session?.pendingOffer?.id)
+        // The offer's expiry is also waiting.
+        await waitForResponse(sleepers: 2) { await model.acceptOffer(id: offerID) }
+        try #require(model.session?.activeRide?.id == ride.id)
+        return model
+    }
+
+    /// Runs an action, moving time past the service's one-second response delay.
+    private func waitForResponse(sleepers: Int = 1, to action: @escaping @MainActor () async -> Void) async {
+        let task = Task { await action() }
+        await time.waitForSleeper(count: sleepers)
+        time.advance(by: 1)
+        await task.value
+    }
+
+    @Test func modelShowsItsCancellingOnlyWhileTheRequestRuns() async throws {
+        let model = try await startRideWithResponseDelay()
+
+        let cancelling = Task { await model.cancelRide(rideID: ride.id) }
+        await time.waitForSleeper()
+        #expect(model.isCancellingRide)
+
+        time.advance(by: 1)
+        await cancelling.value
+        #expect(model.isCancellingRide == false)
+        #expect(model.session?.activeRide == nil)
+    }
+
+    @Test func stepIsntShownAsCancelling() async throws {
+        let model = try await startRideWithResponseDelay()
+
+        let arriving = Task { await model.markArrived(rideID: ride.id) }
+        await time.waitForSleeper()
+
+        // The step button shows progress for its own request, and the Cancel Ride button doesn't.
+        #expect(model.isPerformingAction)
+        #expect(model.isCancellingRide == false)
+        time.advance(by: 1)
+        await arriving.value
+    }
+
     @Test func driverCancellingEndsTheRideWithoutAnAlert() async throws {
         try await startRide()
         let updates = Task { await model.start() }

@@ -13,7 +13,7 @@ final class RideCancellationUITests: FarelineUITestCase {
         // keeps the ride, as does VoiceOver's escape gesture.
         app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.15)).tap()
 
-        XCTAssertFalse(app.staticTexts["Cancel This Ride?"].exists)
+        XCTAssertTrue(app.staticTexts["Cancel This Ride?"].waitForNonExistence(timeout: 5))
         XCTAssertTrue(app.buttons["I've Arrived"].exists)
 
         app.buttons["Cancel Ride"].tap()

@@ -30,8 +30,8 @@ struct CurrentRideView: View {
                 CancelRideButton(ride: ride)
             }
             .padding()
-                // The list scrolls behind the button at large text sizes.
-                .background(.bar)
+            // The list scrolls behind the buttons at large text sizes.
+            .background(.bar)
         }
     }
 }

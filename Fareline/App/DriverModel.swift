@@ -15,6 +15,10 @@ final class DriverModel {
     /// Whether a request is in progress. Views use this to show progress and prevent repeat taps.
     private(set) var isPerformingAction = false
 
+    /// Whether the request in progress is cancelling the driver's ride, so views show progress on the control
+    /// the driver used rather than on the ride's next step.
+    private(set) var isCancellingRide = false
+
     /// What the driver needs to read and acknowledge, if anything.
     ///
     /// Only one alert shows at a time, so the model decides which explanation wins. Views set this to `nil`
@@ -143,7 +147,10 @@ final class DriverModel {
     /// Cancels the ride the driver is looking at, after they've confirmed it.
     func cancelRide(rideID: Ride.ID) async {
         await perform { () async throws(RideServiceError) in
-            try await service.cancelRide(rideID: rideID)
+            // Set inside the request, so a cancellation that `perform` drops doesn't show as in progress.
+            isCancellingRide = true
+            defer { isCancellingRide = false }
+            return try await service.cancelRide(rideID: rideID)
         }
     }
 
