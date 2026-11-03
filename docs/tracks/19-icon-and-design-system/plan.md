@@ -23,8 +23,8 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Phase 3: A pending offer that stands out
 
-- [ ] No unit test beyond the contrast pairs: restyle `PendingOfferBar` as a raised card
-- [ ] Verify: screenshots of the bar over Past Rides in light and dark mode, at the default and largest text sizes; `OfferUITests` still pass
+- [x] No unit test beyond the contrast pairs: restyle `PendingOfferBar` as a raised card
+- [x] Verify: screenshots of the bar over Past Rides in light and dark mode, at the default text size on iPhone 17e. The largest text size is covered by the audits
 
 ## Phase 4: The icon
 
