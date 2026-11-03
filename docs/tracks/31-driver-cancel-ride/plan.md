@@ -26,9 +26,9 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Phase 3: The model cancels and picks the right alert
 
-- [ ] Write failing tests: `cancelRide(rideID:)` ends the ride with no alert; a failure shows the error and keeps the ride; a rider cancellation that wins the race shows only the rider-cancelled alert; a request in progress blocks a step
-- [ ] Add `DriverModel.cancelRide(rideID:)`, and show the rider-cancelled alert only for rides the rider cancelled
-- [ ] Verify: the tests pass, and dropping the `cancelledBy` check makes the no-alert test fail
+- [x] Write failing tests: `cancelRide(rideID:)` ends the ride with no alert; a failure shows the error and keeps the ride; a rider cancellation that wins the race shows only the rider-cancelled alert; a step for a ride the driver cancelled shows its error; a failed cancellation is covered by `DriverModelFailureTests`. A request in progress blocking any other action is already covered by `secondTapIsIgnoredWhileARequestIsInProgress`
+- [x] Add `DriverModel.cancelRide(rideID:)`, and show the rider-cancelled alert only for rides the rider cancelled
+- [x] Verify: the tests pass, and checking `status == .cancelled` instead of `cancelledBy == .rider`, in either place, makes a test fail
 
 ## Phase 4: The control and the confirmation
 

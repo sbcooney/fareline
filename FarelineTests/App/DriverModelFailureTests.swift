@@ -9,7 +9,7 @@ import Testing
 struct DriverModelFailureTests {
     /// Each action a driver can take, so one test can cover them all.
     enum Action: CaseIterable {
-        case goOnline, goOffline, accept, decline, markArrived, startTrip, completeTrip
+        case goOnline, goOffline, accept, decline, markArrived, startTrip, completeTrip, cancelRide
     }
 
     /// Performs the action being tested.
@@ -44,12 +44,15 @@ struct DriverModelFailureTests {
             return action == .accept
                 ? { await model.acceptOffer(id: offerID) }
                 : { await model.declineOffer(id: offerID) }
-        case .markArrived, .startTrip, .completeTrip:
+        case .markArrived, .startTrip, .completeTrip, .cancelRide:
             await service.addRide(ride)
             await model.goOnline()
             try await service.offerRide(id: rideID)
             model.apply(try await service.currentSession())
             await model.acceptOffer(id: try #require(model.session?.pendingOffer?.id))
+            if action == .cancelRide {
+                return { await model.cancelRide(rideID: rideID) }
+            }
             if action == .markArrived {
                 return { await model.markArrived(rideID: rideID) }
             }
