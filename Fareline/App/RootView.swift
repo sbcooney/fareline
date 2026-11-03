@@ -11,6 +11,14 @@ struct RootView: View {
         path.isEmpty ? nil : model.session?.pendingOffer
     }
 
+    /// Whether the home screen is showing, rather than an offer, a ride, or the connecting state.
+    private var isShowingHome: Bool {
+        guard let session = model.session else {
+            return false
+        }
+        return session.activeRide == nil && session.pendingOffer == nil
+    }
+
     var body: some View {
         @Bindable var model = model
 
@@ -27,6 +35,13 @@ struct RootView: View {
                 }
             }
             .navigationDestination(for: AppDestination.self, destination: AppDestinationView.init)
+            // The button lives here rather than on the home screen, because an offer can replace the home screen
+            // mid-tap. A link on the disappearing screen crashed SwiftUI. Changing the path here is always safe.
+            .toolbar {
+                if isShowingHome {
+                    Button("Past Rides", systemImage: "clock", action: openPastRides)
+                }
+            }
         }
         .safeAreaInset(edge: .bottom) {
             VStack {
@@ -58,6 +73,10 @@ struct RootView: View {
         } message: { alert in
             Text(alert.message)
         }
+    }
+
+    private func openPastRides() {
+        path.append(.pastRides)
     }
 
     /// Returns to the root screen, where a pending offer is shown.
