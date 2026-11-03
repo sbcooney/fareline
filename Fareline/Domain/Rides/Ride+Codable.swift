@@ -28,7 +28,8 @@ extension Ride: Codable {
             ?? (status == .cancelled ? .rider : nil)
 
         do {
-            for event in Self.events(leadingTo: status, driverID: driverID, endedAt: endedAt, cancelledBy: cancelledBy) {
+            let events = Self.events(leadingTo: status, driverID: driverID, endedAt: endedAt, cancelledBy: cancelledBy)
+            for event in events {
                 try apply(event)
             }
         } catch {

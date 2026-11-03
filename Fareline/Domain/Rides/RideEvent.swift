@@ -20,5 +20,7 @@ enum RideEvent: Equatable, Sendable {
     ///
     /// A rider can cancel until the trip begins. A driver can cancel only a ride they're on, including during
     /// the trip, such as when it becomes unsafe to continue.
+    // `by` reads as English at the call site, `.cancelled(by: .driver, date:)`, which a longer label wouldn't.
+    // swiftlint:disable:next identifier_name
     case cancelled(by: RideRole, date: Date)
 }

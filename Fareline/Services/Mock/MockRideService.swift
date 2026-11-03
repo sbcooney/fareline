@@ -1,8 +1,8 @@
 import Foundation
 
-// The actor's state is private, and Swift's `private` doesn't cross files, so splitting this file would mean
-// exposing that state to the rest of the module.
-// swiftlint:disable file_length
+// The actor's state is private, and Swift's `private` doesn't cross files, so splitting this file or the actor's
+// body would mean exposing that state to the rest of the module.
+// swiftlint:disable file_length type_body_length
 
 /// An in-memory stand-in for a backend, including its role in deciding who gets offered which ride.
 ///
