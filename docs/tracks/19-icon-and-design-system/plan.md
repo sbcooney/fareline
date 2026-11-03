@@ -8,6 +8,7 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 - [x] Load `swiftui-pro`, with its design, accessibility, and API references
 - [x] Load `swift-testing-pro` for the contrast tests
+- [x] Load `swift-concurrency-pro` for the artwork script's main-actor rendering. Added after `/code-review` noted it was missing
 
 ## Phase 1: Color tokens that pass contrast
 
@@ -41,6 +42,7 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 - [x] Review with `swiftui-pro` (every view in `Features/`, `RootView`), against its design and accessibility references
 - [x] Review with `swift-testing-pro` (the contrast tests)
+- [x] Review with `swift-concurrency-pro` (`scripts/generate-artwork.swift`)
 - [x] `swiftlint lint` reports no violations
 - [ ] Run `/code-review`, and fix or record each finding
 - [x] Update docs/PLAN.md: status, decision log, and the README's mention of the artwork script

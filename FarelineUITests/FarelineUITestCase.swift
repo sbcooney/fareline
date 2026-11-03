@@ -24,12 +24,15 @@ class FarelineUITestCase: XCTestCase {
     ///
     /// The audit's own failures stop at the first issue and don't say which element it was.
     ///
-    /// - Parameter ignoredLabels: Elements whose contrast is checked another way. Each use explains why.
+    /// - Parameter ignoredLabels: Buttons whose contrast is checked another way. Each use explains why.
     @MainActor
     func audit(_ app: XCUIApplication, ignoringContrastOn ignoredLabels: Set<String> = []) throws {
         var issues: [String] = []
         try app.performAccessibilityAudit { issue in
-            if issue.auditType == .contrast, let label = issue.element?.label, ignoredLabels.contains(label) {
+            if issue.auditType == .contrast,
+               let element = issue.element,
+               element.elementType == .button,
+               ignoredLabels.contains(element.label) {
                 return true
             }
             let element = issue.element.map { "\($0.elementType) \"\($0.label)\"" } ?? "no element"

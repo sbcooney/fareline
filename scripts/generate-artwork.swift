@@ -21,9 +21,22 @@ func token(_ name: String, dark: Bool = false) -> Color {
         fatalError("Couldn't read the \(name) color set")
     }
     let entry = colors.first { ($0["appearances"] != nil) == dark } ?? colors[0]
-    let components = (entry["color"] as? [String: Any])?["components"] as? [String: String] ?? [:]
+    let color = entry["color"] as? [String: Any] ?? [:]
+    guard color["color-space"] as? String == "srgb" else {
+        fatalError("The \(name) color set must use the sRGB color space")
+    }
+    let components = color["components"] as? [String: String] ?? [:]
+    // Xcode's color editor saves components as hex ("0x0B"), fractions ("0.043"), or whole numbers ("11").
     func value(_ key: String) -> Double {
-        Double(UInt8(components[key, default: "0x00"].dropFirst(2), radix: 16) ?? 0) / 255
+        let text = components[key] ?? ""
+        if text.hasPrefix("0x"), let byte = UInt8(text.dropFirst(2), radix: 16) {
+            return Double(byte) / 255
+        } else if text.contains("."), let fraction = Double(text) {
+            return fraction
+        } else if let byte = UInt8(text) {
+            return Double(byte) / 255
+        }
+        fatalError("Couldn't read \(key) of the \(name) color set: \"\(text)\"")
     }
     return Color(.sRGB, red: value("red"), green: value("green"), blue: value("blue"))
 }
@@ -103,12 +116,32 @@ struct Icon: View {
     }
 }
 
+/// Renders a view to a PNG. Icons must be opaque, as App Store Connect rejects icons with an alpha channel.
 @MainActor
-func writePNG(_ view: some View, to url: URL, size: CGSize) {
+func writePNG(_ view: some View, to url: URL, size: CGSize, opaque: Bool = false) {
     let renderer = ImageRenderer(content: view.frame(width: size.width, height: size.height))
     renderer.scale = 1
-    guard let image = renderer.cgImage else {
+    guard var image = renderer.cgImage else {
         fatalError("Couldn't render \(url.lastPathComponent)")
+    }
+    if opaque {
+        // Redrawing into a context with no alpha channel removes it from the file.
+        guard let context = CGContext(
+            data: nil,
+            width: image.width,
+            height: image.height,
+            bitsPerComponent: 8,
+            bytesPerRow: 0,
+            space: CGColorSpace(name: CGColorSpace.sRGB) ?? CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue
+        ) else {
+            fatalError("Couldn't flatten \(url.lastPathComponent)")
+        }
+        context.draw(image, in: CGRect(x: 0, y: 0, width: image.width, height: image.height))
+        guard let flattened = context.makeImage() else {
+            fatalError("Couldn't flatten \(url.lastPathComponent)")
+        }
+        image = flattened
     }
     let bitmap = NSBitmapImageRep(cgImage: image)
     guard let data = bitmap.representation(using: .png, properties: [:]) else {
@@ -142,13 +175,10 @@ func writePreviews(to folder: URL) {
 @MainActor
 func writeArtwork() {
     let icons = assets.appending(path: "AppIcon.appiconset")
-    writePNG(Icon(style: .standard), to: icons.appending(path: "AppIcon.png"), size: CGSize(width: 1024, height: 1024))
-    writePNG(Icon(style: .dark), to: icons.appending(path: "AppIcon-Dark.png"), size: CGSize(width: 1024, height: 1024))
-    writePNG(
-        Icon(style: .tinted),
-        to: icons.appending(path: "AppIcon-Tinted.png"),
-        size: CGSize(width: 1024, height: 1024)
-    )
+    let iconSize = CGSize(width: 1024, height: 1024)
+    writePNG(Icon(style: .standard), to: icons.appending(path: "AppIcon.png"), size: iconSize, opaque: true)
+    writePNG(Icon(style: .dark), to: icons.appending(path: "AppIcon-Dark.png"), size: iconSize, opaque: true)
+    writePNG(Icon(style: .tinted), to: icons.appending(path: "AppIcon-Tinted.png"), size: iconSize, opaque: true)
 
     // The launch screen shows the mark in white on `brandBackground`, at 160 points.
     let launch = assets.appending(path: "LaunchMark.imageset")

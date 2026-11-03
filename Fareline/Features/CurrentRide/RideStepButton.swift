@@ -20,8 +20,9 @@ struct RideStepButton: View {
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
-            // In dark mode the brand color is light, so white text on it wouldn't be readable.
-            .foregroundStyle(.textOnBrand)
+            // In dark mode the brand color is light, so white text on it wouldn't be readable. A disabled button
+            // keeps the system's dimmed label, so it doesn't look tappable.
+            .foregroundStyle(model.isPerformingAction ? AnyShapeStyle(.tertiary) : AnyShapeStyle(.textOnBrand))
             .controlSize(.large)
             .disabled(model.isPerformingAction)
             // VoiceOver can skip fully transparent text, so the name is set explicitly.
