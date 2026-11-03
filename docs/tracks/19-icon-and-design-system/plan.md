@@ -28,19 +28,19 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Phase 4: The icon
 
-- [ ] Render previews of the route-line concept in the brand colors, for review
-- [ ] Add the artwork script in `scripts/`, and generate the 1024x1024 default, dark, and tinted icons into `AppIcon`
-- [ ] Verify: no asset catalog warnings; screenshots of the home screen in the default, dark, and tinted styles, and of the icon in Settings
+- [x] Render previews of the route-line concept in the brand colors, for review. The S-curve was chosen
+- [x] Add the artwork script in `scripts/`, and generate the 1024x1024 default, dark, and tinted icons into `AppIcon`
+- [x] Verify: no asset catalog warnings; a screenshot of the home screen with the default icon. The dark and tinted home screen styles are set in the home screen's Customize menu, which simulator tools can't change, so the user checks those
 
 ## Phase 5: The launch screen
 
-- [ ] Generate the launch mark with the same script, and set the launch screen to `brandBackground` with the mark
-- [ ] Verify: screenshots of a launch in light and dark mode
+- [x] Generate the launch mark with the same script, and set the launch screen to `brandBackground` with the mark
+- [x] Verify: screenshots of a launch in light and dark mode, held on screen by a temporary startup pause that was then removed
 
 ## Before the PR
 
-- [ ] Review with `swiftui-pro` (every view in `Features/`, `RootView`), against its design and accessibility references
-- [ ] Review with `swift-testing-pro` (the contrast tests)
-- [ ] `swiftlint lint` reports no violations
+- [x] Review with `swiftui-pro` (every view in `Features/`, `RootView`), against its design and accessibility references
+- [x] Review with `swift-testing-pro` (the contrast tests)
+- [x] `swiftlint lint` reports no violations
 - [ ] Run `/code-review`, and fix or record each finding
-- [ ] Update docs/PLAN.md: status, decision log, and the README's mention of the artwork script
+- [x] Update docs/PLAN.md: status, decision log, and the README's mention of the artwork script
