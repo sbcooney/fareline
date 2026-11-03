@@ -39,9 +39,9 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Phase 5: Past Rides shows who cancelled
 
-- [ ] Write failing tests: the label for each canceller
-- [ ] Show the label in `PastRideRow` and `PastRideDetailView`
-- [ ] Verify: a screenshot of Past Rides with a ride cancelled by each party
+- [x] Write failing tests: the label for each canceller
+- [x] Show the label in `PastRideRow` and `PastRideDetailView`, and seed a ride the driver cancelled for UI tests, so the Past Rides audits cover both labels
+- [x] Verify: a screenshot of Past Rides with a ride cancelled by each party
 
 ## Before the PR
 
