@@ -153,6 +153,16 @@ actor MockRideService: RideService {
         return publish()
     }
 
+    func cancelRide(rideID: Ride.ID) async throws(RideServiceError) -> DriverSession {
+        try await beginRequest()
+        // If the rider cancelled first, the ride is no longer active, so this fails rather than changing who
+        // cancelled. Ending the ride also stops the rider's own scheduled cancellation.
+        try updateActiveRide(id: rideID, with: .cancelled(by: .driver, date: timeSource.now))
+        endActiveRide()
+        scheduleNextOffer()
+        return publish()
+    }
+
     // MARK: - Private
 
     private var session: DriverSession {

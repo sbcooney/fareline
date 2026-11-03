@@ -20,9 +20,9 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Phase 2: The service cancels for the driver
 
-- [ ] Write failing tests: `cancelRide(rideID:)` at each stage ends the ride, saves it, frees the driver, and schedules the next offer; a wrong or ended ride throws `rideNoLongerAvailable`; a forced failure leaves everything unchanged; a driver's cancellation stops the rider's scheduled one; a rider cancelling at pickup ends the ride (the missing service test)
-- [ ] Add `cancelRide(rideID:)` to `RideService` and `MockRideService`
-- [ ] Verify: the tests pass, and leaving out the cancellation of the rider's scheduled task makes its test fail
+- [x] Write failing tests: `cancelRide(rideID:)` at each stage ends the ride, saves it, frees the driver, and schedules the next offer; a wrong or ended ride throws `rideNoLongerAvailable`; a forced failure leaves everything unchanged; a rider's scheduled cancellation after the driver's has no effect; a rider cancelling at pickup ends the ride (the missing service test)
+- [x] Add `cancelRide(rideID:)` to `RideService` and `MockRideService`
+- [x] Verify: the tests pass. Recording the rider as the canceller, or leaving out the next offer, each makes tests fail. Stopping the rider's scheduled cancellation is shared with completing a trip, through `endActiveRide()`, and a late rider cancellation fails anyway, so no test can tell whether it was stopped
 
 ## Phase 3: The model cancels and picks the right alert
 

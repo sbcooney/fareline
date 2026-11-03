@@ -30,4 +30,7 @@ protocol RideService: Sendable {
 
     /// Records that the trip ended, and makes the driver available again.
     func completeTrip(rideID: Ride.ID) async throws(RideServiceError) -> DriverSession
+
+    /// Cancels the driver's ride at any stage, and makes the driver available again. The driver earns no fare.
+    func cancelRide(rideID: Ride.ID) async throws(RideServiceError) -> DriverSession
 }
