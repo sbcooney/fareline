@@ -10,6 +10,8 @@ extension RideServiceError {
             "This ride offer is no longer available."
         case .rideNoLongerAvailable:
             "This ride is no longer available."
+        case .rideNoLongerWaiting:
+            "This rider is no longer waiting. Another driver may have taken the ride, or the rider cancelled."
         case .actionNotAllowed:
             "You can't do that right now."
         }

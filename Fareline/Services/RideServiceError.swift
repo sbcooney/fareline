@@ -9,6 +9,10 @@ enum RideServiceError: Error {
     /// The ride isn't the driver's current ride, or it has already ended.
     case rideNoLongerAvailable
 
+    /// The ride the driver tried to take from the waiting list has been taken by another driver, or its rider
+    /// cancelled.
+    case rideNoLongerWaiting
+
     /// The action isn't allowed in the current state, such as going offline during a ride or repeating a step.
     case actionNotAllowed
 }

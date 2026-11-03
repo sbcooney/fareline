@@ -153,6 +153,45 @@ actor MockRideService: RideService {
         return publish()
     }
 
+    func claimRide(rideID: Ride.ID) async throws(RideServiceError) -> DriverSession {
+        try await beginRequest()
+        guard driver.availability == .available else {
+            throw .actionNotAllowed
+        }
+        if let ride = rides[rideID], MockRideData.isTakenByAnotherDriverWhenClaimed(ride) {
+            // The demo's conflict case: another driver's request arrived first. The session reports the change, so
+            // the driver's list drops the ride as they're told why.
+            try? updateRide(id: rideID, with: .driverAssigned(driverID: UUID()))
+            publish()
+            throw .rideNoLongerWaiting
+        }
+        guard passedOverRideIDs.contains(rideID), var ride = rides[rideID] else {
+            throw .rideNoLongerWaiting
+        }
+        var updatedDriver = driver
+
+        // As with accepting, local copies change first, so a failure can't leave the ride and driver disagreeing.
+        do {
+            try ride.apply(.driverAssigned(driverID: driver.id))
+            try updatedDriver.apply(.rideAssigned)
+        } catch {
+            throw .rideNoLongerWaiting
+        }
+
+        // The driver chose another ride, so a pending offer is declined, and its ride joins the list.
+        if var offer = pendingOffer {
+            try? offer.decline(at: timeSource.now)
+            passedOverRideIDs.insert(offer.ride.id)
+            clearPendingOffer()
+        }
+        nextOfferTask?.cancel()
+        rides[ride.id] = ride
+        driver = updatedDriver
+        activeRideID = ride.id
+        scheduleRiderCancellation(of: ride)
+        return publish()
+    }
+
     func markArrived(rideID: Ride.ID) async throws(RideServiceError) -> DriverSession {
         try await beginRequest()
         try updateActiveRide(id: rideID, with: .driverArrived)

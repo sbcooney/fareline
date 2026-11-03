@@ -62,6 +62,7 @@ Each row has a button to take the ride, enabled only while the driver is availab
 Tests:
 - Taking a waiting ride makes it the driver's active ride, sets the driver on a ride, removes it from the list, and schedules the rider's own cancellation, as accepting does.
 - Taking a ride while offline, or while already on a ride, is refused, and nothing changes.
+- Taking a ride that isn't in the list, such as the one being offered, fails with the new error, and the offer stays.
 - Taking a ride while an offer is pending declines the offer, and the offered ride joins the list.
 - The declined offer isn't reported to VoiceOver as one that ended unanswered.
 - A forced network failure leaves the ride in the list and the driver available, and shows the error.

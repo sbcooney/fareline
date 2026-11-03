@@ -56,6 +56,16 @@ enum MockRideData {
         )
     ]
 
+    /// A rider who demonstrates the conflict case. Another driver takes their ride just as this driver claims it,
+    /// so they appear only in the waiting list, and never in an offer.
+    private static let takenTemplate = makeTemplate(
+        givenName: "Taylor",
+        familyName: "Taken",
+        pickup: Place(name: "Navy Yard", address: "1100 1st St SE"),
+        dropoff: Place(name: "Union Market", address: "1309 5th St NE"),
+        cents: 1620
+    )
+
     /// Creates a new ride from a repeating list, so a demo never runs out of offers.
     static func makeRide(sequence: Int, requestedAt: Date) -> Ride {
         let template = templates[sequence % templates.count]
@@ -72,10 +82,10 @@ enum MockRideData {
     /// Returns rides that other drivers have already passed on, so the demo's waiting list starts with riders who
     /// have waited several minutes.
     static func passedOverRides(at date: Date) -> [Ride] {
-        // Riders that don't trigger demo events, waiting 9, 5, and 2 minutes.
-        [(2, 540), (3, 300), (0, 120)].map { index, secondsWaited in
-            let template = templates[index]
-            return Ride(
+        // Taylor Taken shows the conflict case. The others don't trigger demo events.
+        let waits = [(templates[2], 540), (takenTemplate, 420), (templates[3], 300), (templates[0], 120)]
+        return waits.map { template, secondsWaited in
+            Ride(
                 id: UUID(),
                 rider: template.rider,
                 pickup: template.pickup,
@@ -84,6 +94,11 @@ enum MockRideData {
                 requestedAt: date.addingTimeInterval(-TimeInterval(secondsWaited))
             )
         }
+    }
+
+    /// Returns whether another driver takes this ride just as the driver claims it, as Taylor Taken's is.
+    static func isTakenByAnotherDriverWhenClaimed(_ ride: Ride) -> Bool {
+        ride.rider.id == takenTemplate.rider.id
     }
 
     /// Returns how long after the driver accepts a ride its rider cancels, or `nil` if they don't.

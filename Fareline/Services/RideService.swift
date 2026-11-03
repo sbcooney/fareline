@@ -31,6 +31,10 @@ protocol RideService: Sendable {
     /// Records that the trip ended, and makes the driver available again.
     func completeTrip(rideID: Ride.ID) async throws(RideServiceError) -> DriverSession
 
+    /// Takes a ride from the waiting list, and starts it as accepting an offer does. A pending offer is declined,
+    /// as the driver has chosen another ride.
+    func claimRide(rideID: Ride.ID) async throws(RideServiceError) -> DriverSession
+
     /// Cancels the driver's current ride, at any stage from accepting it until the trip ends, and makes the driver
     /// available again. The driver earns no fare.
     func cancelRide(rideID: Ride.ID) async throws(RideServiceError) -> DriverSession

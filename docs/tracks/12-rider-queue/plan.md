@@ -24,9 +24,9 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Phase 3: The service lets the driver claim a ride
 
-- [ ] Write failing tests: claiming a waiting ride makes it active, sets the driver on a ride, removes it from the list, and schedules the rider's cancellation; claiming while offline or on a ride is refused; claiming while an offer is pending declines the offer and lists its ride; a forced failure changes nothing; a ride another driver took, or whose rider cancelled, fails with `rideNoLongerWaiting`; claiming Taylor Taken's ride fails as taken
-- [ ] Add `rideNoLongerWaiting` and its message, `claimRide(rideID:)` to `RideService` and `MockRideService`, and Taylor Taken to the mock data
-- [ ] Verify: the tests pass. Leaving out the list check, or the offer's decline, each makes a test fail
+- [x] Write failing tests: claiming a waiting ride makes it active, sets the driver on a ride, removes it from the list, and schedules the rider's cancellation; claiming while offline or on a ride is refused; claiming a ride that isn't in the list, such as the offered one, fails; claiming while an offer is pending declines the offer and lists its ride; a forced failure changes nothing; a ride another driver took, or whose rider cancelled, fails with `rideNoLongerWaiting`; claiming Taylor Taken's ride fails as taken
+- [x] Add `rideNoLongerWaiting` and its message, `claimRide(rideID:)` to `RideService` and `MockRideService`, and Taylor Taken to the mock data
+- [x] Verify: the tests pass. Leaving out the list check, or the offer's decline, each makes a test fail
 
 ## Phase 4: The model claims rides
 
