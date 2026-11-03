@@ -17,11 +17,6 @@ struct AvailabilityView: View {
             AvailabilityButton(availability: availability)
                 .padding()
         }
-        .toolbar {
-            NavigationLink(value: AppDestination.pastRides) {
-                Label("Past Rides", systemImage: "clock")
-            }
-        }
     }
 }
 

@@ -43,6 +43,16 @@ To run only the unit tests, add `-only-testing:FarelineTests`.
 swiftlint lint
 ```
 
+## Design system and artwork
+
+Colors are named tokens in the asset catalog, each with a light and dark value, such as `brandPrimary` and `textSecondary`. Views use only tokens, so changing a token changes every screen that uses it. `ColorTokenTests` checks every text and background pair against WCAG AA contrast in both modes.
+
+The app icon and launch mark are drawn by a script from the same tokens. After changing a brand color, regenerate them from the repository root:
+
+```sh
+swift scripts/generate-artwork.swift
+```
+
 ## AI tools used and how
 
 The app was built with Claude Code, with a person directing each step and reviewing every change. The workflow:

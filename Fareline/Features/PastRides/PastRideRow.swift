@@ -10,12 +10,12 @@ struct PastRideRow: View {
                 .font(.headline)
             if let endedAt = ride.endedAt {
                 Text(endedAt, format: .dateTime.month().day().hour().minute())
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.textSecondary)
             }
             // A cancelled ride earned nothing, so it shows its status instead of a fare.
             if ride.status == .cancelled {
                 Text(ride.status.title)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.textSecondary)
             } else {
                 Text(ride.fare.amount, format: .currency(code: ride.fare.currencyCode))
             }

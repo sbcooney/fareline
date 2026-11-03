@@ -5,27 +5,28 @@ struct OfferCountdownRow: View {
     let expiresAt: Date
 
     var body: some View {
-        // The visible countdown updates itself, but VoiceOver needs a value it can read, so the row is redrawn
-        // each second to give it one.
+        // The row redraws each second, so the visible time and VoiceOver's value come from the same clock and
+        // can't disagree.
         TimelineView(.periodic(from: .now, by: 1)) { context in
+            let timeLeft = timeLeft(at: context.date)
+
             LabeledContent("Time Left") {
-                // A range can't start after it ends, and this can draw just after the offer's expiry, before the
-                // service's update arrives.
-                Text(timerInterval: min(context.date, expiresAt)...expiresAt, countsDown: true)
+                Text(timeLeft.formatted(.time(pattern: .minuteSecond)))
                     .monospacedDigit()
                     .bold()
                     .foregroundStyle(.primary)
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("Time Left")
-            .accessibilityValue(spokenTimeLeft(at: context.date))
+            // In words, such as "27 seconds", rather than the "0:27" a screen reader would read out.
+            .accessibilityValue(timeLeft.formatted(.units(allowed: [.minutes, .seconds], width: .wide)))
         }
     }
 
-    /// The time left in words, such as "27 seconds", rather than the "0:27" a screen reader would read out.
-    private func spokenTimeLeft(at date: Date) -> String {
-        let seconds = max(0, expiresAt.timeIntervalSince(date).rounded(.up))
-        return Duration.seconds(seconds).formatted(.units(allowed: [.minutes, .seconds], width: .wide))
+    /// The whole seconds left, never below zero, as this can draw just after the offer's expiry, before the
+    /// service's update arrives.
+    private func timeLeft(at date: Date) -> Duration {
+        .seconds(max(0, expiresAt.timeIntervalSince(date).rounded(.up)))
     }
 }
 

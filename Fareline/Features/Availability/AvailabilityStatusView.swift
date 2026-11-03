@@ -14,7 +14,7 @@ struct AvailabilityStatusView: View {
                 .font(.title)
                 .bold()
             Text(availability.explanation)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
         }
         .multilineTextAlignment(.center)
         .accessibilityElement(children: .combine)

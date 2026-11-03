@@ -7,6 +7,10 @@ struct OfferResponseButtons: View {
 
     let offerID: RideOffer.ID
 
+    private var isDisabled: Bool {
+        model.isPerformingAction || isReady == false
+    }
+
     /// Whether the buttons have been showing long enough to take a tap. See ``ignoreTapsBriefly()``.
     @State private var isReady = false
 
@@ -27,10 +31,13 @@ struct OfferResponseButtons: View {
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
+            // In dark mode the brand color is light, so white text on it wouldn't be readable. A disabled button
+            // keeps the system's dimmed label, so it doesn't look tappable.
+            .foregroundStyle(isDisabled ? AnyShapeStyle(.tertiary) : AnyShapeStyle(.textOnBrand))
             .accessibilityValue(model.isPerformingAction ? Text("Updating") : Text(""))
         }
         .controlSize(.large)
-        .disabled(model.isPerformingAction || isReady == false)
+        .disabled(isDisabled)
         .task(id: offerID, ignoreTapsBriefly)
         .overlay {
             if model.isPerformingAction {

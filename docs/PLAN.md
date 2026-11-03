@@ -26,7 +26,7 @@ Work proceeds top to bottom. Each row merges as its own PR and leaves the app wo
 | ✅ | #26 | Per-issue spec and plan in the development flow | Setup |
 | ✅ | #8 | Review past rides | Required |
 | ✅ | #9 | Error, empty, and accessibility states | Quality |
-| ⬜ | #19 | App icon, launch screen, and design system | Quality |
+| ✅ | #19 | App icon, launch screen, and design system | Quality |
 | ⬜ | #10 | README and visual reference | Deliverable |
 | ⬜ | #12 | See a queue of waiting riders | Extended |
 | ⬜ | #13 | Self-assign to a ride | Extended |
@@ -90,7 +90,7 @@ Fareline/
   Domain/      Rides, offers, drivers, state machines
   Services/    RideService protocol and mock implementation
   Features/    Availability, Offers, CurrentRide, PastRides, Shared, ...
-  Resources/   Asset catalog
+  Resources/   Asset catalog, including the design system's color tokens
 FarelineTests/
 ```
 
@@ -227,6 +227,13 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 | 2026-11-03 | Add a UI test target that runs Apple's accessibility audit on each screen | It catches missing labels, clipped text, and contrast problems that screenshots miss. In exchange, the project gains an XCTest target, since Swift Testing doesn't support UI tests, and launch arguments that open each screen. |
 | 2026-11-03 | Use the inline title style at accessibility text sizes on the offer and ride screens | Large titles truncate, and no way to wrap them was found. The inline title fits in full on the smallest iPhone, so the wording doesn't have to change. |
 | 2026-11-03 | Leave contrast out of the accessibility audits until #19 | The audits found only contrast issues, from the system's default blue and secondary gray. #19's design system chooses brand colors with contrast-checked tokens, so the colors are fixed once, after the icon concept. Until then, the app falls just short of WCAG AA contrast. |
+| 2026-11-03 | Keep color tokens as named colors in the asset catalog | Each color is defined once with light and dark values, Xcode generates Swift names for them, and the launch screen can use the same names. In exchange, values are edited in Xcode's color editor or JSON rather than in Swift. |
+| 2026-11-03 | Name color tokens by role prefix: `brand…`, `text…`, `surface…`, `status…` | Related colors group together, and the brand tint is `brandPrimary` rather than Xcode's default `AccentColor`, so every token follows one scheme. The accent color build setting points at `brandPrimary`. |
+| 2026-11-03 | Use a deep blue as the brand color | It stays close to iOS's own blue, so the app feels native, and is dark enough for white text on it to pass contrast. Green was avoided because it already means "available". |
+| 2026-11-03 | Draw the icon and launch mark with a Swift script | The artwork is reproducible and reviewable as code, and follows the brand tokens. In exchange, it can't use Icon Composer's layered Liquid Glass effects. |
+| 2026-11-03 | Add `textOnBrand`, near-black in dark mode, for text on filled buttons | In dark mode, no single blue passes contrast both as text on dark gray and behind white text. A lighter blue with dark text passes both. In exchange, dark mode's filled buttons look different from the system's usual white-on-blue. |
+| 2026-11-03 | Keep two exceptions in the offer screen's contrast audit | The audit reports Decline's text on its glass capsule as failing, though it measures 6.3:1, and intermittently reports a failure with no element that only removing the countdown row fixes. Each exception covers exactly that issue and is explained in the test, so any other contrast problem on the screen still fails. |
+| 2026-11-03 | Draw the countdown from a once-a-second redraw rather than a self-updating timer | The visible time and VoiceOver's spoken value come from the same clock, so they can't disagree. In exchange, the row redraws every second while an offer is showing. |
 
 ## Open questions
 

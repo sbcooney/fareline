@@ -6,6 +6,10 @@ struct AvailabilityButton: View {
 
     let availability: DriverAvailability
 
+    private var isDisabled: Bool {
+        model.canChangeAvailability == false || isReady == false
+    }
+
     /// Whether the button has been showing long enough to take a tap. See ``ignoreTapsBriefly()``.
     @State private var isReady = false
 
@@ -22,8 +26,11 @@ struct AvailabilityButton: View {
                 .frame(maxWidth: .infinity)
         }
         .buttonStyle(.borderedProminent)
+        // In dark mode the brand color is light, so white text on it wouldn't be readable. A disabled button
+        // keeps the system's dimmed label, so it doesn't look tappable.
+        .foregroundStyle(isDisabled ? AnyShapeStyle(.tertiary) : AnyShapeStyle(.textOnBrand))
         .controlSize(.large)
-        .disabled(model.canChangeAvailability == false || isReady == false)
+        .disabled(isDisabled)
         .task(id: availability, ignoreTapsBriefly)
         // VoiceOver can skip fully transparent text, so the name is set explicitly.
         .accessibilityLabel(Text(availability.actionTitle))

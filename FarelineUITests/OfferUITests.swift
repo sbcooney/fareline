@@ -4,11 +4,12 @@ import XCTest
 final class OfferUITests: FarelineUITestCase {
     @MainActor
     func testOfferOnAPushedScreenShowsABarThatOpensIt() {
-        let app = launch(["-seedPastRides", "-goOnline", "-offerDelay", "3"])
+        // The offer waits long enough for the test to reach Past Rides first, even on a slow simulator.
+        let app = launch(["-seedPastRides", "-goOnline", "-offerDelay", "8"])
         waitFor(app.buttons["Past Rides"])
         app.buttons["Past Rides"].tap()
         let bar = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'New Ride Offer'")).firstMatch
-        waitFor(bar)
+        waitFor(bar, timeout: 20)
 
         // The driver keeps their place until they choose to open the offer.
         XCTAssertTrue(app.navigationBars["Past Rides"].exists)

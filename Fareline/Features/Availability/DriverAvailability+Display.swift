@@ -38,11 +38,11 @@ extension DriverAvailability {
     var tint: Color {
         switch self {
         case .offline:
-            .secondary
+            .statusOffline
         case .available:
-            .green
+            .statusAvailable
         case .onRide:
-            .blue
+            .statusOnRide
         }
     }
 
