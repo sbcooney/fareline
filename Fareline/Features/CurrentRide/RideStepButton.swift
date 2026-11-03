@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Takes the driver's next step on a ride, showing progress while the service responds.
 struct RideStepButton: View {
-    @Environment(DriverStore.self) private var store
+    @Environment(DriverModel.self) private var model
 
     let ride: Ride
 
@@ -11,9 +11,9 @@ struct RideStepButton: View {
             Button(action: takeNextStep) {
                 // The title stays in the layout during a request, so the button's size doesn't change.
                 Text(title)
-                    .opacity(store.isPerformingAction ? 0 : 1)
+                    .opacity(model.isPerformingAction ? 0 : 1)
                     .overlay {
-                        if store.isPerformingAction {
+                        if model.isPerformingAction {
                             ProgressView()
                         }
                     }
@@ -21,10 +21,10 @@ struct RideStepButton: View {
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
-            .disabled(store.isPerformingAction)
+            .disabled(model.isPerformingAction)
             // VoiceOver can skip fully transparent text, so the name is set explicitly.
             .accessibilityLabel(Text(title))
-            .accessibilityValue(store.isPerformingAction ? Text("Updating") : Text(""))
+            .accessibilityValue(model.isPerformingAction ? Text("Updating") : Text(""))
         }
     }
 
@@ -36,11 +36,11 @@ struct RideStepButton: View {
         Task {
             switch ride.status {
             case .driverEnRoute:
-                await store.markArrived(rideID: ride.id)
+                await model.markArrived(rideID: ride.id)
             case .driverArrived:
-                await store.startTrip(rideID: ride.id)
+                await model.startTrip(rideID: ride.id)
             case .inProgress:
-                await store.completeTrip(rideID: ride.id)
+                await model.completeTrip(rideID: ride.id)
             case .awaitingDriver, .completed, .cancelled:
                 break
             }

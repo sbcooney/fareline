@@ -21,11 +21,11 @@ struct AvailabilityView: View {
 }
 
 #Preview {
-    @Previewable @State var store = DriverStore(service: MockRideService())
+    @Previewable @State var model = DriverModel(service: MockRideService())
 
     AvailabilityView(availability: .offline)
-        .environment(store)
+        .environment(model)
         .task {
-            await store.start()
+            await model.start()
         }
 }

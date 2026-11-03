@@ -24,7 +24,7 @@ Work proceeds top to bottom. Each row merges as its own PR and leaves the app wo
 | ✅ | #6 | Accept or decline a request | Required |
 | ✅ | #7 | View current ride information | Required |
 | ✅ | #26 | Per-issue spec and plan in the development flow | Setup |
-| ⬜ | #8 | Review past rides | Required |
+| 🟨 | #8 | Review past rides | Required |
 | ⬜ | #9 | Error, empty, and accessibility states | Quality |
 | ⬜ | #19 | App icon and launch screen | Quality |
 | ⬜ | #10 | README and visual reference | Deliverable |
@@ -49,7 +49,7 @@ Issue numbers follow the order they were filed, not the order of work. Status ke
 ## Architecture
 
 ```
-SwiftUI views  →  DriverStore (@Observable, @MainActor)  →  RideService protocol  →  MockRideService
+SwiftUI views  →  DriverModel (@Observable, @MainActor)  →  RideService protocol  →  MockRideService
                                                                                   ↓
                                                             Domain state machines (pure, no UI or service dependencies)
 ```
@@ -74,7 +74,7 @@ Each type enforces only its own rules. The service coordinates changes across a 
 
 ### State management
 
-A single `@Observable`, `@MainActor` `DriverStore` is the app's source of truth. Views render its state and call its intent methods, such as `acceptOffer(id:)`. The store holds no business rules: it sends requests and replaces its state with the complete `DriverSession` the service returns. Sessions carry a version, so one that arrives late is ignored. Because every action goes through the store, offline support can later queue actions in one place.
+A single `@Observable`, `@MainActor` `DriverModel` is the app's source of truth. Views render its state and call its intent methods, such as `acceptOffer(id:)`. The model holds no business rules: it sends requests and replaces its state with the complete `DriverSession` the service returns. Sessions carry a version, so one that arrives late is ignored. Because every action goes through the model, offline support can later queue actions in one place.
 
 ### Services
 
@@ -90,7 +90,7 @@ Fareline/
   Domain/      Rides, offers, drivers, state machines
   Services/    RideService protocol and mock implementation
   Persistence/ Local storage
-  Features/    Availability, Offers, CurrentRide, RideHistory, Shared, ...
+  Features/    Availability, Offers, CurrentRide, PastRides, Shared, ...
   Resources/   Asset catalog
 FarelineTests/
 ```
@@ -211,13 +211,18 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 | 2026-11-03 | Trigger demo events with descriptively named mock riders, such as Will Cancel | A reviewer can see a cancellation without a debug menu, and the name says what will happen. Behavior is fixed per rider, so other events need their own riders. |
 | 2026-11-03 | Ride steps take a ride ID, like accepting an offer | A tap always applies to the ride on screen, and the store no longer silently ignores a step with no active ride. Views must pass the ride's ID. |
 | 2026-11-03 | Show only the cancellation when a step fails because the rider cancelled | Two alerts would compete, and "no longer available" says less than the cancellation does. The store hides that one error while a cancellation is waiting to be seen. |
+| 2026-11-03 | Rename `DriverStore` to `DriverModel` (revisits "Name the store `DriverStore` rather than `AppStore`") | #8 adds `PastRideStore`, which saves rides to a file, and "Store" shouldn't mean two things. `DriverModel` follows Apple's naming for `@Observable` app models. In exchange, the name says less about the pattern: views still act through it, not just read it. |
+| 2026-11-03 | Save past rides in `MockRideService`, through `PastRideStore` | The mock plays the backend, which would own history, and the session already delivers `pastRides`, so the app stays a renderer. In exchange, the app has no cache of its own yet. #15 adds one for offline use. |
+| 2026-11-03 | Save past rides as a `Codable` JSON file rather than with SwiftData | Domain types are value types whose rules are enforced through `apply(_:)`, and SwiftData would need separate `@Model` classes mirroring them. Decoding replays the ride's events so invalid saved state is rejected. In exchange, the whole file is rewritten on each save, which is fine for one driver's history. |
+| 2026-11-03 | Show cancelled rides in past rides | The driver drove toward the pickup and may want to see it. Each is labeled "Cancelled" with no fare, so it isn't mistaken for earnings. |
+| 2026-11-03 | Replace `completedAt` with `endedAt`, and give `.cancelled` a date | Cancelled rides can be sorted and show when they ended, and the status already says how. This changes a domain event, so every caller of `.cancelled` passes a time. |
+| 2026-11-03 | Clear the navigation path when an offer arrives | A driver on a pushed screen can't miss an offer. In exchange, they lose their place in Past Rides. #9 may revisit how offers appear. |
+| 2026-11-03 | Name the folder `Features/PastRides/`, not `RideHistory/` | It matches the screen's title and `AppDestination.pastRides`. |
 
 ## Open questions
 
 Decide these in the issue noted, then record the outcome in the decision log.
 
-- **#8:** How should completed rides be stored? Start by comparing a `Codable` JSON file with SwiftData, keeping in mind what #15 will need.
-- **#8:** Should past rides include ones the rider cancelled? The session now includes them.
 - **#9:** Should an offer take over the whole screen, or should the driver choose to open it, such as from a banner? This revisits the decision to show offers as the whole screen.
 - **#15:** Which actions can queue offline, and what happens when a queued action conflicts with the server state on reconnect?
 

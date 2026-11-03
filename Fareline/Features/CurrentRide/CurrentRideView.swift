@@ -30,7 +30,7 @@ struct CurrentRideView: View {
 }
 
 #Preview {
-    @Previewable @State var store = DriverStore(service: MockRideService())
+    @Previewable @State var model = DriverModel(service: MockRideService())
     let ride = {
         var ride = MockRideData.makeRide(sequence: 0, requestedAt: .now)
         try? ride.apply(.driverAssigned(driverID: MockRideData.driver.id))
@@ -40,5 +40,5 @@ struct CurrentRideView: View {
     NavigationStack {
         CurrentRideView(ride: ride)
     }
-    .environment(store)
+    .environment(model)
 }
