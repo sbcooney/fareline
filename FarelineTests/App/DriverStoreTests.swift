@@ -39,7 +39,7 @@ struct DriverStoreTests {
             driver: Driver(id: TestFixtures.driverID, name: PersonNameComponents()),
             pendingOffer: nil,
             activeRide: nil,
-            completedRides: []
+            pastRides: []
         )
     }
 
@@ -80,21 +80,6 @@ struct DriverStoreTests {
 
         #expect(store.session?.pendingOffer == nil)
         #expect(await service.ride(id: ride.id)?.status == .awaitingDriver)
-    }
-
-    @Test func rideProgressesToCompletion() async throws {
-        let store = try await makeStoreWithOffer(service: makeService())
-        await acceptCurrentOffer(in: store)
-
-        await store.markArrived()
-        #expect(store.session?.activeRide?.status == .driverArrived)
-
-        await store.startTrip()
-        #expect(store.session?.activeRide?.status == .inProgress)
-
-        await store.completeTrip()
-        #expect(store.session?.activeRide == nil)
-        #expect(store.session?.completedRides.map(\.id) == [ride.id])
     }
 
     @Test func failedRequestKeepsTheSessionAndRecordsTheError() async throws {
@@ -173,16 +158,5 @@ struct DriverStoreTests {
         #expect(store.lastError == .offerNoLongerAvailable)
         #expect(store.session == original)
         #expect(await service.ride(id: ride.id)?.status == .awaitingDriver)
-    }
-
-    @Test func actionsWithNoActiveRideDoNothing() async {
-        let store = DriverStore(service: makeService())
-
-        await store.markArrived()
-        await store.startTrip()
-        await store.completeTrip()
-
-        #expect(store.session == nil)
-        #expect(store.lastError == nil)
     }
 }

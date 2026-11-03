@@ -13,6 +13,8 @@ struct DriverSession: Equatable, Sendable {
     /// The ride the driver is currently on, if any.
     let activeRide: Ride?
 
-    /// The driver's completed rides, newest first.
-    let completedRides: [Ride]
+    /// The driver's rides that have ended, whether completed or cancelled, newest first.
+    ///
+    /// Each ride's status says how it ended, so the app can explain a ride that ended without the driver.
+    let pastRides: [Ride]
 }

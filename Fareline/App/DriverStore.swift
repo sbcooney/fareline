@@ -28,6 +28,19 @@ final class DriverStore {
         }
     }
 
+    /// The driver's ride that the rider cancelled, until the driver has seen it.
+    private(set) var cancelledRide: Ride?
+
+    /// Whether a cancelled ride is waiting to be shown. Setting this to `false` dismisses it.
+    var isShowingCancelledRide: Bool {
+        get { cancelledRide != nil }
+        set {
+            if newValue == false {
+                dismissCancelledRide()
+            }
+        }
+    }
+
     /// Whether the driver can change their availability now.
     ///
     /// This only decides what the control offers. The service still enforces the rule.
@@ -57,6 +70,19 @@ final class DriverStore {
     func apply(_ newSession: DriverSession) {
         if let session, newSession.version <= session.version {
             return
+        }
+        // A newly cancelled ride is reported even if the session where it was active was skipped. The first
+        // session is ignored, as its past rides are history rather than news. A driver has one ride at a time,
+        // so only the newest past ride can have ended since the last session.
+        if let session,
+           let endedRide = newSession.pastRides.first,
+           endedRide.id != session.pastRides.first?.id,
+           endedRide.status == .cancelled {
+            cancelledRide = endedRide
+            // A step the driver tapped as the rider cancelled fails, and the cancellation already explains why.
+            if lastError == .rideNoLongerAvailable {
+                lastError = nil
+            }
         }
         session = newSession
     }
@@ -90,36 +116,36 @@ final class DriverStore {
         }
     }
 
-    func markArrived() async {
-        guard let id = session?.activeRide?.id else {
-            return
-        }
+    /// Records that the driver reached the pickup for the ride they're looking at.
+    ///
+    /// Like ``acceptOffer(id:)``, the ride steps take the ID of the ride on screen, so a tap can't apply
+    /// to a different ride.
+    func markArrived(rideID: Ride.ID) async {
         await perform { () async throws(RideServiceError) in
-            try await service.markArrived(rideID: id)
+            try await service.markArrived(rideID: rideID)
         }
     }
 
-    func startTrip() async {
-        guard let id = session?.activeRide?.id else {
-            return
-        }
+    func startTrip(rideID: Ride.ID) async {
         await perform { () async throws(RideServiceError) in
-            try await service.startTrip(rideID: id)
+            try await service.startTrip(rideID: rideID)
         }
     }
 
-    func completeTrip() async {
-        guard let id = session?.activeRide?.id else {
-            return
-        }
+    func completeTrip(rideID: Ride.ID) async {
         await perform { () async throws(RideServiceError) in
-            try await service.completeTrip(rideID: id)
+            try await service.completeTrip(rideID: rideID)
         }
     }
 
     /// Clears the most recent error once the driver has seen it.
     func dismissError() {
         lastError = nil
+    }
+
+    /// Clears the cancelled ride once the driver has seen it.
+    func dismissCancelledRide() {
+        cancelledRide = nil
     }
 
     /// Runs one request at a time, so a double tap can't send the same action twice.
@@ -136,6 +162,8 @@ final class DriverStore {
 
         do {
             apply(try await request())
+        } catch .rideNoLongerAvailable where cancelledRide != nil {
+            // The cancellation already explains why the step failed.
         } catch {
             lastError = error
         }

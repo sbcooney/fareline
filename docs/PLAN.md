@@ -22,10 +22,11 @@ Work proceeds top to bottom. Each row merges as its own PR and leaves the app wo
 | ✅ | #4 | Change availability status | Required |
 | ✅ | #5 | View an incoming ride request | Required |
 | ✅ | #6 | Accept or decline a request | Required |
-| ⬜ | #7 | View current ride information | Required |
+| ✅ | #7 | View current ride information | Required |
+| ⬜ | #26 | Per-issue spec and plan in the development flow | Setup |
 | ⬜ | #8 | Review past rides | Required |
 | ⬜ | #9 | Error, empty, and accessibility states | Quality |
-| ⬜ | #19 | App icon | Quality |
+| ⬜ | #19 | App icon and launch screen | Quality |
 | ⬜ | #10 | README and visual reference | Deliverable |
 | ⬜ | #12 | See a queue of waiting riders | Extended |
 | ⬜ | #13 | Self-assign to a ride | Extended |
@@ -77,7 +78,7 @@ A single `@Observable`, `@MainActor` `DriverStore` is the app's source of truth.
 
 ### Services
 
-`RideService` is the boundary a real backend would sit behind. `MockRideService` implements it as an actor with fixed data. It delivers session changes, including new offers, through an `AsyncStream`, and takes an injected `TimeSource` so tests don't wait on real delays. It can also simulate failures and events from elsewhere in the system, such as a rider cancelling.
+`RideService` is the boundary a real backend would sit behind. `MockRideService` implements it as an actor with fixed data. It delivers session changes, including new offers, through an `AsyncStream`, and takes an injected `TimeSource` so tests don't wait on real delays. It can also simulate failures and events from elsewhere in the system, such as a rider cancelling. In the demo, riders whose names describe what they do trigger these events, so a reviewer knows what to expect. Will Cancel cancels 10 seconds after the driver accepts, unless the trip has already started.
 
 ### Project structure
 
@@ -89,7 +90,7 @@ Fareline/
   Domain/      Rides, offers, drivers, state machines
   Services/    RideService protocol and mock implementation
   Persistence/ Local storage
-  Features/    Availability, Offers, CurrentRide, RideHistory, ...
+  Features/    Availability, Offers, CurrentRide, RideHistory, Shared, ...
   Resources/   Asset catalog
 FarelineTests/
 ```
@@ -166,6 +167,7 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 - The app runs in portrait only, not upside down or in landscape, even though drivers may mount phones sideways.
 - *Provisional:* a driver can't go offline during an active ride.
 - An offer expires if ignored, and the driver stays available.
+- A rider can cancel until the trip starts, and the driver is told why their ride ended.
 
 ## Decision log
 
@@ -201,12 +203,18 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 | 2026-11-02 | Remove an expired offer without a message | The driver sees the available screen again, which keeps the flow simple. In exchange, nothing says why the offer disappeared. |
 | 2026-11-02 | Add a root `NavigationStack` and an `AppDestination` enum before any screen is pushed | Adding a screen means adding one case, and the compiler requires its view. This is a deliberate exception to adding code only when it's used, as navigation is structure the app will need. Its one case, `pastRides`, has a placeholder view and no link until #8, because Swift doesn't allow a `switch` with no cases. |
 | 2026-11-02 | Run tests in Debug only | `@testable import` needs testability, which is on only for Debug. Optimizer-only bugs wouldn't be caught, which is acceptable for this project's size. |
+| 2026-11-03 | Keep cancelled rides in the session's `pastRides`, replacing `completedRides` | Each ride's status already says how it ended, so the session explains a cancellation without a new type. In exchange, the store has to compare sessions to notice that its active ride was cancelled, and #8 has to decide whether history shows cancelled rides. |
+| 2026-11-03 | Tell the driver about a rider cancellation with an alert | The ride screen disappears without warning otherwise, and an alert makes sure the driver sees why. In exchange, it interrupts the driver, which a quieter banner wouldn't. |
+| 2026-11-03 | Trigger demo events with descriptively named mock riders, such as Will Cancel | A reviewer can see a cancellation without a debug menu, and the name says what will happen. Behavior is fixed per rider, so other events need their own riders. |
+| 2026-11-03 | Ride steps take a ride ID, like accepting an offer | A tap always applies to the ride on screen, and the store no longer silently ignores a step with no active ride. Views must pass the ride's ID. |
+| 2026-11-03 | Show only the cancellation when a step fails because the rider cancelled | Two alerts would compete, and "no longer available" says less than the cancellation does. The store hides that one error while a cancellation is waiting to be seen. |
 
 ## Open questions
 
 Decide these in the issue noted, then record the outcome in the decision log.
 
 - **#8:** How should completed rides be stored? Start by comparing a `Codable` JSON file with SwiftData, keeping in mind what #15 will need.
+- **#8:** Should past rides include ones the rider cancelled? The session now includes them.
 - **#9:** Should an offer take over the whole screen, or should the driver choose to open it, such as from a banner? This revisits the decision to show offers as the whole screen.
 - **#15:** Which actions can queue offline, and what happens when a queued action conflicts with the server state on reconnect?
 

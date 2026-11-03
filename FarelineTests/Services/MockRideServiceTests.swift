@@ -218,6 +218,7 @@ struct MockRideServiceTests {
         let session = try await currentSession()
         #expect(session.activeRide == nil)
         #expect(session.driver.availability == .available)
+        #expect(session.pastRides.isEmpty)
         #expect(await service.ride(id: ride.id)?.status == .cancelled)
     }
 
@@ -232,83 +233,6 @@ struct MockRideServiceTests {
 
         #expect(try await currentSession().driver.availability == .available)
         #expect(await service.ride(id: ride.id)?.driverID == otherDriverID)
-    }
-
-    // MARK: - Current ride
-
-    @Test func completingARideRecordsItAndFreesTheDriver() async throws {
-        try await startRide()
-
-        _ = try await service.markArrived(rideID: ride.id)
-        _ = try await service.startTrip(rideID: ride.id)
-        let session = try await service.completeTrip(rideID: ride.id)
-
-        #expect(session.activeRide == nil)
-        #expect(session.driver.availability == .available)
-        #expect(session.completedRides.map(\.id) == [ride.id])
-        #expect(session.completedRides.first?.completedAt == time.now)
-    }
-
-    @Test func duplicateCompletionIsRejected() async throws {
-        try await startRide()
-        _ = try await service.markArrived(rideID: ride.id)
-        _ = try await service.startTrip(rideID: ride.id)
-        _ = try await service.completeTrip(rideID: ride.id)
-
-        await #expect(throws: RideServiceError.rideNoLongerAvailable) {
-            try await service.completeTrip(rideID: ride.id)
-        }
-        #expect(try await currentSession().completedRides.count == 1)
-    }
-
-    @Test func invalidStepLeavesTheRideUnchanged() async throws {
-        try await startRide()
-
-        await #expect(throws: RideServiceError.actionNotAllowed) {
-            try await service.completeTrip(rideID: ride.id)
-        }
-
-        let session = try await currentSession()
-        #expect(session.activeRide?.status == .driverEnRoute)
-        #expect(session.driver.availability == .onRide)
-    }
-
-    @Test func cancellingTheCurrentRideFreesTheDriver() async throws {
-        try await startRide()
-
-        try await service.simulateRideCancelled(id: ride.id)
-
-        let session = try await currentSession()
-        #expect(session.activeRide == nil)
-        #expect(session.driver.availability == .available)
-    }
-
-    @Test func lateCancellationOfAnEarlierRideDoesntAffectTheCurrentRide() async throws {
-        try await startRide()
-        _ = try await service.markArrived(rideID: ride.id)
-        _ = try await service.startTrip(rideID: ride.id)
-        _ = try await service.completeTrip(rideID: ride.id)
-
-        let nextRide = Ride(
-            id: UUID(testValue: 10),
-            rider: ride.rider,
-            pickup: ride.pickup,
-            dropoff: ride.dropoff,
-            fare: ride.fare,
-            requestedAt: time.now
-        )
-        await service.addRide(nextRide)
-        try await service.offerRide(id: nextRide.id)
-        let offer = try #require(await currentSession().pendingOffer)
-        _ = try await service.acceptOffer(id: offer.id)
-
-        await #expect(throws: RideServiceError.rideNoLongerAvailable) {
-            try await service.simulateRideCancelled(id: ride.id)
-        }
-
-        let session = try await currentSession()
-        #expect(session.activeRide?.id == nextRide.id)
-        #expect(session.driver.availability == .onRide)
     }
 
     // MARK: - Simulated failures

@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The app's top-level view, which provides navigation and shows errors from any driver action.
+/// The app's top-level view, which provides navigation and shows alerts from anywhere in the app.
 struct RootView: View {
     @Environment(DriverStore.self) private var store
 
@@ -9,7 +9,9 @@ struct RootView: View {
 
         NavigationStack {
             Group {
-                if let offer = store.session?.pendingOffer {
+                if let ride = store.session?.activeRide {
+                    CurrentRideView(ride: ride)
+                } else if let offer = store.session?.pendingOffer {
                     OfferView(offer: offer)
                 } else if let session = store.session {
                     AvailabilityView(availability: session.driver.availability)
@@ -23,6 +25,11 @@ struct RootView: View {
             Button("OK", role: .cancel) {}
         } message: { error in
             Text(error.message)
+        }
+        .alert("Ride Cancelled", isPresented: $store.isShowingCancelledRide, presenting: store.cancelledRide) { _ in
+            Button("OK", role: .cancel) {}
+        } message: { ride in
+            Text("\(ride.rider.name.formatted()) cancelled the ride. You're available for new offers.")
         }
     }
 }

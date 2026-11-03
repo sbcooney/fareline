@@ -16,7 +16,7 @@ actor MockRideService: RideService {
     private var rides: [Ride.ID: Ride] = [:]
     private var pendingOffer: RideOffer?
     private var activeRideID: Ride.ID?
-    private var completedRides: [Ride] = []
+    private var pastRides: [Ride] = []
 
     private var version = 0
     private var rideSequence = 0
@@ -24,6 +24,7 @@ actor MockRideService: RideService {
     private var subscribers: [UUID: AsyncStream<DriverSession>.Continuation] = [:]
     private var nextOfferTask: Task<Void, Never>?
     private var expiryTask: Task<Void, Never>?
+    private var riderCancellationTask: Task<Void, Never>?
 
     init(
         configuration: MockRideServiceConfiguration = .demo,
@@ -38,6 +39,7 @@ actor MockRideService: RideService {
     deinit {
         nextOfferTask?.cancel()
         expiryTask?.cancel()
+        riderCancellationTask?.cancel()
         subscribers.values.forEach { $0.finish() }
     }
 
@@ -96,6 +98,7 @@ actor MockRideService: RideService {
         rides[ride.id] = ride
         driver = updatedDriver
         activeRideID = ride.id
+        scheduleRiderCancellation(of: ride)
         return publish()
     }
 
@@ -128,6 +131,7 @@ actor MockRideService: RideService {
     func startTrip(rideID: Ride.ID) async throws(RideServiceError) -> DriverSession {
         try await beginRequest()
         try updateActiveRide(id: rideID, with: .tripStarted)
+        riderCancellationTask?.cancel()
         return publish()
     }
 
@@ -135,9 +139,6 @@ actor MockRideService: RideService {
         try await beginRequest()
         try updateActiveRide(id: rideID, with: .tripCompleted(date: timeSource.now))
         endActiveRide()
-        if let ride = rides[rideID] {
-            completedRides.insert(ride, at: 0)
-        }
         scheduleNextOffer()
         return publish()
     }
@@ -150,7 +151,7 @@ actor MockRideService: RideService {
             driver: driver,
             pendingOffer: pendingOffer,
             activeRide: activeRideID.flatMap { rides[$0] },
-            completedRides: completedRides
+            pastRides: pastRides
         )
     }
 
@@ -201,8 +202,13 @@ actor MockRideService: RideService {
         }
     }
 
+    /// Moves the active ride, which has already completed or been cancelled, into the driver's past rides.
     private func endActiveRide() {
+        if let ride = activeRideID.flatMap({ rides[$0] }) {
+            pastRides.insert(ride, at: 0)
+        }
         activeRideID = nil
+        riderCancellationTask?.cancel()
         // A driver with an active ride is always `onRide`, so this transition can't fail.
         try? driver.apply(.rideEnded)
     }
@@ -349,7 +355,7 @@ extension MockRideService {
         publish()
     }
 
-    /// Imitates a rider cancelling. If this is the driver's current ride, the driver becomes available.
+    /// Imitates a rider cancelling. The driver's current ride moves to their past rides, and they become available.
     ///
     /// A late or duplicate cancellation has no effect on the driver, because a ride that has already ended
     /// fails to transition, and only the current ride can end the driver's `onRide` state.
@@ -363,6 +369,24 @@ extension MockRideService {
         }
         withdrawOffer(forRideID: id)
         publish()
+    }
+
+    /// Makes the rider cancel after a delay, if the mock data says this rider does.
+    private func scheduleRiderCancellation(of ride: Ride) {
+        guard let delay = MockRideData.riderCancellationDelay(for: ride) else {
+            return
+        }
+        let timeSource = timeSource
+        let date = timeSource.now.addingTimeInterval(delay)
+        riderCancellationTask = Task { [weak self] in
+            do {
+                try await timeSource.sleep(until: date)
+            } catch {
+                return
+            }
+            // Starting the trip cancels this task, and the service rejects a cancellation that runs anyway.
+            try? await self?.simulateRideCancelled(id: ride.id)
+        }
     }
 
     /// Imitates another driver taking a ride.
