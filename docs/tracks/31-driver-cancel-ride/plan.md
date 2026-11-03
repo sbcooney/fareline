@@ -32,10 +32,10 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Phase 4: The control and the confirmation
 
-- [ ] Write failing tests: the confirmation message for each stage, as a display property beside `RideStatus.title`
-- [ ] Add the Cancel Ride button below the step button, with `confirmationDialog` attached to it, disabled during any request
-- [ ] Write a UI test: open the confirmation, choose Keep Ride and see the ride unchanged, then confirm and see the available screen. Add an audit of the open confirmation
-- [ ] Verify: the unit and UI tests pass; screenshots of each stage's confirmation in the simulator
+- [x] Write failing tests: the confirmation message for each stage, as a display property beside `RideStatus.title`
+- [x] Add the Cancel Ride button below the step button, with `confirmationDialog` attached to it, disabled during any request
+- [x] Write a UI test: open the confirmation, dismiss it and see the ride unchanged (iOS shows it as a popover without its Keep Ride button, so a tap outside dismisses it), then confirm and see the available screen. Add an audit of the open confirmation, leaving out Dynamic Type and element detection, which report the system dialog's capped text size and the unreachable screen behind it
+- [x] Verify: the unit and UI tests pass; screenshots of each stage's confirmation in the simulator, taken by a temporary UI test that wasn't kept
 
 ## Phase 5: Past Rides shows who cancelled
 

@@ -25,8 +25,11 @@ struct CurrentRideView: View {
         // A large title truncates at accessibility text sizes, and the smaller inline title fits.
         .navigationBarTitleDisplayMode(dynamicTypeSize.isAccessibilitySize ? .inline : .automatic)
         .safeAreaInset(edge: .bottom) {
-            RideStepButton(ride: ride)
-                .padding()
+            VStack {
+                RideStepButton(ride: ride)
+                CancelRideButton(ride: ride)
+            }
+            .padding()
                 // The list scrolls behind the button at large text sizes.
                 .background(.bar)
         }
