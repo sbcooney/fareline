@@ -45,9 +45,9 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Before the PR
 
-- [ ] Review with `swift-testing-pro` (every new and changed test file)
-- [ ] Review with `swift-concurrency-pro` (`MockRideService.swift`, `DriverModel.swift`)
-- [ ] Review with `swiftui-pro` (`CurrentRideView`, the new control, `PastRideRow`, `PastRideDetailView`)
-- [ ] `swiftlint lint` reports no violations
-- [ ] Run `/code-review`, and fix or record each finding
-- [ ] Update docs/PLAN.md: the status table's new order (#31 next, then the extended features, then #10 just before #17), with the reason in the decision log, the decision log entries for this track, the assumption "A rider can cancel until the trip starts", the ride lifecycle in "Domain", and the README's assumptions
+- [x] Review with `swift-testing-pro` (every new and changed test file)
+- [x] Review with `swift-concurrency-pro` (`MockRideService.swift`, `DriverModel.swift`)
+- [x] Review with `swiftui-pro` (`CurrentRideView`, the new control, `PastRideRow`, `PastRideDetailView`)
+- [x] `swiftlint lint` reports no violations
+- [x] Run `/code-review`, and fix or record each finding
+- [x] Update docs/PLAN.md: the status table's new order (#31 next, then the extended features, then #10 just before #17), with the reason in the decision log, the decision log entries for this track, the assumption "A rider can cancel until the trip starts", and the ride lifecycle in "Domain". The README has no assumptions section until #10 writes it, which picks up the new assumption from docs/PLAN.md
