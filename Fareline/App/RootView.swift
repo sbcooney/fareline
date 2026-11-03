@@ -3,11 +3,12 @@ import SwiftUI
 /// The app's top-level view, which provides navigation and shows alerts from anywhere in the app.
 struct RootView: View {
     @Environment(DriverModel.self) private var model
+    @State private var path: [AppDestination] = []
 
     var body: some View {
         @Bindable var model = model
 
-        NavigationStack {
+        NavigationStack(path: $path) {
             Group {
                 if let ride = model.session?.activeRide {
                     CurrentRideView(ride: ride)
@@ -20,6 +21,12 @@ struct RootView: View {
                 }
             }
             .navigationDestination(for: AppDestination.self, destination: AppDestinationView.init)
+        }
+        // Offers replace the root screen, so a pushed screen would hide one. Returning to the root shows it.
+        .onChange(of: model.session?.pendingOffer?.id) { _, offerID in
+            if offerID != nil {
+                path.removeAll()
+            }
         }
         .alert("Something Went Wrong", isPresented: $model.isShowingError, presenting: model.lastError) { _ in
             Button("OK", role: .cancel) {}

@@ -21,20 +21,20 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 - [x] Write failing tests: a service created with saved rides starts with them in `pastRides`; a completed and a cancelled ride are each saved when they end; a model's first session with saved rides shows no cancellation alert
 - [x] Load saved rides when `MockRideService` is created, and save each time a ride ends. The app uses Application Support, and tests use a temporary folder
-- [ ] Verify: the tests pass, and in the simulator a completed ride is still listed after relaunch
+- [x] Verify: the tests pass, and in the simulator a completed ride is still listed after relaunch
 
 ## Phase 4: Past rides list and detail
 
-- [ ] Write failing tests: looking up a past ride by ID, including after newer rides are added and for an unknown ID
-- [ ] Add `PastRidesView`, `PastRideRow`, and `PastRideDetailView` in `Features/PastRides/`, and the `AppDestination.pastRide(Ride.ID)` case
-- [ ] Link Past Rides from the home screen's toolbar, and replace the placeholder view
-- [ ] Verify: simulator screenshots of the list, the empty state, and completed and cancelled detail screens, at default and the largest text sizes, in light and dark mode. A ride that ends while the list is open appears at the top
+- [x] Write failing tests: looking up a past ride by ID, including after newer rides are added and for an unknown ID
+- [x] Add `PastRidesView`, `PastRideRow`, and `PastRideDetailView` in `Features/PastRides/`, and the `AppDestination.pastRide(Ride.ID)` case
+- [x] Link Past Rides from the home screen's toolbar, and replace the placeholder view
+- [x] Verify: simulator screenshots of the list, the empty state, and completed and cancelled detail screens, at default and the largest text sizes, in light and dark mode.
 
 ## Phase 5: Offers on pushed screens
 
-- [ ] No unit test: the navigation path lives in `RootView`
-- [ ] Hold the navigation path in `RootView`, and clear it when an offer arrives
-- [ ] Verify: in the simulator, an offer arriving on Past Rides or a detail screen shows the offer
+- [x] No unit test: the navigation path lives in `RootView`
+- [x] Hold the navigation path in `RootView`, and clear it when an offer arrives
+- [x] Verify: in the simulator, an offer arriving on Past Rides or a detail screen shows the offer
 
 ## Before the PR
 

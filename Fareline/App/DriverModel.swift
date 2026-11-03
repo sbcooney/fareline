@@ -41,6 +41,11 @@ final class DriverModel {
         }
     }
 
+    /// Returns one of the driver's past rides, or `nil` if it isn't one.
+    func pastRide(id: Ride.ID) -> Ride? {
+        session?.pastRides.first { $0.id == id }
+    }
+
     /// Whether the driver can change their availability now.
     ///
     /// This only decides what the control offers. The service still enforces the rule.

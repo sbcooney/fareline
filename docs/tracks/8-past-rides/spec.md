@@ -17,11 +17,11 @@ Tests:
 
 ### Past rides list
 
-The list shows the driver's past rides, newest first by when they ended. Each row shows the date, the route (pickup to drop-off), and the fare. It updates as rides end, because it reads the model's session.
+The list shows the driver's past rides, newest first by when they ended. Each row shows the route (pickup to drop-off), when it ended, and the fare, or "Cancelled". It reads the model's session, so it's always current.
 
 Tests:
 - The service lists past rides newest first by when they ended, across completed and cancelled rides if both are shown.
-- Checked in the simulator: a ride that ends while the list is open appears at the top.
+- A ride can't end while the list is open: the list is only reachable while the driver is offline or available, and a new offer returns them to the root screen.
 
 ### Empty state
 

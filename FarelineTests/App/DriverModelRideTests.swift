@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 @testable import Fareline
 
@@ -45,6 +46,39 @@ struct DriverModelRideTests {
         #expect(model.session?.driver.availability == .available)
         #expect(model.session?.pastRides.map(\.id) == [ride.id])
         #expect(model.cancelledRide == nil)
+    }
+
+    @Test func pastRideIsFoundByIDAfterNewerRidesEnd() async throws {
+        try await startRide()
+        await model.markArrived(rideID: ride.id)
+        await model.startTrip(rideID: ride.id)
+        await model.completeTrip(rideID: ride.id)
+
+        let newerRide = Ride(
+            id: UUID(testValue: 12),
+            rider: ride.rider,
+            pickup: ride.pickup,
+            dropoff: ride.dropoff,
+            fare: ride.fare,
+            requestedAt: time.now
+        )
+        await service.addRide(newerRide)
+        try await service.offerRide(id: newerRide.id)
+        model.apply(try await currentSession())
+        await model.acceptOffer(id: try #require(model.session?.pendingOffer?.id))
+        try await service.simulateRideCancelled(id: newerRide.id)
+        model.apply(try await currentSession())
+
+        #expect(model.session?.pastRides.map(\.id) == [newerRide.id, ride.id])
+        #expect(model.pastRide(id: ride.id)?.status == .completed)
+        #expect(model.pastRide(id: newerRide.id)?.status == .cancelled)
+    }
+
+    @Test func unknownPastRideIsntFound() async throws {
+        try await startRide()
+
+        #expect(model.pastRide(id: ride.id) == nil)
+        #expect(model.pastRide(id: UUID(testValue: 13)) == nil)
     }
 
     @Test func failedStepKeepsTheRideAndCanBeRetried() async throws {
