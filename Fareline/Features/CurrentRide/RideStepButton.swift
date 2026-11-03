@@ -31,8 +31,8 @@ struct RideStepButton: View {
         }
     }
 
-    /// Whether the request in progress is this button's step. Cancelling shows its progress on Cancel Ride
-    /// instead, while this button is only disabled.
+    /// Whether the request in progress is this button's step. Cancelling shows its progress on the Ride Options
+    /// menu instead, while this button is only disabled.
     private var isTakingStep: Bool {
         model.isPerformingAction && model.isCancellingRide == false
     }

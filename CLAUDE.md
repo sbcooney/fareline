@@ -15,5 +15,6 @@ A mistake an agent makes twice becomes a rule here, with the reason, so it isn't
 - **Update docs/PLAN.md in the same PR** as any work that completes an issue or changes a decision. Why: reviewers may read the plan, so it must stay accurate.
 - **Load the Swift skills before writing code, and review with each one before the PR.** Name every skill and the files it covers in the track's plan. Why: #7 skipped the skill reviews, and #8 loaded the skills only to review, and missed `swift-concurrency-pro` until asked, because the plan only said "the relevant Swift skills".
 - **Fill in the PR template** in `.github/pull_request_template.md`, including the Swift skill reviews section. Why: the #27 description used its own format and dropped that section.
+- **Don't add UI tests without asking.** Cover the logic with unit tests, and show UI changes with screenshots from a temporary test that isn't kept. Why: the user had warned against UI tests, and #31 still added two for the cancellation confirmation, which needed a coordinate tap and audit exceptions and took hours to debug for little benefit.
 - **Don't merge PRs.** The user reviews and merges each one.
 - **Report results as they are.** Say which checks ran and which didn't. Confirm a test fails without the code it covers before relying on it.

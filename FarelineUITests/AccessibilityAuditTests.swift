@@ -66,18 +66,14 @@ final class AccessibilityAuditTests: FarelineUITestCase {
             let app = launch(["-seedPastRides"], largestText: largestText)
             waitFor(app.buttons["Past Rides"])
             app.buttons["Past Rides"].tap()
-            // The newest ride, which is on screen at every text size.
-            let row = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Dupont Circle to Reagan'"))
+            let row = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Union Station to National Mall'"))
                 .firstMatch
             waitFor(row)
             try audit(app)
 
             row.tap()
             waitFor(app.staticTexts["Ride Details"])
-            // On a cancelled ride, which has no fare row, the audit reports that "Ended" doesn't scale. Screenshots
-            // at L, XXXL, and Accessibility L show it growing with nothing clipped, and the same row on a
-            // completed ride passes. Every other Dynamic Type check on the screen still runs.
-            try audit(app, ignoringDynamicTypeOn: ["Ended"])
+            try audit(app)
         }
     }
 

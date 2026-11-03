@@ -1,7 +1,9 @@
 import SwiftUI
 
-/// Cancels the driver's ride, after a confirmation that explains what cancelling means at this stage.
-struct CancelRideButton: View {
+/// The ride's less common actions, kept in a menu so they stay away from the driver's next step.
+///
+/// It holds Cancel Ride, which asks for a confirmation that explains what cancelling means at this stage.
+struct RideOptionsMenu: View {
     @Environment(DriverModel.self) private var model
 
     let ride: Ride
@@ -14,23 +16,23 @@ struct CancelRideButton: View {
 
     var body: some View {
         if ride.status.canBeCancelled(by: .driver) {
-            Button(role: .destructive) {
-                rideToCancel = ride
+            Menu {
+                Button("Cancel Ride", systemImage: "xmark.circle", role: .destructive) {
+                    rideToCancel = ride
+                }
             } label: {
-                // The title stays in the layout during the request, so the button's size doesn't change.
-                Text("Cancel Ride")
-                    .opacity(model.isCancellingRide ? 0 : 1)
-                    .overlay {
-                        if model.isCancellingRide {
-                            ProgressView()
-                        }
-                    }
+                if model.isCancellingRide {
+                    ProgressView()
+                } else {
+                    Label("Ride Options", systemImage: "ellipsis")
+                }
             }
             .disabled(model.isPerformingAction)
-            // VoiceOver can skip fully transparent text, so the name is set explicitly.
-            .accessibilityLabel(Text("Cancel Ride"))
+            // The progress view replaces the label while cancelling, so the name is set explicitly.
+            .accessibilityLabel(Text("Ride Options"))
             .accessibilityValue(model.isCancellingRide ? Text("Updating") : Text(""))
-            // Attached to the button, so the confirmation appears from the control that opened it.
+            // Attached to the menu rather than the button inside it, which goes away when the menu closes, so the
+            // confirmation has a view to appear from.
             .confirmationDialog("Cancel This Ride?", item: $rideToCancel, titleVisibility: .visible) { ride in
                 Button("Cancel Ride", role: .destructive) {
                     Task { await model.cancelRide(rideID: ride.id) }
@@ -53,6 +55,11 @@ struct CancelRideButton: View {
         return ride
     }()
 
-    CancelRideButton(ride: ride)
-        .environment(model)
+    NavigationStack {
+        Text("Current ride")
+            .toolbar {
+                RideOptionsMenu(ride: ride)
+            }
+    }
+    .environment(model)
 }

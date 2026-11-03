@@ -60,20 +60,21 @@ struct UITestLaunchOptions {
     /// Returns a ride cancelled by each party and a completed one, newest first, as the service saves them.
     private static func seededPastRides() -> [Ride] {
         let now = Date.now
-        var completed = MockRideData.makeRide(sequence: 0, requestedAt: now.addingTimeInterval(-7_200))
+        // The completed ride is the newest, so its row is on screen at every text size for the audit to open.
+        var completed = MockRideData.makeRide(sequence: 0, requestedAt: now.addingTimeInterval(-1_800))
         try? completed.apply(.driverAssigned(driverID: MockRideData.driver.id))
         try? completed.apply(.driverArrived)
         try? completed.apply(.tripStarted)
-        try? completed.apply(.tripCompleted(date: now.addingTimeInterval(-6_000)))
+        try? completed.apply(.tripCompleted(date: now.addingTimeInterval(-600)))
 
         var cancelled = MockRideData.makeRide(sequence: 1, requestedAt: now.addingTimeInterval(-3_600))
         try? cancelled.apply(.driverAssigned(driverID: MockRideData.driver.id))
         try? cancelled.apply(.cancelled(by: .rider, date: now.addingTimeInterval(-3_000)))
 
-        var cancelledByDriver = MockRideData.makeRide(sequence: 2, requestedAt: now.addingTimeInterval(-1_800))
+        var cancelledByDriver = MockRideData.makeRide(sequence: 2, requestedAt: now.addingTimeInterval(-7_200))
         try? cancelledByDriver.apply(.driverAssigned(driverID: MockRideData.driver.id))
-        try? cancelledByDriver.apply(.cancelled(by: .driver, date: now.addingTimeInterval(-1_200)))
-        return [cancelledByDriver, cancelled, completed]
+        try? cancelledByDriver.apply(.cancelled(by: .driver, date: now.addingTimeInterval(-6_600)))
+        return [completed, cancelled, cancelledByDriver]
     }
 }
 #endif

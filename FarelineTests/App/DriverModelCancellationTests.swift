@@ -68,7 +68,7 @@ struct DriverModelCancellationTests {
         let arriving = Task { await model.markArrived(rideID: ride.id) }
         await time.waitForSleeper()
 
-        // The step button shows progress for its own request, and the Cancel Ride button doesn't.
+        // The step button shows progress for its own request, and the Ride Options menu doesn't.
         #expect(model.isPerformingAction)
         #expect(model.isCancellingRide == false)
         time.advance(by: 1)

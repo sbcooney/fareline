@@ -24,14 +24,15 @@ struct CurrentRideView: View {
         .navigationTitle(Text(ride.status.title))
         // A large title truncates at accessibility text sizes, and the smaller inline title fits.
         .navigationBarTitleDisplayMode(dynamicTypeSize.isAccessibilitySize ? .inline : .automatic)
+        // Cancelling is rare and can't be undone, so it's in a menu up here, away from the step button.
+        .toolbar {
+            RideOptionsMenu(ride: ride)
+        }
         .safeAreaInset(edge: .bottom) {
-            VStack {
-                RideStepButton(ride: ride)
-                CancelRideButton(ride: ride)
-            }
-            .padding()
-            // The list scrolls behind the buttons at large text sizes.
-            .background(.bar)
+            RideStepButton(ride: ride)
+                .padding()
+                // The list scrolls behind the button at large text sizes.
+                .background(.bar)
         }
     }
 }
