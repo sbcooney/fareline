@@ -2,6 +2,8 @@
 
 Closes #
 
+Track: https://github.com/sbcooney/fareline/tree/main/docs/tracks/<number>-<slug>
+
 ## Swift skill reviews
 
 <!-- Name each skill used and what changed as a result, or why it didn't apply. -->

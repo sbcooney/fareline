@@ -23,7 +23,7 @@ Work proceeds top to bottom. Each row merges as its own PR and leaves the app wo
 | ✅ | #5 | View an incoming ride request | Required |
 | ✅ | #6 | Accept or decline a request | Required |
 | ✅ | #7 | View current ride information | Required |
-| ⬜ | #26 | Per-issue spec and plan in the development flow | Setup |
+| ✅ | #26 | Per-issue spec and plan in the development flow | Setup |
 | ⬜ | #8 | Review past rides | Required |
 | ⬜ | #9 | Error, empty, and accessibility states | Quality |
 | ⬜ | #19 | App icon and launch screen | Quality |
@@ -124,10 +124,12 @@ Every issue must meet all of these before it closes:
 
 Each issue follows the same steps:
 
-1. **While writing:** load the relevant Swift skills before starting, not just at the end.
-2. **Before the PR:** review the changes against those skills' checklists, loading only the relevant reference files. Fix real problems and list unrelated modernization separately.
-3. **On the PR:** run `/code-review` to check for correctness bugs. Run `/simplify` after larger changes, as a guard against over-engineering.
-4. **Before merging:** a person reads and questions the code. Every part of it has to be explainable at the onsite.
+1. **Before any code:** run `/start-issue <number>`, which writes `docs/tracks/<number>-<slug>/spec.md` and `plan.md` from the issue. The spec lists the expected behavior and the cases the tests must cover. The plan breaks the work into phases, each with failing tests first and a verify step. A person reviews both and decides any open questions before work starts. Tracks begin with #8.
+2. **While writing:** load the relevant Swift skills before starting, not just at the end.
+3. **Before the PR:** review the changes against those skills' checklists, loading only the relevant reference files. Fix real problems and list unrelated modernization separately.
+4. **On the PR:** run `/code-review` to check for correctness bugs. Run `/simplify` after larger changes, as a guard against over-engineering.
+5. **Before merging:** a person reads and questions the code. Every part of it has to be explainable at the onsite.
+6. **After a repeated mistake:** a mistake an agent makes twice becomes a rule in `CLAUDE.md`, with the reason.
 
 | Issue | `swiftui-pro` | `swift-concurrency-pro` | `swift-testing-pro` |
 |---|---|---|---|
@@ -203,6 +205,7 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 | 2026-11-02 | Remove an expired offer without a message | The driver sees the available screen again, which keeps the flow simple. In exchange, nothing says why the offer disappeared. |
 | 2026-11-02 | Add a root `NavigationStack` and an `AppDestination` enum before any screen is pushed | Adding a screen means adding one case, and the compiler requires its view. This is a deliberate exception to adding code only when it's used, as navigation is structure the app will need. Its one case, `pastRides`, has a placeholder view and no link until #8, because Swift doesn't allow a `switch` with no cases. |
 | 2026-11-02 | Run tests in Debug only | `@testable import` needs testability, which is on only for Debug. Optimizer-only bugs wouldn't be caught, which is acceptable for this project's size. |
+| 2026-11-03 | Write a spec and plan for each issue, without OpenSpec tooling (revisits "Don't adopt OpenSpec") | Agreeing on behavior and test cases before code catches misunderstandings while they're cheap, and gives a reviewer the intent behind each PR. A `/start-issue` skill and two Markdown files need no setup. In exchange, specs describe one issue and aren't kept current afterwards, unlike OpenSpec's living specs. |
 | 2026-11-03 | Keep cancelled rides in the session's `pastRides`, replacing `completedRides` | Each ride's status already says how it ended, so the session explains a cancellation without a new type. In exchange, the store has to compare sessions to notice that its active ride was cancelled, and #8 has to decide whether history shows cancelled rides. |
 | 2026-11-03 | Tell the driver about a rider cancellation with an alert | The ride screen disappears without warning otherwise, and an alert makes sure the driver sees why. In exchange, it interrupts the driver, which a quieter banner wouldn't. |
 | 2026-11-03 | Trigger demo events with descriptively named mock riders, such as Will Cancel | A reviewer can see a cancellation without a debug menu, and the name says what will happen. Behavior is fixed per rider, so other events need their own riders. |
