@@ -6,14 +6,14 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Before starting
 
-- [ ] Load `swiftui-pro`, with its design, accessibility, and API references
-- [ ] Load `swift-testing-pro` for the contrast tests
+- [x] Load `swiftui-pro`, with its design, accessibility, and API references
+- [x] Load `swift-testing-pro` for the contrast tests
 
 ## Phase 1: Color tokens that pass contrast
 
-- [ ] Write failing tests: each token resolves in light and dark mode; each text and background pair meets its WCAG threshold in both modes
-- [ ] Add the color sets to the asset catalog, with values chosen to pass, and point the accent color build setting at `brandPrimary`
-- [ ] Verify: the tests pass, and changing a token's value to one that fails makes its test fail
+- [x] Write failing tests: each token resolves in light and dark mode; each text and background pair meets its WCAG threshold in both modes
+- [x] Add the color sets to the asset catalog, with values chosen to pass, and point the accent color build setting at `brandPrimary`. Dark mode's filled buttons need dark text, so `textOnBrand` joins the set
+- [x] Verify: the tests pass, and changing a token's value to one that fails makes its test fail
 
 ## Phase 2: Every view uses tokens
 
