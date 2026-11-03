@@ -59,7 +59,7 @@ struct DriverModelTests {
         await model.goOnline()
 
         #expect(model.session?.driver.availability == .available)
-        #expect(model.lastError == nil)
+        #expect(model.alert == nil)
     }
 
     @Test func acceptingUpdatesTheSession() async throws {
@@ -91,7 +91,7 @@ struct DriverModelTests {
         await acceptCurrentOffer(in: model)
 
         #expect(model.session == original)
-        #expect(model.lastError == .networkUnavailable)
+        #expect(model.alert == .error(.networkUnavailable))
         #expect(model.isPerformingAction == false)
     }
 
@@ -103,20 +103,8 @@ struct DriverModelTests {
 
         await acceptCurrentOffer(in: model)
 
-        #expect(model.lastError == nil)
+        #expect(model.alert == nil)
         #expect(model.session?.activeRide?.id == ride.id)
-    }
-
-    @Test func dismissingClearsTheError() async {
-        let service = makeService()
-        let model = DriverModel(service: service)
-        await service.failNextRequest(with: .networkUnavailable)
-        await model.goOnline()
-        #expect(model.lastError == .networkUnavailable)
-
-        model.dismissError()
-
-        #expect(model.lastError == nil)
     }
 
     @Test func olderSessionIsIgnored() {
@@ -144,7 +132,7 @@ struct DriverModelTests {
         await firstTap.value
 
         #expect(model.session?.driver.availability == .available)
-        #expect(model.lastError == nil)
+        #expect(model.alert == nil)
     }
 
     @Test func acceptingAnOfferThatIsNoLongerCurrentDoesntTakeTheNewOne() async throws {
@@ -155,7 +143,7 @@ struct DriverModelTests {
 
         await model.acceptOffer(id: staleID)
 
-        #expect(model.lastError == .offerNoLongerAvailable)
+        #expect(model.alert == .error(.offerNoLongerAvailable))
         #expect(model.session == original)
         #expect(await service.ride(id: ride.id)?.status == .awaitingDriver)
     }

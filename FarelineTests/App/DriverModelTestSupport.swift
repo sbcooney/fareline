@@ -19,10 +19,31 @@ extension MockRideService {
     }
 }
 
+extension MockRideService {
+    /// Returns the current session, as a new subscriber receives it.
+    func currentSession() async throws -> DriverSession {
+        for await session in sessionUpdates() {
+            return session
+        }
+        throw CancellationError()
+    }
+}
+
 /// Waits for a condition on the model, without relying on delays.
 @MainActor
 func waitUntil(_ condition: @escaping @MainActor () -> Bool) async {
     for await isMet in Observations(condition) where isMet {
         return
+    }
+}
+
+extension DriverAlert {
+    /// The ride the rider cancelled, if this alert is about one.
+    var cancelledRideID: Ride.ID? {
+        if case .riderCancelled(let ride) = self {
+            ride.id
+        } else {
+            nil
+        }
     }
 }

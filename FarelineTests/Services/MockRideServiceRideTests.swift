@@ -18,7 +18,7 @@ struct MockRideServiceRideTests {
         await service.addRide(ride)
         _ = try await service.goOnline()
         try await service.offerRide(id: ride.id)
-        let offer = try #require(await currentSession().pendingOffer)
+        let offer = try #require(await service.currentSession().pendingOffer)
         _ = try await service.acceptOffer(id: offer.id)
     }
 
@@ -27,11 +27,6 @@ struct MockRideServiceRideTests {
         (0..<10)
             .map { MockRideData.makeRide(sequence: $0, requestedAt: time.now) }
             .first { MockRideData.riderCancellationDelay(for: $0) != nil }
-    }
-
-    private func currentSession() async throws -> DriverSession {
-        let session = await service.sessionUpdates().first { _ in true }
-        return try #require(session)
     }
 
     /// Waits for an update that happens on the service's own timers.
@@ -64,7 +59,7 @@ struct MockRideServiceRideTests {
         await #expect(throws: RideServiceError.rideNoLongerAvailable) {
             try await service.completeTrip(rideID: ride.id)
         }
-        #expect(try await currentSession().pastRides.count == 1)
+        #expect(try await service.currentSession().pastRides.count == 1)
     }
 
     @Test func invalidStepLeavesTheRideUnchanged() async throws {
@@ -74,7 +69,7 @@ struct MockRideServiceRideTests {
             try await service.completeTrip(rideID: ride.id)
         }
 
-        let session = try await currentSession()
+        let session = try await service.currentSession()
         #expect(session.activeRide?.status == .driverEnRoute)
         #expect(session.driver.availability == .onRide)
     }
@@ -84,7 +79,7 @@ struct MockRideServiceRideTests {
 
         try await service.simulateRideCancelled(id: ride.id)
 
-        let session = try await currentSession()
+        let session = try await service.currentSession()
         #expect(session.activeRide == nil)
         #expect(session.driver.availability == .available)
         #expect(session.pastRides.map(\.id) == [ride.id])
@@ -109,11 +104,11 @@ struct MockRideServiceRideTests {
         )
         await service.addRide(cancelledRide)
         try await service.offerRide(id: cancelledRide.id)
-        let offer = try #require(await currentSession().pendingOffer)
+        let offer = try #require(await service.currentSession().pendingOffer)
         _ = try await service.acceptOffer(id: offer.id)
         try await service.simulateRideCancelled(id: cancelledRide.id)
 
-        let pastRides = try await currentSession().pastRides
+        let pastRides = try await service.currentSession().pastRides
         #expect(pastRides.map(\.id) == [cancelledRide.id, ride.id])
         #expect(pastRides.map(\.status) == [.cancelled, .completed])
         #expect(pastRides.compactMap(\.endedAt) == [time.now, time.now.addingTimeInterval(-60)])
@@ -163,14 +158,14 @@ struct MockRideServiceRideTests {
         )
         await service.addRide(nextRide)
         try await service.offerRide(id: nextRide.id)
-        let offer = try #require(await currentSession().pendingOffer)
+        let offer = try #require(await service.currentSession().pendingOffer)
         _ = try await service.acceptOffer(id: offer.id)
 
         await #expect(throws: RideServiceError.rideNoLongerAvailable) {
             try await service.simulateRideCancelled(id: ride.id)
         }
 
-        let session = try await currentSession()
+        let session = try await service.currentSession()
         #expect(session.activeRide?.id == nextRide.id)
         #expect(session.driver.availability == .onRide)
     }

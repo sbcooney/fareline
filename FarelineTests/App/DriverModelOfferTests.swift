@@ -27,6 +27,88 @@ struct DriverModelOfferTests {
         #expect(await service.ride(id: ride.id)?.status == .awaitingDriver)
     }
 
+    @Test func ignoredOfferIsReportedAsEndedWithoutAResponse() async throws {
+        let service = MockRideService.forModelTests(time: time)
+        let ride = TestFixtures.ride()
+        await service.addRide(ride)
+        let model = DriverModel(service: service)
+        let updates = Task { await model.start() }
+        defer { updates.cancel() }
+        await model.goOnline()
+        try await service.offerRide(id: ride.id)
+        await waitUntil { model.session?.pendingOffer != nil }
+        let offerID = try #require(model.session?.pendingOffer?.id)
+
+        await time.waitForSleeper()
+        time.advance(by: 30)
+        await waitUntil { model.session?.pendingOffer == nil }
+
+        #expect(model.unansweredOfferID == offerID)
+    }
+
+    @Test func withdrawnOfferIsReportedAsEndedWithoutAResponse() async throws {
+        let service = MockRideService.forModelTests(time: time)
+        let ride = TestFixtures.ride()
+        await service.addRide(ride)
+        let model = DriverModel(service: service)
+        let updates = Task { await model.start() }
+        defer { updates.cancel() }
+        await model.goOnline()
+        try await service.offerRide(id: ride.id)
+        await waitUntil { model.session?.pendingOffer != nil }
+        let offerID = try #require(model.session?.pendingOffer?.id)
+
+        try await service.simulateRideCancelled(id: ride.id)
+        await waitUntil { model.session?.pendingOffer == nil }
+
+        #expect(model.unansweredOfferID == offerID)
+    }
+
+    @Test func offerWhoseAcceptFailedIsStillReportedWhenItEnds() async throws {
+        let service = MockRideService.forModelTests(time: time)
+        let ride = TestFixtures.ride()
+        await service.addRide(ride)
+        let model = DriverModel(service: service)
+        let updates = Task { await model.start() }
+        defer { updates.cancel() }
+        await model.goOnline()
+        try await service.offerRide(id: ride.id)
+        await waitUntil { model.session?.pendingOffer != nil }
+        let offerID = try #require(model.session?.pendingOffer?.id)
+        await service.failNextRequest(with: .networkUnavailable)
+        await model.acceptOffer(id: offerID)
+
+        await time.waitForSleeper()
+        time.advance(by: 30)
+        await waitUntil { model.session?.pendingOffer == nil }
+
+        #expect(model.unansweredOfferID == offerID)
+    }
+
+    @Test(arguments: [true, false])
+    func answeredOfferIsntReportedAsEndedWithoutAResponse(accepting: Bool) async throws {
+        let service = MockRideService.forModelTests(time: time)
+        let ride = TestFixtures.ride()
+        await service.addRide(ride)
+        let model = DriverModel(service: service)
+        await model.goOnline()
+        try await service.offerRide(id: ride.id)
+        for await session in await service.sessionUpdates() {
+            model.apply(session)
+            break
+        }
+        let offerID = try #require(model.session?.pendingOffer?.id)
+
+        if accepting {
+            await model.acceptOffer(id: offerID)
+        } else {
+            await model.declineOffer(id: offerID)
+        }
+
+        #expect(model.session?.pendingOffer == nil)
+        #expect(model.unansweredOfferID == nil)
+    }
+
     @Test func offerExpiringWhileAnAcceptIsInFlightDoesntTakeTheRide() async throws {
         let service = MockRideService.forModelTests(time: time, responseDelay: 1)
         let ride = TestFixtures.ride()
@@ -55,7 +137,7 @@ struct DriverModelOfferTests {
         time.advance(by: 0.5)
         await accepting.value
 
-        #expect(model.lastError == .offerNoLongerAvailable)
+        #expect(model.alert == .error(.offerNoLongerAvailable))
         #expect(model.session?.activeRide == nil)
         #expect(model.session?.driver.availability == .available)
         #expect(await service.ride(id: ride.id)?.status == .awaitingDriver)

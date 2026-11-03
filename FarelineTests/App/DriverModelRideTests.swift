@@ -20,16 +20,9 @@ struct DriverModelRideTests {
         await service.addRide(ride)
         await model.goOnline()
         try await service.offerRide(id: ride.id)
-        model.apply(try await currentSession())
+        model.apply(try await service.currentSession())
         await model.acceptOffer(id: try #require(model.session?.pendingOffer?.id))
         try #require(model.session?.activeRide?.id == ride.id)
-    }
-
-    private func currentSession() async throws -> DriverSession {
-        for await session in await service.sessionUpdates() {
-            return session
-        }
-        throw CancellationError()
     }
 
     @Test func rideProgressesToCompletion() async throws {
@@ -45,7 +38,7 @@ struct DriverModelRideTests {
         #expect(model.session?.activeRide == nil)
         #expect(model.session?.driver.availability == .available)
         #expect(model.session?.pastRides.map(\.id) == [ride.id])
-        #expect(model.cancelledRide == nil)
+        #expect(model.alert == nil)
     }
 
     @Test func pastRideIsFoundByIDAfterNewerRidesEnd() async throws {
@@ -64,10 +57,10 @@ struct DriverModelRideTests {
         )
         await service.addRide(newerRide)
         try await service.offerRide(id: newerRide.id)
-        model.apply(try await currentSession())
+        model.apply(try await service.currentSession())
         await model.acceptOffer(id: try #require(model.session?.pendingOffer?.id))
         try await service.simulateRideCancelled(id: newerRide.id)
-        model.apply(try await currentSession())
+        model.apply(try await service.currentSession())
 
         #expect(model.session?.pastRides.map(\.id) == [newerRide.id, ride.id])
         #expect(model.pastRide(id: ride.id)?.status == .completed)
@@ -86,11 +79,11 @@ struct DriverModelRideTests {
         await service.failNextRequest(with: .networkUnavailable)
 
         await model.markArrived(rideID: ride.id)
-        #expect(model.lastError == .networkUnavailable)
+        #expect(model.alert == .error(.networkUnavailable))
         #expect(model.session?.activeRide?.status == .driverEnRoute)
 
         await model.markArrived(rideID: ride.id)
-        #expect(model.lastError == nil)
+        #expect(model.alert == nil)
         #expect(model.session?.activeRide?.status == .driverArrived)
     }
 
@@ -100,9 +93,9 @@ struct DriverModelRideTests {
         defer { updates.cancel() }
 
         try await service.simulateRideCancelled(id: ride.id)
-        await waitUntil { model.cancelledRide != nil }
+        await waitUntil { model.alert != nil }
 
-        #expect(model.cancelledRide?.id == ride.id)
+        #expect(model.alert?.cancelledRideID == ride.id)
         #expect(model.session?.activeRide == nil)
         #expect(model.session?.driver.availability == .available)
     }
@@ -111,14 +104,14 @@ struct DriverModelRideTests {
         await service.addRide(ride)
         await model.goOnline()
         try await service.offerRide(id: ride.id)
-        model.apply(try await currentSession())
+        model.apply(try await service.currentSession())
         let offer = try #require(model.session?.pendingOffer)
         _ = try await service.acceptOffer(id: offer.id)
         try await service.simulateRideCancelled(id: ride.id)
 
-        model.apply(try await currentSession())
+        model.apply(try await service.currentSession())
 
-        #expect(model.cancelledRide?.id == ride.id)
+        #expect(model.alert?.cancelledRideID == ride.id)
     }
 
     @Test func pastRidesInTheFirstSessionArentReportedAsCancellations() async throws {
@@ -126,42 +119,29 @@ struct DriverModelRideTests {
         try await service.simulateRideCancelled(id: ride.id)
         let newModel = DriverModel(service: service)
 
-        newModel.apply(try await currentSession())
+        newModel.apply(try await service.currentSession())
 
-        #expect(newModel.cancelledRide == nil)
-    }
-
-    @Test func dismissingTheCancellationClearsIt() async throws {
-        try await startRide()
-        try await service.simulateRideCancelled(id: ride.id)
-        model.apply(try await currentSession())
-        #expect(model.isShowingCancelledRide)
-
-        model.isShowingCancelledRide = false
-
-        #expect(model.cancelledRide == nil)
+        #expect(newModel.alert == nil)
     }
 
     @Test func stepTappedAfterTheRiderCancelledShowsOnlyTheCancellation() async throws {
         try await startRide()
         try await service.simulateRideCancelled(id: ride.id)
-        model.apply(try await currentSession())
+        model.apply(try await service.currentSession())
 
         await model.markArrived(rideID: ride.id)
 
-        #expect(model.cancelledRide?.id == ride.id)
-        #expect(model.lastError == nil)
+        #expect(model.alert?.cancelledRideID == ride.id)
     }
 
     @Test func stepThatFailedBeforeTheCancellationArrivedShowsOnlyTheCancellation() async throws {
         try await startRide()
         try await service.simulateRideCancelled(id: ride.id)
         await model.markArrived(rideID: ride.id)
-        #expect(model.lastError == .rideNoLongerAvailable)
+        #expect(model.alert == .error(.rideNoLongerAvailable))
 
-        model.apply(try await currentSession())
+        model.apply(try await service.currentSession())
 
-        #expect(model.cancelledRide?.id == ride.id)
-        #expect(model.lastError == nil)
+        #expect(model.alert?.cancelledRideID == ride.id)
     }
 }

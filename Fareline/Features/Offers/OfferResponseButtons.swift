@@ -7,6 +7,9 @@ struct OfferResponseButtons: View {
 
     let offerID: RideOffer.ID
 
+    /// Whether the buttons have been showing long enough to take a tap. See ``ignoreTapsBriefly()``.
+    @State private var isReady = false
+
     var body: some View {
         // The buttons stack at the largest text sizes, where side by side they'd run out of room.
         let layout = dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout()) : AnyLayout(HStackLayout())
@@ -27,12 +30,26 @@ struct OfferResponseButtons: View {
             .accessibilityValue(model.isPerformingAction ? Text("Updating") : Text(""))
         }
         .controlSize(.large)
-        .disabled(model.isPerformingAction)
+        .disabled(model.isPerformingAction || isReady == false)
+        .task(id: offerID, ignoreTapsBriefly)
         .overlay {
             if model.isPerformingAction {
                 ProgressView()
             }
         }
+    }
+
+    /// Accept appears where Go Offline was, so a tap meant for Go Offline could otherwise take the ride.
+    /// `AvailabilityButton` uses the same delay.
+    private func ignoreTapsBriefly() async {
+        isReady = false
+        do {
+            try await Task.sleep(for: .seconds(0.75))
+        } catch {
+            // A cancelled wait belongs to an offer that's gone, so it mustn't ready the buttons for the next one.
+            return
+        }
+        isReady = true
     }
 
     private func accept() {

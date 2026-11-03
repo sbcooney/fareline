@@ -2,6 +2,8 @@ import SwiftUI
 
 /// Shows the ride the driver is on, with the one step they take next.
 struct CurrentRideView: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     let ride: Ride
 
     var body: some View {
@@ -20,6 +22,8 @@ struct CurrentRideView: View {
             }
         }
         .navigationTitle(Text(ride.status.title))
+        // A large title truncates at accessibility text sizes, and the smaller inline title fits.
+        .navigationBarTitleDisplayMode(dynamicTypeSize.isAccessibilitySize ? .inline : .automatic)
         .safeAreaInset(edge: .bottom) {
             RideStepButton(ride: ride)
                 .padding()
