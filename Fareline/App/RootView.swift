@@ -22,9 +22,10 @@ struct RootView: View {
             }
             .navigationDestination(for: AppDestination.self, destination: AppDestinationView.init)
         }
-        // Offers replace the root screen, so a pushed screen would hide one. Returning to the root shows it.
-        .onChange(of: model.session?.pendingOffer?.id) { _, offerID in
-            if offerID != nil {
+        // An offer or a ride replaces the root screen, so a pushed screen would hide it. Returning to the
+        // root shows it.
+        .onChange(of: model.session?.activeRide?.id ?? model.session?.pendingOffer?.id) { _, id in
+            if id != nil {
                 path.removeAll()
             }
         }

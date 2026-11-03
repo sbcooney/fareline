@@ -28,13 +28,16 @@ final class PastRideStoreTests {
         #expect(store.load() == [cancelled, completed])
     }
 
-    @Test func unreadableFileStartsEmptyAndIsLeftAlone() throws {
+    @Test func unreadableFileStartsEmptyAndIsKeptAfterTheNextSave() throws {
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         let unreadable = Data("not JSON".utf8)
         try unreadable.write(to: store.fileURL)
 
         #expect(store.load().isEmpty)
-        #expect(try Data(contentsOf: store.fileURL) == unreadable)
+        try store.save([try TestFixtures.completedRide()])
+
+        #expect(try Data(contentsOf: store.unreadableFileURL) == unreadable)
+        #expect(store.load().count == 1)
     }
 
     @Test func rideThatHasntEndedIsRejected() throws {

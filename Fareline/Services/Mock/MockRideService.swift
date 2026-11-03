@@ -216,7 +216,8 @@ actor MockRideService: RideService {
     private func endActiveRide() {
         if let ride = activeRideID.flatMap({ rides[$0] }) {
             pastRides.insert(ride, at: 0)
-            // If saving fails, the ride still appears in this session, and is only missing after a relaunch.
+            // If saving fails, the store logs it. The ride still appears in this session, and is only missing
+            // after a relaunch.
             try? pastRideStore?.save(pastRides)
         }
         activeRideID = nil

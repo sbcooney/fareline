@@ -89,7 +89,6 @@ Fareline/
   App/         App entry point and dependency wiring
   Domain/      Rides, offers, drivers, state machines
   Services/    RideService protocol and mock implementation
-  Persistence/ Local storage
   Features/    Availability, Offers, CurrentRide, PastRides, Shared, ...
   Resources/   Asset catalog
 FarelineTests/
@@ -214,10 +213,10 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 | 2026-11-03 | Show only the cancellation when a step fails because the rider cancelled | Two alerts would compete, and "no longer available" says less than the cancellation does. The store hides that one error while a cancellation is waiting to be seen. |
 | 2026-11-03 | Rename `DriverStore` to `DriverModel` (revisits "Name the store `DriverStore` rather than `AppStore`") | #8 adds `PastRideStore`, which saves rides to a file, and "Store" shouldn't mean two things. `DriverModel` follows Apple's naming for `@Observable` app models. In exchange, the name says less about the pattern: views still act through it, not just read it. |
 | 2026-11-03 | Save past rides in `MockRideService`, through `PastRideStore` | The mock plays the backend, which would own history, and the session already delivers `pastRides`, so the app stays a renderer. In exchange, the app has no cache of its own yet. #15 adds one for offline use. |
-| 2026-11-03 | Save past rides as a `Codable` JSON file rather than with SwiftData | Domain types are value types whose rules are enforced through `apply(_:)`, and SwiftData would need separate `@Model` classes mirroring them. Decoding replays the ride's events so invalid saved state is rejected. In exchange, the whole file is rewritten on each save, which is fine for one driver's history. |
+| 2026-11-03 | Save past rides as a `Codable` JSON file rather than with SwiftData | Domain types are value types whose rules are enforced through `apply(_:)`, and SwiftData would need separate `@Model` classes mirroring them. Decoding replays the ride's events so invalid saved state is rejected, and an unreadable file is moved aside rather than overwritten. In exchange, the whole file is rewritten on each save, and loaded on the main thread at launch, which is fine for one driver's history. |
 | 2026-11-03 | Show cancelled rides in past rides | The driver drove toward the pickup and may want to see it. Each is labeled "Cancelled" with no fare, so it isn't mistaken for earnings. |
 | 2026-11-03 | Replace `completedAt` with `endedAt`, and give `.cancelled` a date | Cancelled rides can be sorted and show when they ended, and the status already says how. This changes a domain event, so every caller of `.cancelled` passes a time. |
-| 2026-11-03 | Clear the navigation path when an offer arrives | A driver on a pushed screen can't miss an offer. In exchange, they lose their place in Past Rides. #9 may revisit how offers appear. |
+| 2026-11-03 | Clear the navigation path when an offer arrives or a ride starts | A driver on a pushed screen can't miss an offer or a ride, including one self-assigned from a pushed screen in #13. In exchange, they lose their place in Past Rides. #9 may revisit how offers appear. |
 | 2026-11-03 | Name the folder `Features/PastRides/`, not `RideHistory/` | It matches the screen's title and `AppDestination.pastRides`. |
 | 2026-11-03 | Turn off SwiftLint's `file_length` rule for `MockRideService.swift` | The actor's state is private, and splitting the file would mean exposing it to the whole module. In exchange, the file can grow past the limit unnoticed, so it should be split if it gains another responsibility. |
 

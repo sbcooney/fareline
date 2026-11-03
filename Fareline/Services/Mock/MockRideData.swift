@@ -3,8 +3,11 @@ import Foundation
 /// The fixed data used by `MockRideService`.
 enum MockRideData {
     /// The driver using the app.
+    ///
+    /// The ID is fixed because saved past rides record their driver, and a new ID on each launch would
+    /// orphan them.
     static let driver = Driver(
-        id: UUID(),
+        id: UUID(uuid: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)),
         name: PersonNameComponents(givenName: "Grace", familyName: "Hopper")
     )
 

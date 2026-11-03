@@ -47,13 +47,14 @@ Tests:
 - Saved rides load back unchanged, round-tripping every persisted field, including the end time and `driverID`.
 - Each persisted status round-trips: `completed` and, if decided below, `cancelled`.
 - Loading rejects a saved ride whose state the domain doesn't allow, such as `completed` with no end time, or a past ride with no driver, and doesn't crash.
-- A missing file starts with no past rides. An unreadable file also starts empty, and isn't overwritten until a new ride ends.
+- A missing file starts with no past rides. An unreadable file also starts empty, and is moved aside rather than deleted, so the next save can't destroy the history it holds.
+- Saved rides keep their driver across launches, because the mock driver's ID is fixed.
 - A ride is saved as soon as it ends, by completion or cancellation.
 - Rides loaded at launch don't show a "Ride Cancelled" alert, because the model ignores past rides in its first session.
 
-### Offers on pushed screens
+### Offers and rides on pushed screens
 
-A new offer must be seen even when the driver is on Past Rides or a ride's detail screen. Today, offers replace only the root screen, so a pushed screen would hide one.
+A new offer or ride must be seen even when the driver is on a pushed screen. Offers and rides replace only the root screen, so a pushed screen would hide one. This also covers #13, where a ride can start from a pushed screen.
 
 Tests:
 - Checked in the simulator: an offer arriving while a screen is pushed brings the driver to the offer. The navigation path lives in a view, so a unit test can't reach it.

@@ -56,10 +56,28 @@ struct PastRideDetailView: View {
 }
 
 #Preview {
-    @Previewable @State var model = DriverModel(service: MockRideService())
+    @Previewable @State var model: DriverModel?
+    let ride = {
+        var ride = MockRideData.makeRide(sequence: 0, requestedAt: .now.addingTimeInterval(-900))
+        try? ride.apply(.driverAssigned(driverID: MockRideData.driver.id))
+        try? ride.apply(.driverArrived)
+        try? ride.apply(.tripStarted)
+        try? ride.apply(.tripCompleted(date: .now))
+        return ride
+    }()
 
     NavigationStack {
-        PastRideDetailView(rideID: UUID())
+        if let model {
+            PastRideDetailView(rideID: ride.id)
+                .environment(model)
+        }
     }
-    .environment(model)
+    .task {
+        // The service loads past rides from a store, so the preview saves one to a temporary file first.
+        let pastRideStore = PastRideStore(fileURL: .temporaryDirectory.appending(path: "PastRideDetailPreview.json"))
+        try? pastRideStore.save([ride])
+        let newModel = DriverModel(service: MockRideService(pastRideStore: pastRideStore))
+        model = newModel
+        await newModel.start()
+    }
 }

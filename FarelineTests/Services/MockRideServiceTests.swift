@@ -56,6 +56,11 @@ struct MockRideServiceTests {
         return nil
     }
 
+    @Test func demoDriverKeepsTheSameIDAcrossLaunches() {
+        // Saved rides record their driver, so a new ID on each launch would orphan them.
+        #expect(MockRideData.driver.id.uuidString == "00000000-0000-0000-0000-000000000001")
+    }
+
     // MARK: - Availability
 
     @Test func newSubscriberReceivesTheCurrentSession() async throws {
