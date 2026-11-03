@@ -21,7 +21,7 @@ struct PendingOfferBar: View {
                 }
                 Spacer()
                 Image(systemName: "chevron.right")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.textSecondary)
                     .accessibilityHidden(true)
             }
             .padding()

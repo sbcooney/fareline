@@ -9,11 +9,11 @@ struct PlaceRow: View {
         VStack(alignment: .leading) {
             Text(title)
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
             Text(place.name)
                 .font(.headline)
             Text(place.address)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.textSecondary)
         }
         .accessibilityElement(children: .combine)
     }

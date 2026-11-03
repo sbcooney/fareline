@@ -22,6 +22,8 @@ struct AvailabilityButton: View {
                 .frame(maxWidth: .infinity)
         }
         .buttonStyle(.borderedProminent)
+        // In dark mode the brand color is light, so white text on it wouldn't be readable.
+        .foregroundStyle(.textOnBrand)
         .controlSize(.large)
         .disabled(model.canChangeAvailability == false || isReady == false)
         .task(id: availability, ignoreTapsBriefly)

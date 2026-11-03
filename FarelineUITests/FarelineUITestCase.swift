@@ -24,12 +24,14 @@ class FarelineUITestCase: XCTestCase {
     ///
     /// The audit's own failures stop at the first issue and don't say which element it was.
     ///
-    /// Contrast is left out until #19 adds a design system with contrast-checked colors. Today the app uses
-    /// the system's default blue and secondary gray, which fall just short. #19 turns this check back on.
+    /// - Parameter ignoredLabels: Elements whose contrast is checked another way. Each use explains why.
     @MainActor
-    func audit(_ app: XCUIApplication) throws {
+    func audit(_ app: XCUIApplication, ignoringContrastOn ignoredLabels: Set<String> = []) throws {
         var issues: [String] = []
-        try app.performAccessibilityAudit(for: XCUIAccessibilityAuditType.all.subtracting(.contrast)) { issue in
+        try app.performAccessibilityAudit { issue in
+            if issue.auditType == .contrast, let label = issue.element?.label, ignoredLabels.contains(label) {
+                return true
+            }
             let element = issue.element.map { "\($0.elementType) \"\($0.label)\"" } ?? "no element"
             issues.append("\(issue.compactDescription) on \(element)")
             // Each issue is recorded here and reported together below.
