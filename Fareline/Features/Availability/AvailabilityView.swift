@@ -17,15 +17,22 @@ struct AvailabilityView: View {
             AvailabilityButton(availability: availability)
                 .padding()
         }
+        .toolbar {
+            NavigationLink(value: AppDestination.pastRides) {
+                Label("Past Rides", systemImage: "clock")
+            }
+        }
     }
 }
 
 #Preview {
-    @Previewable @State var store = DriverStore(service: MockRideService())
+    @Previewable @State var model = DriverModel(service: MockRideService())
 
-    AvailabilityView(availability: .offline)
-        .environment(store)
-        .task {
-            await store.start()
-        }
+    NavigationStack {
+        AvailabilityView(availability: .offline)
+    }
+    .environment(model)
+    .task {
+        await model.start()
+    }
 }

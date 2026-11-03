@@ -8,17 +8,24 @@ The driver can look back at the rides they've given, including after relaunching
 
 ## Behavior
 
-### Past rides list
+### Opening past rides
 
-The driver opens Past Rides from the home screen. It lists their past rides, newest first. Each row shows the date, the route (pickup to drop-off), and the fare.
+The driver opens Past Rides from the home screen while they're offline or available. It's a pushed screen, through `AppDestination.pastRides`, replacing today's placeholder view.
 
 Tests:
-- The service lists past rides newest first, by when they ended.
-- A ride that ends while the list is open appears at the top. The list reads the store's session, so this is checked in the simulator.
+- Checked in the simulator: the home screen links to Past Rides, and the back button returns to it.
+
+### Past rides list
+
+The list shows the driver's past rides, newest first by when they ended. Each row shows the route (pickup to drop-off), when it ended, and the fare, or "Cancelled". It reads the model's session, so it's always current.
+
+Tests:
+- The service lists past rides newest first by when they ended, across completed and cancelled rides if both are shown.
+- A ride can't end while the list is open: the list is only reachable while the driver is offline or available, and a new offer returns them to the root screen.
 
 ### Empty state
 
-With no past rides, the screen says so and explains that completed rides will appear there.
+With no past rides, the screen says so and explains that finished rides will appear there.
 
 Tests:
 - Checked in the simulator: a driver with no past rides sees the empty state, not an empty list.
@@ -28,40 +35,44 @@ Tests:
 Tapping a ride shows its rider, pickup, drop-off, fare, when it was requested, and how and when it ended.
 
 Tests:
-- Looking up a ride by ID returns that ride, even after newer rides are added.
-- Checked in the simulator: the detail screen for a completed ride and for a cancelled one.
+- Looking up a past ride by ID returns that ride, even after newer rides are added.
+- Looking up an ID that isn't a past ride returns nothing, and the detail screen shows that the ride isn't available rather than crashing.
+- Checked in the simulator: the detail screen for a completed ride and, if shown, a cancelled one.
 
 ### Surviving relaunch
 
-Past rides are saved, and are there after the app is quit and relaunched.
+Past rides are saved after each ride ends, and are there after the app is quit and relaunched.
 
 Tests:
-- Saved rides load back unchanged, round-tripping every persisted field, including `completedAt` and `driverID`.
-- Each persisted status round-trips: `completed` and, if decided below, `cancelled`, with the driver assigned.
-- Loading rejects a saved ride whose state the domain doesn't allow, such as `completed` with no `completedAt` or no driver, or a past ride with no driver, and doesn't crash.
-- A missing or unreadable file starts with no past rides rather than failing.
-- Saving happens after each ride ends, so a ride isn't lost if the app quits right after.
+- Saved rides load back unchanged, round-tripping every persisted field, including the end time and `driverID`.
+- Each persisted status round-trips: `completed` and, if decided below, `cancelled`.
+- Loading rejects a saved ride whose state the domain doesn't allow, such as `completed` with no end time, or a past ride with no driver, and doesn't crash.
+- A missing file starts with no past rides. An unreadable file also starts empty, and is moved aside rather than deleted, so the next save can't destroy the history it holds.
+- Saved rides keep their driver across launches, because the mock driver's ID is fixed.
+- A ride is saved as soon as it ends, by completion or cancellation.
+- Rides loaded at launch don't show a "Ride Cancelled" alert, because the model ignores past rides in its first session.
 
-### Offers on pushed screens
+### Offers and rides on pushed screens
 
-A new offer must be seen even when the driver is on Past Rides or a ride's detail screen. Today, offers replace only the root screen, so a pushed screen would hide one.
+A new offer or ride must be seen even when the driver is on a pushed screen. Offers and rides replace only the root screen, so a pushed screen would hide one. This also covers #13, where a ride can start from a pushed screen.
 
 Tests:
-- Checked in the simulator: an offer arriving while a screen is pushed brings the driver to the offer. The path lives in a view, so a unit test can't reach it.
+- Checked in the simulator: an offer arriving while a screen is pushed brings the driver to the offer. The navigation path lives in a view, so a unit test can't reach it.
 
 ## Out of scope
 
 - Filtering, searching, or grouping history by day. Not needed for a short list.
 - Earnings totals.
 - Syncing history with a backend, and offline use of it (#15).
-- The broader question of whether offers should take over the screen (#9).
+- Whether offers should take over the screen at all (#9).
 
-## Decisions needed
+## Decisions
 
-- **Where are past rides saved?** Recommendation: in `MockRideService`, which plays the backend, because the session already delivers `pastRides` and the app stays a renderer of what the service sends. The alternative is an app-side cache in `DriverStore`, which #15 will want, but the mock starts empty on each launch, so the app would have to merge its cache with the service's history now rather than in #15.
-- **`Codable` JSON file or SwiftData?** Recommendation: a JSON file with `Codable`, because domain types are value types with rules enforced through `apply(_:)`, and SwiftData would need separate `@Model` classes that mirror them. Decoding validates by replaying the ride's events through the domain, so invalid saved state is rejected.
-- **Show rides the rider cancelled?** Recommendation: yes, labeled "Cancelled" with no fare, because the driver did drive toward the pickup and may want to see it.
-- **When did a cancelled ride end?** `Ride` stores `completedAt` but no cancellation time, so a cancelled ride can't be sorted by when it ended or show that time. Recommendation: replace `completedAt` with an `endedAt` that `.tripCompleted(date:)` and a new `.cancelled(date:)` both set, because the status already says how the ride ended. This changes a domain event, so it's a decision rather than a detail.
-- **What does decoding check?** `Ride` doesn't store its events, so decoding infers them from the saved fields. A driver's past ride always had a driver assigned, so recommendation: replay `driverAssigned` and then the steps that lead to the saved status, and reject anything that fails, including a past ride with no driver.
-- **How does an offer reach a driver on a pushed screen?** Recommendation: `RootView` holds the navigation path, and clears it when an offer arrives, returning the driver to the offer. This revisits nothing until #9 decides whether offers take over the screen.
-- **Names.** Proposed: `PastRidesView`, `PastRideRow`, `PastRideDetailView` in `Features/PastRides/`, a new `AppDestination.pastRide(Ride.ID)` case, and a toolbar button labeled "Past Rides" on the home screen. The file-saving type would be named once the first decision is made.
+Decided on 2026-11-03 and recorded in the decision log in docs/PLAN.md:
+
+- `MockRideService` saves past rides, through `PastRideStore`, a JSON file whose location is injected.
+- `Codable` JSON rather than SwiftData. Decoding replays `driverAssigned` and the later steps through `apply(_:)`, and rejects anything that fails.
+- Cancelled rides are shown, labeled "Cancelled", with no fare.
+- `endedAt` replaces `completedAt`, and `.cancelled` takes a date.
+- `RootView` holds the navigation path, and clears it when an offer arrives.
+- `Features/PastRides/`, with `PastRidesView`, `PastRideRow`, `PastRideDetailView`, `AppDestination.pastRide(Ride.ID)`, and a "Past Rides" toolbar button.

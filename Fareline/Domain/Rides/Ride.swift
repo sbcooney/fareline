@@ -2,7 +2,7 @@ import Foundation
 
 /// A trip from a pickup location to a drop-off location.
 ///
-/// A new ride always starts as `awaitingDriver`. Its status, driver, and completion time change only
+/// A new ride always starts as `awaitingDriver`. Its status, driver, and end time change only
 /// through ``apply(_:)``, so a ride can't be in a state its lifecycle doesn't allow, such as
 /// `driverEnRoute` with no driver.
 struct Ride: Identifiable, Equatable, Sendable {
@@ -15,7 +15,8 @@ struct Ride: Identifiable, Equatable, Sendable {
 
     private(set) var status = RideStatus.awaitingDriver
     private(set) var driverID: Driver.ID?
-    private(set) var completedAt: Date?
+    /// When the ride was completed or cancelled. The status says which.
+    private(set) var endedAt: Date?
 
     init(id: UUID, rider: Rider, pickup: Place, dropoff: Place, fare: Fare, requestedAt: Date) {
         self.id = id
@@ -37,9 +38,9 @@ struct Ride: Identifiable, Equatable, Sendable {
         switch event {
         case .driverAssigned(let driverID):
             self.driverID = driverID
-        case .tripCompleted(let date):
-            completedAt = date
-        case .driverArrived, .tripStarted, .cancelled:
+        case .tripCompleted(let date), .cancelled(let date):
+            endedAt = date
+        case .driverArrived, .tripStarted:
             break
         }
     }

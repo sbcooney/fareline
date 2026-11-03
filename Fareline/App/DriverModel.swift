@@ -2,13 +2,13 @@ import Observation
 
 /// The app's single source of truth, and the one path for every user action.
 ///
-/// Views read ``session`` and call intent methods such as ``acceptOffer(id:)``. The store doesn't apply
+/// Views read ``session`` and call intent methods such as ``acceptOffer(id:)``. The model doesn't apply
 /// business rules itself. It sends requests to the service and replaces its state with the result, so
 /// the app and the service can't disagree. Keeping all actions here also gives offline support one
 /// place to queue them.
 @MainActor
 @Observable
-final class DriverStore {
+final class DriverModel {
     /// The latest session, or `nil` until the first one arrives.
     private(set) var session: DriverSession?
 
@@ -39,6 +39,11 @@ final class DriverStore {
                 dismissCancelledRide()
             }
         }
+    }
+
+    /// Returns one of the driver's past rides, or `nil` if it isn't one.
+    func pastRide(id: Ride.ID) -> Ride? {
+        session?.pastRides.first { $0.id == id }
     }
 
     /// Whether the driver can change their availability now.

@@ -4,6 +4,10 @@ Spec: [spec.md](spec.md)
 
 Each phase leaves the app building and the tests passing. Check off tasks as they're done, in the same commits as the work.
 
+## Before starting
+
+- [ ] Load the Swift skills this issue needs: <skills, from the table in "Development flow" in docs/PLAN.md>
+
 ## Phase 1: <name>
 
 - [ ] Write failing tests: <tests from the spec>
@@ -24,7 +28,7 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Before the PR
 
-- [ ] Review with the relevant Swift skills, as listed in "Development flow" in docs/PLAN.md
+- [ ] Review with `<skill>` (<files it covers>), one line per skill loaded above, and record each in the PR's "Swift skill reviews" section
 - [ ] `swiftlint lint` reports no violations
 - [ ] Run `/code-review`, and fix or record each finding
 - [ ] Update docs/PLAN.md: status, decision log, assumptions, and any outdated sections

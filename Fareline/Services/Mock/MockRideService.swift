@@ -1,5 +1,9 @@
 import Foundation
 
+// The actor's state is private, and Swift's `private` doesn't cross files, so splitting this file would mean
+// exposing that state to the rest of the module.
+// swiftlint:disable file_length
+
 /// An in-memory stand-in for a backend, including its role in deciding who gets offered which ride.
 ///
 /// Each request has at most one suspension point, at the start, for the simulated network delay. All state
@@ -11,6 +15,7 @@ import Foundation
 actor MockRideService: RideService {
     private let configuration: MockRideServiceConfiguration
     private let timeSource: any TimeSource
+    private let pastRideStore: PastRideStore?
 
     private var driver: Driver
     private var rides: [Ride.ID: Ride] = [:]
@@ -26,14 +31,19 @@ actor MockRideService: RideService {
     private var expiryTask: Task<Void, Never>?
     private var riderCancellationTask: Task<Void, Never>?
 
+    /// - Parameter pastRideStore: Where past rides are saved, or `nil` to keep them in memory only, as tests
+    ///   and previews do.
     init(
         configuration: MockRideServiceConfiguration = .demo,
         timeSource: any TimeSource = SystemTimeSource(),
-        driver: Driver = MockRideData.driver
+        driver: Driver = MockRideData.driver,
+        pastRideStore: PastRideStore? = nil
     ) {
         self.configuration = configuration
         self.timeSource = timeSource
         self.driver = driver
+        self.pastRideStore = pastRideStore
+        pastRides = pastRideStore?.load() ?? []
     }
 
     deinit {
@@ -206,6 +216,9 @@ actor MockRideService: RideService {
     private func endActiveRide() {
         if let ride = activeRideID.flatMap({ rides[$0] }) {
             pastRides.insert(ride, at: 0)
+            // If saving fails, the store logs it. The ride still appears in this session, and is only missing
+            // after a relaunch.
+            try? pastRideStore?.save(pastRides)
         }
         activeRideID = nil
         riderCancellationTask?.cancel()
@@ -362,7 +375,7 @@ extension MockRideService {
     ///
     /// - Throws: ``RideServiceError/rideNoLongerAvailable`` if the ride can't be cancelled.
     func simulateRideCancelled(id: Ride.ID) throws(RideServiceError) {
-        try updateRide(id: id, with: .cancelled)
+        try updateRide(id: id, with: .cancelled(date: timeSource.now))
         if activeRideID == id {
             endActiveRide()
             scheduleNextOffer()

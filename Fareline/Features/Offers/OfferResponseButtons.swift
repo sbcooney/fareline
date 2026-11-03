@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Lets the driver accept or decline an offer, showing progress while the service responds.
 struct OfferResponseButtons: View {
-    @Environment(DriverStore.self) private var store
+    @Environment(DriverModel.self) private var model
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     let offerID: RideOffer.ID
@@ -17,19 +17,19 @@ struct OfferResponseButtons: View {
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.bordered)
-            .accessibilityValue(store.isPerformingAction ? Text("Updating") : Text(""))
+            .accessibilityValue(model.isPerformingAction ? Text("Updating") : Text(""))
 
             Button(action: accept) {
                 Text("Accept")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
-            .accessibilityValue(store.isPerformingAction ? Text("Updating") : Text(""))
+            .accessibilityValue(model.isPerformingAction ? Text("Updating") : Text(""))
         }
         .controlSize(.large)
-        .disabled(store.isPerformingAction)
+        .disabled(model.isPerformingAction)
         .overlay {
-            if store.isPerformingAction {
+            if model.isPerformingAction {
                 ProgressView()
             }
         }
@@ -37,13 +37,13 @@ struct OfferResponseButtons: View {
 
     private func accept() {
         Task {
-            await store.acceptOffer(id: offerID)
+            await model.acceptOffer(id: offerID)
         }
     }
 
     private func decline() {
         Task {
-            await store.declineOffer(id: offerID)
+            await model.declineOffer(id: offerID)
         }
     }
 }

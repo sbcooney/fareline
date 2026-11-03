@@ -52,7 +52,7 @@ struct MockRideServiceRideTests {
         #expect(session.activeRide == nil)
         #expect(session.driver.availability == .available)
         #expect(session.pastRides.map(\.id) == [ride.id])
-        #expect(session.pastRides.first?.completedAt == time.now)
+        #expect(session.pastRides.first?.endedAt == time.now)
     }
 
     @Test func duplicateCompletionIsRejected() async throws {
@@ -89,6 +89,34 @@ struct MockRideServiceRideTests {
         #expect(session.driver.availability == .available)
         #expect(session.pastRides.map(\.id) == [ride.id])
         #expect(session.pastRides.first?.status == .cancelled)
+        #expect(session.pastRides.first?.endedAt == time.now)
+    }
+
+    @Test func pastRidesAreNewestFirstByWhenTheyEnded() async throws {
+        try await startRide(ride)
+        _ = try await service.markArrived(rideID: ride.id)
+        _ = try await service.startTrip(rideID: ride.id)
+        _ = try await service.completeTrip(rideID: ride.id)
+
+        time.advance(by: 60)
+        let cancelledRide = Ride(
+            id: UUID(testValue: 11),
+            rider: ride.rider,
+            pickup: ride.pickup,
+            dropoff: ride.dropoff,
+            fare: ride.fare,
+            requestedAt: time.now
+        )
+        await service.addRide(cancelledRide)
+        try await service.offerRide(id: cancelledRide.id)
+        let offer = try #require(await currentSession().pendingOffer)
+        _ = try await service.acceptOffer(id: offer.id)
+        try await service.simulateRideCancelled(id: cancelledRide.id)
+
+        let pastRides = try await currentSession().pastRides
+        #expect(pastRides.map(\.id) == [cancelledRide.id, ride.id])
+        #expect(pastRides.map(\.status) == [.cancelled, .completed])
+        #expect(pastRides.compactMap(\.endedAt) == [time.now, time.now.addingTimeInterval(-60)])
     }
 
     @Test func riderWhoCancelsDoesSoAfterTheDriverAccepts() async throws {

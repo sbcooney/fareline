@@ -16,6 +16,6 @@ enum RideEvent: Equatable, Sendable {
     /// The time is passed in, rather than read from the system clock, to keep the domain deterministic.
     case tripCompleted(date: Date)
 
-    /// The ride was cancelled before the trip began.
-    case cancelled
+    /// The ride was cancelled at the given time, before the trip began.
+    case cancelled(date: Date)
 }

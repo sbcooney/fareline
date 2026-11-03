@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Changes the driver's status, showing progress while the service responds.
 struct AvailabilityButton: View {
-    @Environment(DriverStore.self) private var store
+    @Environment(DriverModel.self) private var model
 
     let availability: DriverAvailability
 
@@ -10,9 +10,9 @@ struct AvailabilityButton: View {
         Button(action: changeAvailability) {
             // The title stays in the layout during a request, so the button's size doesn't change.
             Text(availability.actionTitle)
-                .opacity(store.isPerformingAction ? 0 : 1)
+                .opacity(model.isPerformingAction ? 0 : 1)
                 .overlay {
-                    if store.isPerformingAction {
+                    if model.isPerformingAction {
                         ProgressView()
                     }
                 }
@@ -20,10 +20,10 @@ struct AvailabilityButton: View {
         }
         .buttonStyle(.borderedProminent)
         .controlSize(.large)
-        .disabled(store.canChangeAvailability == false)
+        .disabled(model.canChangeAvailability == false)
         // VoiceOver can skip fully transparent text, so the name is set explicitly.
         .accessibilityLabel(Text(availability.actionTitle))
-        .accessibilityValue(store.isPerformingAction ? Text("Updating") : Text(""))
+        .accessibilityValue(model.isPerformingAction ? Text("Updating") : Text(""))
     }
 
     /// Requests the change this button's title describes.
@@ -34,9 +34,9 @@ struct AvailabilityButton: View {
         Task {
             switch availability {
             case .offline:
-                await store.goOnline()
+                await model.goOnline()
             case .available:
-                await store.goOffline()
+                await model.goOffline()
             case .onRide:
                 break
             }
