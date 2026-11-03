@@ -35,10 +35,11 @@ struct RootView: View {
                 }
             }
             .navigationDestination(for: AppDestination.self, destination: AppDestinationView.init)
-            // The button lives here rather than on the home screen, because an offer can replace the home screen
+            // The buttons live here rather than on the home screen, because an offer can replace the home screen
             // mid-tap. A link on the disappearing screen crashed SwiftUI. Changing the path here is always safe.
             .toolbar {
                 if isShowingHome {
+                    Button("Waiting Riders", systemImage: "person.2", action: openWaitingRiders)
                     Button("Past Rides", systemImage: "clock", action: openPastRides)
                 }
             }
@@ -77,6 +78,10 @@ struct RootView: View {
 
     private func openPastRides() {
         path.append(.pastRides)
+    }
+
+    private func openWaitingRiders() {
+        path.append(.waitingRiders)
     }
 
     /// Returns to the root screen, where a pending offer is shown.

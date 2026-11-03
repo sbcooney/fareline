@@ -49,11 +49,11 @@ Tests:
 
 ### The driver can see the list
 
-From the home screen, the driver opens a "Waiting Riders" screen. Each row shows the pickup, the drop-off, and how long the rider has waited, and the wait time keeps counting up while the screen is open. The list updates as the service reports changes. With no one waiting, the screen says so.
+From the home screen, the driver opens a "Waiting Riders" screen. Each row shows the pickup, the drop-off, the fare, and how long the rider has waited, and the wait time keeps counting up while the screen is open. The list updates as the service reports changes. With no one waiting, the screen says so.
 
 Tests:
 - The wait time reads as a duration, such as "Waiting 4 min", for a range of waits, including under a minute.
-- Checked in the simulator: the screen opens from home, rows show pickup, drop-off, and wait time, the list changes as rides arrive and leave, and the empty state shows with no one waiting. No UI tests are added. The user runs the app to check.
+- Checked in the simulator: the screen opens from home, rows show pickup, drop-off, fare, and wait time, the list changes as rides arrive and leave, and the empty state shows with no one waiting. No UI tests are added. The user runs the app to check.
 
 ### The driver can take a ride from the list
 

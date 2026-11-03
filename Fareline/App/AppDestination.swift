@@ -10,6 +10,9 @@ enum AppDestination: Hashable {
 
     /// One past ride's details.
     case pastRide(Ride.ID)
+
+    /// The riders that no driver has taken.
+    case waitingRiders
 }
 
 /// Maps each destination to its view.
@@ -22,6 +25,8 @@ struct AppDestinationView: View {
             PastRidesView()
         case .pastRide(let id):
             PastRideDetailView(rideID: id)
+        case .waitingRiders:
+            WaitingRidersView()
         }
     }
 }

@@ -36,8 +36,8 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Phase 5: The Waiting Riders screen
 
-- [ ] Write failing tests: the wait time's text for waits under a minute, a few minutes, and over an hour
-- [ ] Add `AppDestination.waitingRiders`, `WaitingRidersView` and `WaitingRideRow`, and the home screen's toolbar button. Rows show pickup, drop-off, and wait time, redrawn once a minute, with a Take Ride button enabled only while available and no request is in progress. The empty state says no one is waiting, and offline shows a line to go online to take a ride
+- [x] Write failing tests: the wait time's text for waits under a minute, which never shows "0 minutes", a few minutes, and over an hour, in `RideDisplayTests`
+- [x] Add `AppDestination.waitingRiders`, `WaitingRidersView` and `WaitingRideRow`, and the home screen's toolbar button. Rows show pickup, drop-off, fare, and wait time, redrawn once a minute, with a Take Ride button enabled only while available and no request is in progress. The empty state says no one is waiting, and offline shows a line to go online to take a ride
 - [ ] No unit test for the screen itself, which is view state. Verify: the user runs the app and checks the screen opens from home, rows update as rides arrive and leave, Take Ride starts the ride, a cancelled ride's rider reappears, Taylor Taken shows the conflict message, and the empty and offline states read correctly. No UI tests, per CLAUDE.md
 
 ## Before the PR
