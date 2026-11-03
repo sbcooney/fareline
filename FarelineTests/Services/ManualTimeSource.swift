@@ -53,12 +53,12 @@ final class ManualTimeSource: TimeSource {
         }
     }
 
-    /// Waits until something is sleeping.
+    /// Waits until at least the given number of things are sleeping.
     ///
     /// Tests call this before ``advance(by:)`` when the sleeper's deadline is based on the current time,
     /// because advancing first would move that deadline as well.
-    func waitForSleeper() async {
-        while state.withLock({ $0.sleepers.isEmpty }) {
+    func waitForSleeper(count: Int = 1) async {
+        while state.withLock({ $0.sleepers.count < count }) {
             await Task.yield()
         }
     }

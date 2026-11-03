@@ -23,10 +23,18 @@ struct OfferView: View {
             }
         }
         .navigationTitle("New Ride Offer")
+        .safeAreaInset(edge: .bottom) {
+            OfferResponseButtons(offerID: offer.id)
+                .padding()
+                // The list scrolls behind the buttons at large text sizes, and Decline is translucent.
+                .background(.bar)
+        }
     }
 }
 
 #Preview {
+    @Previewable @State var store = DriverStore(service: MockRideService())
+
     NavigationStack {
         OfferView(
             offer: RideOffer(
@@ -37,4 +45,5 @@ struct OfferView: View {
             )
         )
     }
+    .environment(store)
 }
