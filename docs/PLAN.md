@@ -25,7 +25,7 @@ Work proceeds top to bottom. Each row merges as its own PR and leaves the app wo
 | ✅ | #7 | View current ride information | Required |
 | ✅ | #26 | Per-issue spec and plan in the development flow | Setup |
 | ✅ | #8 | Review past rides | Required |
-| ⬜ | #9 | Error, empty, and accessibility states | Quality |
+| 🟨 | #9 | Error, empty, and accessibility states | Quality |
 | ⬜ | #19 | App icon and launch screen | Quality |
 | ⬜ | #10 | README and visual reference | Deliverable |
 | ⬜ | #12 | See a queue of waiting riders | Extended |
@@ -219,12 +219,17 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 | 2026-11-03 | Clear the navigation path when an offer arrives or a ride starts | A driver on a pushed screen can't miss an offer or a ride, including one self-assigned from a pushed screen in #13. In exchange, they lose their place in Past Rides. #9 may revisit how offers appear. |
 | 2026-11-03 | Name the folder `Features/PastRides/`, not `RideHistory/` | It matches the screen's title and `AppDestination.pastRides`. |
 | 2026-11-03 | Turn off SwiftLint's `file_length` rule for `MockRideService.swift` | The actor's state is private, and splitting the file would mean exposing it to the whole module. In exchange, the file can grow past the limit unnoticed, so it should be split if it gains another responsibility. |
+| 2026-11-03 | Show an offer over pushed screens as a banner, and keep it as the home screen's content (revisits "Show an offer as the whole screen rather than a sheet" and "Clear the navigation path when an offer arrives or a ride starts") | A driver browsing Past Rides keeps their place, and an offer is still never missed. On the home screen, an available driver is waiting for offers, so taking over loses nothing. In exchange, an offer looks different depending on where the driver is. A ride starting still clears the path. |
+| 2026-11-03 | Ignore taps on Accept, Decline, and Go Offline for 0.75 seconds after they appear | Accept appears where Go Offline was, and the reverse, so a tap meant for one could trigger the other. A confirmation step would slow every response. In exchange, a driver who's quick and sure waits a moment. |
+| 2026-11-03 | Announce an ended offer with VoiceOver only | A VoiceOver user can't see the offer screen go away. Sighted drivers can, so "Remove an expired offer without a message" otherwise stands. |
+| 2026-11-03 | Show one alert at a time through a `DriverAlert` enum | One property decides which explanation the driver sees, replacing special cases spread across two. In exchange, every test that checked `lastError` changes. |
+| 2026-11-03 | Don't add a retry button to the error alert | The control that failed stays enabled, and a retry button would mean remembering the last action. |
+| 2026-11-03 | Add a UI test target that runs Apple's accessibility audit on each screen | It catches missing labels, clipped text, and contrast problems that screenshots miss. In exchange, the project gains an XCTest target, since Swift Testing doesn't support UI tests, and launch arguments that open each screen. |
 
 ## Open questions
 
 Decide these in the issue noted, then record the outcome in the decision log.
 
-- **#9:** Should an offer take over the whole screen, or should the driver choose to open it, such as from a banner? This revisits the decision to show offers as the whole screen.
 - **#15:** Which actions can queue offline, and what happens when a queued action conflicts with the server state on reconnect?
 
 ## Deliverables checklist
