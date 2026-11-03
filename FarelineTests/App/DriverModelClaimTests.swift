@@ -1,0 +1,69 @@
+import Foundation
+import Testing
+@testable import Fareline
+
+/// Covers the driver taking a ride from the waiting list, including when someone else gets there first.
+@MainActor
+@Suite(.timeLimit(.minutes(1)))
+struct DriverModelClaimTests {
+    private let time = ManualTimeSource()
+    private let ride = TestFixtures.ride()
+
+    /// Returns a model whose driver is online, with the given rides in the waiting list.
+    private func makeOnlineModel(waitingRides: [Ride]) async -> (MockRideService, DriverModel) {
+        let service = MockRideService(
+            configuration: MockRideServiceConfiguration(offerDelay: nil, offerLifetime: 30, responseDelay: 0),
+            timeSource: time,
+            driver: Driver(id: TestFixtures.driverID, name: PersonNameComponents()),
+            waitingRides: waitingRides
+        )
+        let model = DriverModel(service: service)
+        await model.goOnline()
+        return (service, model)
+    }
+
+    @Test func claimingStartsTheRide() async throws {
+        let (_, model) = await makeOnlineModel(waitingRides: [ride])
+
+        await model.claimRide(rideID: ride.id)
+
+        #expect(model.session?.activeRide?.id == ride.id)
+        #expect(model.session?.waitingRides.isEmpty == true)
+        #expect(model.alert == nil)
+    }
+
+    @Test func rideTakenByAnotherDriverShowsWhyAndLeavesTheList() async throws {
+        let seeded = MockRideData.passedOverRides(at: time.now)
+        let taylor = try #require(seeded.first { MockRideData.isTakenByAnotherDriverWhenClaimed($0) })
+        let (_, model) = await makeOnlineModel(waitingRides: seeded)
+        let updates = Task { await model.start() }
+        defer { updates.cancel() }
+
+        await model.claimRide(rideID: taylor.id)
+        await waitUntil { model.session?.waitingRides.contains { $0.id == taylor.id } == false }
+
+        #expect(model.alert == .error(.rideNoLongerWaiting))
+        #expect(model.session?.activeRide == nil)
+    }
+
+    @Test func offerDeclinedByClaimingIsntReportedAsUnanswered() async throws {
+        let offered = Ride(
+            id: UUID(testValue: 40),
+            rider: ride.rider,
+            pickup: ride.pickup,
+            dropoff: ride.dropoff,
+            fare: ride.fare,
+            requestedAt: time.now
+        )
+        let (service, model) = await makeOnlineModel(waitingRides: [ride])
+        await service.addRide(offered)
+        try await service.offerRide(id: offered.id)
+        model.apply(try await service.currentSession())
+
+        await model.claimRide(rideID: ride.id)
+
+        // The driver chose another ride, so VoiceOver shouldn't announce that the offer ended without an answer.
+        #expect(model.unansweredOfferID == nil)
+        #expect(model.session?.activeRide?.id == ride.id)
+    }
+}

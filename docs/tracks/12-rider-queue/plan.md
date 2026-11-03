@@ -30,9 +30,9 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Phase 4: The model claims rides
 
-- [ ] Write failing tests: `claimRide(rideID:)` starts the ride; a conflict shows the new error, and the ride is gone from the model's list; an offer declined by claiming isn't reported as unanswered; a failed claim is covered by `DriverModelFailureTests`
-- [ ] Add `DriverModel.claimRide(rideID:)`, marking a pending offer as answered when the claim declines it
-- [ ] Verify: the tests pass, and removing the answered mark makes the VoiceOver test fail
+- [x] Write failing tests: `claimRide(rideID:)` starts the ride; a conflict shows the new error, and the ride is gone from the model's list; an offer declined by claiming isn't reported as unanswered; a failed claim is covered by `DriverModelFailureTests`
+- [x] Add `DriverModel.claimRide(rideID:)`, marking a pending offer as answered when the claim declines it
+- [x] Verify: the tests pass, and removing the answered mark makes the VoiceOver test fail
 
 ## Phase 5: The Waiting Riders screen
 

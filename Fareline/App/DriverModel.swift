@@ -144,6 +144,21 @@ final class DriverModel {
         }
     }
 
+    /// Takes a ride from the waiting list, which the driver chose over waiting for an offer.
+    ///
+    /// The service declines a pending offer, as the driver has chosen another ride, so the offer is marked as
+    /// answered and isn't announced as one that ended without a response.
+    func claimRide(rideID: Ride.ID) async {
+        await perform { () async throws(RideServiceError) in
+            guard let offerID = session?.pendingOffer?.id else {
+                return try await service.claimRide(rideID: rideID)
+            }
+            return try await respond(to: offerID) { () async throws(RideServiceError) in
+                try await service.claimRide(rideID: rideID)
+            }
+        }
+    }
+
     /// Cancels the ride the driver is looking at, after they've confirmed it.
     func cancelRide(rideID: Ride.ID) async {
         await perform { () async throws(RideServiceError) in
