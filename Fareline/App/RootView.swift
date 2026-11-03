@@ -6,8 +6,8 @@ struct RootView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var path: [AppDestination] = []
 
-    /// The offer to show as a banner: one that arrives while the driver is on a pushed screen.
-    private var bannerOffer: RideOffer? {
+    /// The offer to show in the pending offer bar: one that arrives while the driver is on a pushed screen.
+    private var barOffer: RideOffer? {
         path.isEmpty ? nil : model.session?.pendingOffer
     }
 
@@ -30,15 +30,15 @@ struct RootView: View {
         }
         .safeAreaInset(edge: .bottom) {
             VStack {
-                if let offer = bannerOffer {
-                    OfferBanner(offer: offer, open: openOffer)
+                if let offer = barOffer {
+                    PendingOfferBar(offer: offer, open: openOffer)
                         .padding()
                         .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
                 }
             }
-            .animation(.default, value: bannerOffer?.id)
+            .animation(.default, value: barOffer?.id)
         }
-        // A ride replaces the root screen, and unlike an offer it has no banner, so the driver is taken to it.
+        // A ride replaces the root screen, and unlike an offer it has no bar, so the driver is taken to it.
         .onChange(of: model.session?.activeRide?.id) { _, id in
             if id != nil {
                 path.removeAll()

@@ -1,7 +1,8 @@
 import SwiftUI
 
-/// Shows a pending offer over a pushed screen, so the driver sees it without losing their place.
-struct OfferBanner: View {
+/// A bar pinned to the bottom of a pushed screen that shows a pending offer, so the driver sees it without
+/// losing their place. It stays until the driver opens the offer or the offer ends.
+struct PendingOfferBar: View {
     let offer: RideOffer
 
     /// Takes the driver to the offer screen.
@@ -33,7 +34,7 @@ struct OfferBanner: View {
 }
 
 #Preview {
-    OfferBanner(
+    PendingOfferBar(
         offer: RideOffer(
             id: UUID(),
             ride: MockRideData.makeRide(sequence: 0, requestedAt: .now),

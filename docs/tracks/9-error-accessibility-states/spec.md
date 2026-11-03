@@ -16,8 +16,8 @@ How offers appear is decided below.
 
 Tests:
 - Checked in the simulator: an offer arriving on the home screen shows the offer screen.
-- Checked in the simulator: an offer arriving on Past Rides or a ride's details shows a banner with the rider, fare, and countdown, and leaves the driver where they are. Tapping the banner opens the offer.
-- Checked in the simulator: the banner disappears when the offer ends.
+- Checked in the simulator: an offer arriving on Past Rides or a ride's details shows a bar at the bottom with the rider, fare, and countdown, and leaves the driver where they are. Tapping the bar opens the offer.
+- Checked in the simulator: the bar disappears when the offer ends.
 
 ### The driver is told when an offer arrives or ends
 
@@ -69,7 +69,7 @@ Tests:
 
 ### Large text, Reduce Motion, and every iPhone size
 
-Every screen works from the smallest text size to the largest accessibility size, with nothing clipped or truncated. This includes the offer and ride titles, which truncate today. Any animation this issue adds, such as the banner, uses a fade when Reduce Motion is on. Every screen works on the smallest and largest iPhones and on both of iPhone Duo's displays.
+Every screen works from the smallest text size to the largest accessibility size, with nothing clipped or truncated. This includes the offer and ride titles, which truncate today. Any animation this issue adds, such as the pending offer bar, uses a fade when Reduce Motion is on. Every screen works on the smallest and largest iPhones and on both of iPhone Duo's displays.
 
 Tests:
 - The accessibility audit above, run at the largest text size.
@@ -86,7 +86,7 @@ Tests:
 
 Decided on 2026-11-03 and recorded in the decision log in docs/PLAN.md:
 
-- The offer screen stays the home screen's content. Over pushed screens, `OfferBanner` shows the offer instead, and the navigation path is no longer cleared for offers.
+- The offer screen stays the home screen's content. Over pushed screens, `PendingOfferBar` shows the offer instead, and the navigation path is no longer cleared for offers.
 - Accept, Decline, and Go Offline ignore taps for 0.75 seconds after they appear, and look disabled until then.
 - An offer that ends without a response gets a VoiceOver announcement only.
 - `DriverAlert`, with `error(RideServiceError)` and `riderCancelled(Ride)`, replaces `lastError` and `cancelledRide` as `DriverModel.alert`, presented with `alert(_:item:)`.

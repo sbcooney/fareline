@@ -3,16 +3,16 @@ import XCTest
 /// Covers how offers reach the driver, which depends on view state that unit tests can't reach.
 final class OfferUITests: FarelineUITestCase {
     @MainActor
-    func testOfferOnAPushedScreenShowsABannerThatOpensIt() {
+    func testOfferOnAPushedScreenShowsABarThatOpensIt() {
         let app = launch(["-seedPastRides", "-goOnline", "-offerDelay", "3"])
         waitFor(app.buttons["Past Rides"])
         app.buttons["Past Rides"].tap()
-        let banner = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'New Ride Offer'")).firstMatch
-        waitFor(banner)
+        let bar = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'New Ride Offer'")).firstMatch
+        waitFor(bar)
 
         // The driver keeps their place until they choose to open the offer.
         XCTAssertTrue(app.navigationBars["Past Rides"].exists)
-        banner.tap()
+        bar.tap()
 
         waitFor(app.buttons["Accept"])
         XCTAssertFalse(app.navigationBars["Past Rides"].exists)

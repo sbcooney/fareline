@@ -27,9 +27,9 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 - [x] Write a failing test: the model reports an offer that ended without the driver responding, and not one they accepted or declined
 - [x] Add that to `DriverModel`, as `unansweredOfferID`
-- [x] No unit test for the views: add `OfferBanner` over pushed screens, opening the offer on tap, and remove the path clearing from `RootView`. A ride starting still clears the path
+- [x] No unit test for the views: add `PendingOfferBar` over pushed screens, opening the offer on tap, and remove the path clearing from `RootView`. A ride starting still clears the path
 - [x] Announce an offer's arrival and end with VoiceOver, and add haptic feedback on arrival
-- [x] Verify: `OfferUITests` checks that an offer on Past Rides shows the banner and leaves the driver there; tapping it opens the offer; it disappears when the offer ends; with Reduce Motion on, it fades
+- [x] Verify: `OfferUITests` checks that an offer on Past Rides shows the bar and leaves the driver there; tapping it opens the offer; it disappears when the offer ends; with Reduce Motion on, it fades
 
 ## Phase 4: Taps that can't land by accident
 
