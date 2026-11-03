@@ -21,7 +21,7 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 - [x] Write tests: every `RideServiceError` has a message; after each kind of failed action, the control is enabled and the state unchanged
 - [x] Fix anything the tests find: nothing, as both passed straight away. They now guard against regressions
-- [x] Verify: the tests pass. Past Rides with no rides is covered by `AccessibilityAuditTests`. Connecting and a missing past ride can't be reached in the running app, as the mock connects at once and only real past rides are linked, so they're checked in previews
+- [x] Verify: the tests pass. Past Rides with no rides is covered by `AccessibilityAuditTests`. Connecting and a missing past ride weren't checked. They can't be reached in the running app, as the mock connects at once and only real past rides are linked
 
 ## Phase 3: Offers without pulling the driver away
 
