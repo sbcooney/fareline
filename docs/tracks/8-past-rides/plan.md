@@ -19,8 +19,8 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Phase 3: The service keeps history across launches
 
-- [ ] Write failing tests: a service created with saved rides starts with them in `pastRides`; a completed and a cancelled ride are each saved when they end; a model's first session with saved rides shows no cancellation alert
-- [ ] Load saved rides when `MockRideService` is created, and save each time a ride ends. The app uses Application Support, and tests use a temporary folder
+- [x] Write failing tests: a service created with saved rides starts with them in `pastRides`; a completed and a cancelled ride are each saved when they end; a model's first session with saved rides shows no cancellation alert
+- [x] Load saved rides when `MockRideService` is created, and save each time a ride ends. The app uses Application Support, and tests use a temporary folder
 - [ ] Verify: the tests pass, and in the simulator a completed ride is still listed after relaunch
 
 ## Phase 4: Past rides list and detail
