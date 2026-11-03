@@ -28,6 +28,24 @@ enum TestFixtures {
         )
     }
 
+    /// Returns the fixture ride after the driver completed it at ``date``.
+    static func completedRide() throws -> Ride {
+        var ride = ride()
+        try ride.apply(.driverAssigned(driverID: driverID))
+        try ride.apply(.driverArrived)
+        try ride.apply(.tripStarted)
+        try ride.apply(.tripCompleted(date: date))
+        return ride
+    }
+
+    /// Returns the fixture ride after the rider cancelled it at ``date``, with the driver on their way.
+    static func cancelledRide() throws -> Ride {
+        var ride = ride()
+        try ride.apply(.driverAssigned(driverID: driverID))
+        try ride.apply(.cancelled(date: date))
+        return ride
+    }
+
     static func offer() -> RideOffer {
         RideOffer(
             id: UUID(testValue: 4),

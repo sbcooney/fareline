@@ -12,10 +12,10 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Phase 2: Saving and loading past rides
 
-- [ ] Write failing tests: round trip of every persisted field and status; rejected invalid state, including `completed` with no end time and a past ride with no driver; a missing file starts empty; an unreadable file starts empty and isn't overwritten until a ride ends
-- [ ] Add `Codable` to the domain types that are saved, with decoding that replays the ride's events through `apply(_:)`
-- [ ] Add `PastRideStore`, writing JSON to a file whose location is injected
-- [ ] Verify: the tests pass, and removing the validation makes the invalid-state tests fail
+- [x] Write failing tests: round trip of every persisted field and status; rejected invalid state, including `completed` with no end time and a past ride with no driver; a missing file starts empty; an unreadable file starts empty and isn't overwritten until a ride ends
+- [x] Add `Codable` to the domain types that are saved, with decoding that replays the ride's events through `apply(_:)`
+- [x] Add `PastRideStore`, writing JSON to a file whose location is injected
+- [x] Verify: the tests pass, and removing the validation makes the invalid-state tests fail
 
 ## Phase 3: The service keeps history across launches
 
