@@ -62,6 +62,16 @@ struct MockRideServiceOfferLoopTests {
         _ = try await waitForOffer(from: service, otherThan: offer.id)
     }
 
+    @Test func newOfferFollowsADriverCancellation() async throws {
+        let (service, offer) = try await makeServiceWithAutomaticOffer()
+
+        _ = try await service.acceptOffer(id: offer.id)
+        _ = try await service.cancelRide(rideID: offer.ride.id)
+        time.advance(by: 5)
+
+        _ = try await waitForOffer(from: service, otherThan: offer.id)
+    }
+
     @Test func newOfferFollowsAWithdrawnOffer() async throws {
         let (service, offer) = try await makeServiceWithAutomaticOffer()
 

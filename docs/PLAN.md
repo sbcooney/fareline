@@ -27,13 +27,14 @@ Work proceeds top to bottom. Each row merges as its own PR and leaves the app wo
 | ✅ | #8 | Review past rides | Required |
 | ✅ | #9 | Error, empty, and accessibility states | Quality |
 | ✅ | #19 | App icon, launch screen, and design system | Quality |
-| ⬜ | #10 | README and visual reference | Deliverable |
+| ✅ | #31 | Let the driver cancel their current ride | Extended |
 | ⬜ | #12 | See a queue of waiting riders | Extended |
 | ⬜ | #13 | Self-assign to a ride | Extended |
 | ⬜ | #14 | See a queue of other drivers and their statuses | Extended |
 | ⬜ | #11 | See other drivers on a map | Extended |
 | ⬜ | #15 | Offline capability | Extended |
 | ⬜ | #16 | Rider Companion readiness | Extended |
+| ⬜ | #10 | README and visual reference | Deliverable |
 | ⬜ | #17 | Final submission | Deliverable |
 
 Issue numbers follow the order they were filed, not the order of work. Status key: ⬜ not started, 🟨 in progress, ✅ done, ➖ not doing (with the reason in the decision log).
@@ -64,7 +65,7 @@ Two separate state machines hold the core rules. They are pure value types, so e
 awaitingDriver → driverEnRoute → driverArrived → inProgress → completed
 ```
 
-A ride can also become `cancelled` before it starts.
+A ride can also become `cancelled`, and records who cancelled it. A rider can cancel until the trip starts. A driver can cancel a ride they're on at any stage, including during the trip.
 
 **Driver availability** describes only the driver: `offline`, `available`, or `onRide`.
 
@@ -169,6 +170,7 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 - *Provisional:* a driver can't go offline during an active ride.
 - An offer expires if ignored, and the driver stays available.
 - A rider can cancel until the trip starts, and the driver is told why their ride ended.
+- A driver can cancel at any stage, after a confirmation, and earns no fare for a cancelled ride. The mock has no distance travelled, so there's no partial fare for a trip ended early.
 - Past rides are kept on the device, as the mock's stand-in for a backend's history, and aren't synced anywhere.
 
 ## Decision log
@@ -234,6 +236,14 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 | 2026-11-03 | Add `textOnBrand`, near-black in dark mode, for text on filled buttons | In dark mode, no single blue passes contrast both as text on dark gray and behind white text. A lighter blue with dark text passes both. In exchange, dark mode's filled buttons look different from the system's usual white-on-blue. |
 | 2026-11-03 | Keep two exceptions in the offer screen's contrast audit | The audit reports Decline's text on its glass capsule as failing, though it measures 6.3:1, and intermittently reports a failure with no element that only removing the countdown row fixes. Each exception covers exactly that issue and is explained in the test, so any other contrast problem on the screen still fails. |
 | 2026-11-03 | Draw the countdown from a once-a-second redraw rather than a self-updating timer | The visible time and VoiceOver's spoken value come from the same clock, so they can't disagree. In exchange, the row redraws every second while an offer is showing. |
+| 2026-11-03 | Do #31 next, then the extended features, and move #10 to just before #17 | #31 fills a gap in the ride flow, and changes the current ride screen the README's screenshots show. Writing the README once, after the features, avoids redoing it. In exchange, the repository has no finished README until near the end. |
+| 2026-11-03 | Record who cancelled a ride with `RideEvent.cancelled(by: RideRole, date:)` | The driver's history, the model's alerts, and a future rider app all need to tell a driver's cancellation from a rider's. `RideRole` names a party to the ride rather than one participant's view. Every caller of `.cancelled` passes who cancelled. |
+| 2026-11-03 | Let only the driver cancel during a trip, with no fare | A driver may need to stop when a trip becomes unsafe, while a rider in the car shouldn't cancel it. A partial fare needs distance the mock doesn't have, and Complete Trip already ends a trip with the full fare. In exchange, the lifecycle's rule now depends on who cancels. |
+| 2026-11-03 | Confirm before cancelling, with a message for each stage | A cancellation can't be undone and costs the driver the fare, so it shouldn't happen from one tap. The confirmation is an alert, so both choices are always visible in the middle of the screen. A confirmation dialog would appear as a popover without its Keep Ride button. |
+| 2026-11-03 | Put Cancel Ride in a Ride Options sheet, opened from the top of the ride screen | A button below the step button was easy to tap by mistake and made a rare action prominent. A menu drew a floating pill over the title, which looked odd even for one choice. A sheet sized to its content keeps the bottom for the next step, and "Ride Options" leaves room for other ride actions, where "Help" would promise help content the app doesn't have. In exchange, cancelling takes one more tap. |
+| 2026-11-03 | Show the cancellation flow with screenshots rather than UI tests | Unit tests cover the model and service. UI tests of the first confirmation needed a coordinate tap to dismiss a popover and audit exceptions for the system's dialog, and were slow, for wiring the screenshots already show. |
+| 2026-11-03 | Read a cancelled ride saved without `cancelledBy` as cancelled by the rider | Every cancellation before #31 was a rider's, so existing history stays readable rather than being moved aside as damaged. |
+| 2026-11-03 | Turn off SwiftLint's `type_body_length` rule for `MockRideService.swift` (extends the `file_length` entry above) | `cancelRide(rideID:)` took the actor's body past 200 lines, for the same reason: its private state can't move to another file. |
 
 ## Open questions
 

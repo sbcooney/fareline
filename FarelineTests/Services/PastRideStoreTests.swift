@@ -51,7 +51,7 @@ final class PastRideStoreTests {
 
     @Test func pastRideWithNoDriverIsRejected() throws {
         var ride = TestFixtures.ride()
-        try ride.apply(.cancelled(date: TestFixtures.date))
+        try ride.apply(.cancelled(by: .rider, date: TestFixtures.date))
 
         try store.save([ride])
 

@@ -11,7 +11,8 @@ enum TestFixtures {
         .driverArrived,
         .tripStarted,
         .tripCompleted(date: date),
-        .cancelled(date: date)
+        .cancelled(by: .rider, date: date),
+        .cancelled(by: .driver, date: date)
     ]
 
     static func ride() -> Ride {
@@ -42,7 +43,7 @@ enum TestFixtures {
     static func cancelledRide() throws -> Ride {
         var ride = ride()
         try ride.apply(.driverAssigned(driverID: driverID))
-        try ride.apply(.cancelled(date: date))
+        try ride.apply(.cancelled(by: .rider, date: date))
         return ride
     }
 

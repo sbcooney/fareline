@@ -25,11 +25,11 @@ struct PastRideDetailView: View {
         List {
             Section {
                 LabeledContent("Status") {
-                    Text(ride.status.title)
+                    Text(ride.cancelledBy?.cancellationTitle ?? ride.status.title)
                 }
                 LabeledContent("Rider", value: ride.rider.name.formatted())
                 // A cancelled ride earned nothing, so it has no fare to show.
-                if ride.status != .cancelled {
+                if ride.cancelledBy == nil {
                     LabeledContent(
                         "Fare",
                         value: ride.fare.amount,

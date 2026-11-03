@@ -11,9 +11,9 @@ struct RideStepButton: View {
             Button(action: takeNextStep) {
                 // The title stays in the layout during a request, so the button's size doesn't change.
                 Text(title)
-                    .opacity(model.isPerformingAction ? 0 : 1)
+                    .opacity(isTakingStep ? 0 : 1)
                     .overlay {
-                        if model.isPerformingAction {
+                        if isTakingStep {
                             ProgressView()
                         }
                     }
@@ -27,8 +27,14 @@ struct RideStepButton: View {
             .disabled(model.isPerformingAction)
             // VoiceOver can skip fully transparent text, so the name is set explicitly.
             .accessibilityLabel(Text(title))
-            .accessibilityValue(model.isPerformingAction ? Text("Updating") : Text(""))
+            .accessibilityValue(isTakingStep ? Text("Updating") : Text(""))
         }
+    }
+
+    /// Whether the request in progress is this button's step. Cancelling shows its progress on the Ride Options
+    /// button instead, while this button is only disabled.
+    private var isTakingStep: Bool {
+        model.isPerformingAction && model.isCancellingRide == false
     }
 
     /// Requests the step this button's title describes.

@@ -1,8 +1,8 @@
 import Foundation
 
-// The actor's state is private, and Swift's `private` doesn't cross files, so splitting this file would mean
-// exposing that state to the rest of the module.
-// swiftlint:disable file_length
+// The actor's state is private, and Swift's `private` doesn't cross files, so splitting this file or the actor's
+// body would mean exposing that state to the rest of the module.
+// swiftlint:disable file_length type_body_length
 
 /// An in-memory stand-in for a backend, including its role in deciding who gets offered which ride.
 ///
@@ -148,6 +148,16 @@ actor MockRideService: RideService {
     func completeTrip(rideID: Ride.ID) async throws(RideServiceError) -> DriverSession {
         try await beginRequest()
         try updateActiveRide(id: rideID, with: .tripCompleted(date: timeSource.now))
+        endActiveRide()
+        scheduleNextOffer()
+        return publish()
+    }
+
+    func cancelRide(rideID: Ride.ID) async throws(RideServiceError) -> DriverSession {
+        try await beginRequest()
+        // If the rider cancelled first, the ride is no longer active, so this fails rather than changing who
+        // cancelled. Ending the ride also stops the rider's own scheduled cancellation.
+        try updateActiveRide(id: rideID, with: .cancelled(by: .driver, date: timeSource.now))
         endActiveRide()
         scheduleNextOffer()
         return publish()
@@ -375,7 +385,7 @@ extension MockRideService {
     ///
     /// - Throws: ``RideServiceError/rideNoLongerAvailable`` if the ride can't be cancelled.
     func simulateRideCancelled(id: Ride.ID) throws(RideServiceError) {
-        try updateRide(id: id, with: .cancelled(date: timeSource.now))
+        try updateRide(id: id, with: .cancelled(by: .rider, date: timeSource.now))
         if activeRideID == id {
             endActiveRide()
             scheduleNextOffer()

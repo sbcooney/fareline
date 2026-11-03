@@ -15,6 +15,10 @@ final class DriverModel {
     /// Whether a request is in progress. Views use this to show progress and prevent repeat taps.
     private(set) var isPerformingAction = false
 
+    /// Whether the request in progress is cancelling the driver's ride, so views show progress on the control
+    /// the driver used rather than on the ride's next step.
+    private(set) var isCancellingRide = false
+
     /// What the driver needs to read and acknowledge, if anything.
     ///
     /// Only one alert shows at a time, so the model decides which explanation wins. Views set this to `nil`
@@ -64,13 +68,14 @@ final class DriverModel {
         if let session, newSession.version <= session.version {
             return
         }
-        // A newly cancelled ride is reported even if the session where it was active was skipped. The first
+        // A ride the rider cancelled is reported even if the session where it was active was skipped. The first
         // session is ignored, as its past rides are history rather than news. A driver has one ride at a time,
-        // so only the newest past ride can have ended since the last session.
+        // so only the newest past ride can have ended since the last session. A ride the driver cancelled
+        // isn't reported, as they chose it.
         if let session,
            let endedRide = newSession.pastRides.first,
            endedRide.id != session.pastRides.first?.id,
-           endedRide.status == .cancelled {
+           endedRide.cancelledBy == .rider {
             // The cancellation explains more than any error showing, including a step that failed because of it.
             alert = .riderCancelled(endedRide)
         }
@@ -139,6 +144,16 @@ final class DriverModel {
         }
     }
 
+    /// Cancels the ride the driver is looking at, after they've confirmed it.
+    func cancelRide(rideID: Ride.ID) async {
+        await perform { () async throws(RideServiceError) in
+            // Set inside the request, so a cancellation that `perform` drops doesn't show as in progress.
+            isCancellingRide = true
+            defer { isCancellingRide = false }
+            return try await service.cancelRide(rideID: rideID)
+        }
+    }
+
     /// Sends a response to an offer, marking it as answered unless the response fails.
     ///
     /// The mark is set before the request, because the session that removes the offer can arrive through the
@@ -194,7 +209,7 @@ final class DriverModel {
         // even if the driver has already dismissed it.
         if error == .rideNoLongerAvailable,
            session?.activeRide == nil,
-           session?.pastRides.first?.status == .cancelled {
+           session?.pastRides.first?.cancelledBy == .rider {
             return
         }
         alert = .error(error)

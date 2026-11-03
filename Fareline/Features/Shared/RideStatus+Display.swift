@@ -32,4 +32,20 @@ extension RideStatus {
             nil
         }
     }
+
+    /// What cancelling means at this stage, for the driver to read before confirming, or `nil` if the driver
+    /// isn't on the ride.
+    var cancellationMessage: LocalizedStringResource? {
+        switch self {
+        case .driverEnRoute, .driverArrived:
+            "You won't earn the fare for this ride, and the rider will need to find another driver."
+        case .inProgress:
+            """
+            The rider is with you. You won't earn the fare for this trip, \
+            so end it this way only if you can't complete it.
+            """
+        case .awaitingDriver, .completed, .cancelled:
+            nil
+        }
+    }
 }

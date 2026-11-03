@@ -66,6 +66,16 @@ final class MockRideServiceHistoryTests {
         #expect(pastRideStore.load().first?.status == .cancelled)
     }
 
+    @Test func rideTheDriverCancelledIsSaved() async throws {
+        let service = makeService()
+        try await startRide(on: service)
+
+        _ = try await service.cancelRide(rideID: ride.id)
+
+        #expect(pastRideStore.load().map(\.id) == [ride.id])
+        #expect(pastRideStore.load().first?.cancelledBy == .driver)
+    }
+
     @Test @MainActor func savedCancelledRideDoesntShowAnAlertOnLaunch() async throws {
         try pastRideStore.save([try TestFixtures.cancelledRide()])
         let model = DriverModel(service: makeService())

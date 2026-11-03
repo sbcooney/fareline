@@ -17,6 +17,13 @@ struct RideStatusTests {
         }
     }
 
+    @Test(arguments: RideStatus.allCases, [RideRole.rider, .driver])
+    func canBeCancelledMatchesTheLifecycle(status: RideStatus, role: RideRole) {
+        let cancellation = RideEvent.cancelled(by: role, date: TestFixtures.date)
+
+        #expect(status.canBeCancelled(by: role) == (expectedStatus(from: status, on: cancellation) != nil))
+    }
+
     private func expectedStatus(from status: RideStatus, on event: RideEvent) -> RideStatus? {
         switch event {
         case .driverAssigned:
@@ -27,8 +34,12 @@ struct RideStatusTests {
             status == .driverArrived ? .inProgress : nil
         case .tripCompleted:
             status == .inProgress ? .completed : nil
-        case .cancelled:
+        case .cancelled(by: .rider, _):
+            // A rider can cancel until they're in the car.
             [.awaitingDriver, .driverEnRoute, .driverArrived].contains(status) ? .cancelled : nil
+        case .cancelled(by: .driver, _):
+            // A driver can cancel only a ride they're on, including during the trip.
+            [.driverEnRoute, .driverArrived, .inProgress].contains(status) ? .cancelled : nil
         }
     }
 }

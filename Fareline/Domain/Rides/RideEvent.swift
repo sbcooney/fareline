@@ -16,6 +16,11 @@ enum RideEvent: Equatable, Sendable {
     /// The time is passed in, rather than read from the system clock, to keep the domain deterministic.
     case tripCompleted(date: Date)
 
-    /// The ride was cancelled at the given time, before the trip began.
-    case cancelled(date: Date)
+    /// The ride was cancelled at the given time.
+    ///
+    /// A rider can cancel until the trip begins. A driver can cancel only a ride they're on, including during
+    /// the trip, such as when it becomes unsafe to continue.
+    // `by` reads as English at the call site, `.cancelled(by: .driver, date:)`, which a longer label wouldn't.
+    // swiftlint:disable:next identifier_name
+    case cancelled(by: RideRole, date: Date)
 }
