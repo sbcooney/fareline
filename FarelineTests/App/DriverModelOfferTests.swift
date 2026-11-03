@@ -55,7 +55,7 @@ struct DriverModelOfferTests {
         time.advance(by: 0.5)
         await accepting.value
 
-        #expect(model.lastError == .offerNoLongerAvailable)
+        #expect(model.alert == .error(.offerNoLongerAvailable))
         #expect(model.session?.activeRide == nil)
         #expect(model.session?.driver.availability == .available)
         #expect(await service.ride(id: ride.id)?.status == .awaitingDriver)

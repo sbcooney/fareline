@@ -6,16 +6,16 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Before starting
 
-- [ ] Load `swiftui-pro`, with its accessibility, resizability, navigation, and views references
-- [ ] Load `swift-testing-pro` for the model tests
+- [x] Load `swiftui-pro`, with its accessibility, resizability, navigation, and views references
+- [x] Load `swift-testing-pro` for the model tests
 - [ ] Measure today's problems first: screenshot every screen at the largest text size on iPhone 17e, iPhone 18 Pro Max, and iPhone Duo's outer display, so each later phase has a before and after
 
 ## Phase 1: One alert at a time
 
-- [ ] Write failing tests: a cancellation replaces an error; an error doesn't replace a cancellation; no redundant "no longer available" after a dismissed cancellation; a new offer clears an error but not a cancellation; dismissing clears the alert
-- [ ] Add `DriverAlert`, replace `lastError` and `cancelledRide` with `alert` on `DriverModel`, and present it with `alert(_:item:)` in `RootView`
-- [ ] Update the existing tests that check `lastError` or `cancelledRide`
-- [ ] Verify: the tests pass, and removing each precedence rule fails its test
+- [x] Write failing tests: a cancellation replaces an error; an error doesn't replace a cancellation; no redundant "no longer available" after a dismissed cancellation; a new offer clears an error but not a cancellation; dismissing clears the alert
+- [x] Add `DriverAlert`, replace `lastError` and `cancelledRide` with `alert` on `DriverModel`, and present it with `alert(_:item:)` in `RootView`
+- [x] Update the existing tests that check `lastError` or `cancelledRide`
+- [x] Verify: the tests pass, and removing each precedence rule fails its test
 
 ## Phase 2: Failures and empty states
 

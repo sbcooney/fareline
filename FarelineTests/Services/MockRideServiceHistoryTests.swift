@@ -75,6 +75,6 @@ final class MockRideServiceHistoryTests {
         await waitUntil { model.session != nil }
 
         #expect(model.session?.pastRides.count == 1)
-        #expect(model.cancelledRide == nil)
+        #expect(model.alert == nil)
     }
 }

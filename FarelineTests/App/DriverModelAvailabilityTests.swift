@@ -38,18 +38,7 @@ struct DriverModelAvailabilityTests {
         await model.goOffline()
 
         #expect(model.session?.driver.availability == .available)
-        #expect(model.isShowingError)
-    }
-
-    @Test func dismissingTheAlertClearsTheError() async {
-        let service = MockRideService.forModelTests(time: time)
-        let model = DriverModel(service: service)
-        await service.failNextRequest(with: .networkUnavailable)
-        await model.goOnline()
-
-        model.isShowingError = false
-
-        #expect(model.lastError == nil)
+        #expect(model.alert != nil)
     }
 
     @Test func availabilityCantChangeBeforeTheFirstSession() {

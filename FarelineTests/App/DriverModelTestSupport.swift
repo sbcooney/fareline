@@ -26,3 +26,14 @@ func waitUntil(_ condition: @escaping @MainActor () -> Bool) async {
         return
     }
 }
+
+extension DriverAlert {
+    /// The ride the rider cancelled, if this alert is about one.
+    var cancelledRideID: Ride.ID? {
+        if case .riderCancelled(let ride) = self {
+            ride.id
+        } else {
+            nil
+        }
+    }
+}

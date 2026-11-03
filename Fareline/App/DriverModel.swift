@@ -15,31 +15,11 @@ final class DriverModel {
     /// Whether a request is in progress. Views use this to show progress and prevent repeat taps.
     private(set) var isPerformingAction = false
 
-    /// The most recent failed action, if the driver hasn't dismissed it.
-    private(set) var lastError: RideServiceError?
-
-    /// Whether an error is waiting to be shown. Setting this to `false` dismisses the error.
-    var isShowingError: Bool {
-        get { lastError != nil }
-        set {
-            if newValue == false {
-                dismissError()
-            }
-        }
-    }
-
-    /// The driver's ride that the rider cancelled, until the driver has seen it.
-    private(set) var cancelledRide: Ride?
-
-    /// Whether a cancelled ride is waiting to be shown. Setting this to `false` dismisses it.
-    var isShowingCancelledRide: Bool {
-        get { cancelledRide != nil }
-        set {
-            if newValue == false {
-                dismissCancelledRide()
-            }
-        }
-    }
+    /// What the driver needs to read and acknowledge, if anything.
+    ///
+    /// Only one alert shows at a time, so the model decides which explanation wins. Views set this to `nil`
+    /// when the driver dismisses it.
+    var alert: DriverAlert?
 
     /// Returns one of the driver's past rides, or `nil` if it isn't one.
     func pastRide(id: Ride.ID) -> Ride? {
@@ -83,11 +63,12 @@ final class DriverModel {
            let endedRide = newSession.pastRides.first,
            endedRide.id != session.pastRides.first?.id,
            endedRide.status == .cancelled {
-            cancelledRide = endedRide
-            // A step the driver tapped as the rider cancelled fails, and the cancellation already explains why.
-            if lastError == .rideNoLongerAvailable {
-                lastError = nil
-            }
+            // The cancellation explains more than any error showing, including a step that failed because of it.
+            alert = .riderCancelled(endedRide)
+        }
+        // An error is about an earlier action, so it could seem to describe a new offer.
+        if let offer = newSession.pendingOffer, offer.id != session?.pendingOffer?.id, case .error = alert {
+            alert = nil
         }
         session = newSession
     }
@@ -143,16 +124,6 @@ final class DriverModel {
         }
     }
 
-    /// Clears the most recent error once the driver has seen it.
-    func dismissError() {
-        lastError = nil
-    }
-
-    /// Clears the cancelled ride once the driver has seen it.
-    func dismissCancelledRide() {
-        cancelledRide = nil
-    }
-
     /// Runs one request at a time, so a double tap can't send the same action twice.
     ///
     /// Any other action sent during a request is also dropped, without an error. Views must disable their
@@ -162,15 +133,31 @@ final class DriverModel {
             return
         }
         isPerformingAction = true
-        lastError = nil
+        // A new attempt makes an earlier error out of date.
+        if case .error = alert {
+            alert = nil
+        }
         defer { isPerformingAction = false }
 
         do {
             apply(try await request())
-        } catch .rideNoLongerAvailable where cancelledRide != nil {
-            // The cancellation already explains why the step failed.
         } catch {
-            lastError = error
+            show(error)
         }
+    }
+
+    /// Shows an error, unless a rider cancellation already explains what happened.
+    private func show(_ error: RideServiceError) {
+        if case .riderCancelled = alert {
+            return
+        }
+        // A step tapped as the rider cancelled fails because the ride ended. The cancellation explains that,
+        // even if the driver has already dismissed it.
+        if error == .rideNoLongerAvailable,
+           session?.activeRide == nil,
+           session?.pastRides.first?.status == .cancelled {
+            return
+        }
+        alert = .error(error)
     }
 }

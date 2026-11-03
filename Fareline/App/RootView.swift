@@ -29,15 +29,10 @@ struct RootView: View {
                 path.removeAll()
             }
         }
-        .alert("Something Went Wrong", isPresented: $model.isShowingError, presenting: model.lastError) { _ in
-            Button("OK", role: .cancel) {}
-        } message: { error in
-            Text(error.message)
-        }
-        .alert("Ride Cancelled", isPresented: $model.isShowingCancelledRide, presenting: model.cancelledRide) { _ in
-            Button("OK", role: .cancel) {}
-        } message: { ride in
-            Text("\(ride.rider.name.formatted()) cancelled the ride. You're available for new offers.")
+        // A single "OK" that only dismisses is supplied by the system when no actions are given.
+        .alert(model.alert?.title ?? "", item: $model.alert) { _ in
+        } message: { alert in
+            Text(alert.message)
         }
     }
 }
