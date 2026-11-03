@@ -38,6 +38,17 @@
                ReferencedContainer = "container:Fareline.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "A10000000000000000000054"
+               BuildableName = "FarelineUITests.xctest"
+               BlueprintName = "FarelineUITests"
+               ReferencedContainer = "container:Fareline.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

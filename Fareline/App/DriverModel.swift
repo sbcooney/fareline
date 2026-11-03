@@ -21,6 +21,14 @@ final class DriverModel {
     /// when the driver dismisses it.
     var alert: DriverAlert?
 
+    /// The most recent offer that ended without the driver responding, such as one that expired.
+    ///
+    /// Sighted drivers see the offer screen go away, but VoiceOver users don't, so views announce this.
+    private(set) var unansweredOfferID: RideOffer.ID?
+
+    /// The offer the driver last accepted or declined, so its ending isn't reported as unanswered.
+    private var answeredOfferID: RideOffer.ID?
+
     /// Returns one of the driver's past rides, or `nil` if it isn't one.
     func pastRide(id: Ride.ID) -> Ride? {
         session?.pastRides.first { $0.id == id }
@@ -66,6 +74,9 @@ final class DriverModel {
             // The cancellation explains more than any error showing, including a step that failed because of it.
             alert = .riderCancelled(endedRide)
         }
+        if let offer = session?.pendingOffer, newSession.pendingOffer?.id != offer.id, offer.id != answeredOfferID {
+            unansweredOfferID = offer.id
+        }
         // An error is about an earlier action, so it could seem to describe a new offer.
         if let offer = newSession.pendingOffer, offer.id != session?.pendingOffer?.id, case .error = alert {
             alert = nil
@@ -91,14 +102,16 @@ final class DriverModel {
     /// the driver seeing it and the tap being handled, and a driver must never take a ride they didn't review.
     func acceptOffer(id: RideOffer.ID) async {
         await perform { () async throws(RideServiceError) in
-            try await service.acceptOffer(id: id)
+            answeredOfferID = id
+            return try await service.acceptOffer(id: id)
         }
     }
 
     /// Declines the offer the driver is looking at.
     func declineOffer(id: RideOffer.ID) async {
         await perform { () async throws(RideServiceError) in
-            try await service.declineOffer(id: id)
+            answeredOfferID = id
+            return try await service.declineOffer(id: id)
         }
     }
 

@@ -26,7 +26,7 @@ Work proceeds top to bottom. Each row merges as its own PR and leaves the app wo
 | ✅ | #26 | Per-issue spec and plan in the development flow | Setup |
 | ✅ | #8 | Review past rides | Required |
 | 🟨 | #9 | Error, empty, and accessibility states | Quality |
-| ⬜ | #19 | App icon and launch screen | Quality |
+| ⬜ | #19 | App icon, launch screen, and design system | Quality |
 | ⬜ | #10 | README and visual reference | Deliverable |
 | ⬜ | #12 | See a queue of waiting riders | Extended |
 | ⬜ | #13 | Self-assign to a ride | Extended |

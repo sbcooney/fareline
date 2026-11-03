@@ -12,6 +12,9 @@ struct DriverModelFailureTests {
         case goOnline, goOffline, accept, decline, markArrived, startTrip, completeTrip
     }
 
+    /// Performs the action being tested.
+    typealias Perform = () async -> Void
+
     private let time = ManualTimeSource()
     private let ride = TestFixtures.ride()
     private let service: MockRideService
@@ -30,7 +33,7 @@ struct DriverModelFailureTests {
     }
 
     /// Puts the driver in the state where the action is allowed, and returns how to perform it.
-    private func prepare(_ action: Action) async throws -> () async -> Void {
+    private func prepare(_ action: Action) async throws -> Perform {
         let rideID = ride.id
         switch action {
         case .goOnline:

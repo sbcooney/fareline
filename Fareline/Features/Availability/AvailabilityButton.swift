@@ -6,6 +6,9 @@ struct AvailabilityButton: View {
 
     let availability: DriverAvailability
 
+    /// Whether the button has been showing long enough to take a tap. See ``ignoreTapsBriefly()``.
+    @State private var isReady = false
+
     var body: some View {
         Button(action: changeAvailability) {
             // The title stays in the layout during a request, so the button's size doesn't change.
@@ -20,10 +23,24 @@ struct AvailabilityButton: View {
         }
         .buttonStyle(.borderedProminent)
         .controlSize(.large)
-        .disabled(model.canChangeAvailability == false)
+        .disabled(model.canChangeAvailability == false || isReady == false)
+        .task(id: availability, ignoreTapsBriefly)
         // VoiceOver can skip fully transparent text, so the name is set explicitly.
         .accessibilityLabel(Text(availability.actionTitle))
         .accessibilityValue(model.isPerformingAction ? Text("Updating") : Text(""))
+    }
+
+    /// Go Offline appears where Accept was when an offer ends, and where Go Online was after going online, so a
+    /// tap meant for those could otherwise take the driver offline. `OfferResponseButtons` uses the same delay.
+    private func ignoreTapsBriefly() async {
+        isReady = false
+        do {
+            try await Task.sleep(for: .seconds(0.75))
+        } catch {
+            // A cancelled wait belongs to a status that's gone, so it mustn't ready the button for the next one.
+            return
+        }
+        isReady = true
     }
 
     /// Requests the change this button's title describes.
