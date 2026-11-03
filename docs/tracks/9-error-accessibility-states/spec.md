@@ -92,4 +92,5 @@ Decided on 2026-11-03 and recorded in the decision log in docs/PLAN.md:
 - `DriverAlert`, with `error(RideServiceError)` and `riderCancelled(Ride)`, replaces `lastError` and `cancelledRide` as `DriverModel.alert`, presented with `alert(_:item:)`.
 - No retry button in the error alert.
 - A `FarelineUITests` target runs `performAccessibilityAudit()` on each screen.
-- Truncated titles: check whether iOS 27's large titles can wrap, and otherwise use shorter titles at accessibility sizes.
+- Truncated titles: no way to wrap a large title was found, so at accessibility sizes the offer and ride screens use the smaller inline title, which fits in full on iPhone 17e. This keeps the full wording, which shorter titles wouldn't.
+- Contrast is left to #19's design system. The audits skip it until then, and #19 turns it back on.

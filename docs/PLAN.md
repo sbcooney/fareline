@@ -225,6 +225,8 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 | 2026-11-03 | Show one alert at a time through a `DriverAlert` enum | One property decides which explanation the driver sees, replacing special cases spread across two. In exchange, every test that checked `lastError` changes. |
 | 2026-11-03 | Don't add a retry button to the error alert | The control that failed stays enabled, and a retry button would mean remembering the last action. |
 | 2026-11-03 | Add a UI test target that runs Apple's accessibility audit on each screen | It catches missing labels, clipped text, and contrast problems that screenshots miss. In exchange, the project gains an XCTest target, since Swift Testing doesn't support UI tests, and launch arguments that open each screen. |
+| 2026-11-03 | Use the inline title style at accessibility text sizes on the offer and ride screens | Large titles truncate, and no way to wrap them was found. The inline title fits in full on the smallest iPhone, so the wording doesn't have to change. |
+| 2026-11-03 | Leave contrast out of the accessibility audits until #19 | The audits found only contrast issues, from the system's default blue and secondary gray. #19's design system chooses brand colors with contrast-checked tokens, so the colors are fixed once, after the icon concept. Until then, the app falls just short of WCAG AA contrast. |
 
 ## Open questions
 

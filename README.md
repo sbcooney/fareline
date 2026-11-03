@@ -19,7 +19,12 @@ To run on a physical iPhone, select your own team and a unique bundle identifier
 
 ## Run the tests
 
-In Xcode, press **Cmd+U**. From the terminal, replace `iPhone 18 Pro` with any iPhone simulator you have on iOS 27.2 or later. To see which ones are available, run `xcrun simctl list devices available`.
+In Xcode, press **Cmd+U**. This runs both test targets:
+
+- **`FarelineTests`:** unit and integration tests in Swift Testing. They take under a second.
+- **`FarelineUITests`:** UI tests in XCTest, which Swift Testing doesn't support. They run Apple's accessibility audit on every screen at the default and largest text sizes, and check how offers reach the driver. They take a few minutes.
+
+From the terminal, replace `iPhone 18 Pro` with any iPhone simulator you have on iOS 27.2 or later. To see which ones are available, run `xcrun simctl list devices available`.
 
 ```sh
 xcodebuild test \
@@ -27,6 +32,8 @@ xcodebuild test \
   -scheme Fareline \
   -destination 'platform=iOS Simulator,name=iPhone 18 Pro'
 ```
+
+To run only the unit tests, add `-only-testing:FarelineTests`.
 
 ## Lint
 

@@ -40,7 +40,7 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 - [x] Add the `FarelineUITests` target, with launch arguments that open each screen, and a test per screen that calls `performAccessibilityAudit()`, at the default and largest text sizes
 - [x] Fix what the audit finds, including the countdown's spoken value. The audit found only contrast issues, which go to #19's design system, so the audit leaves contrast out until then
-- [ ] Fix the truncated offer and ride titles
+- [x] Fix the truncated offer and ride titles, with the inline title style at accessibility sizes
 - [ ] Verify: the audits pass; simulator screenshots of every screen on iPhone 17e, iPhone 18 Pro Max, and iPhone Duo's outer display, at the default and largest text sizes, in light and dark mode; ask the user to check iPhone Duo's inner display and folding
 
 ## Before the PR
