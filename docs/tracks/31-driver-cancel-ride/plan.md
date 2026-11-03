@@ -33,8 +33,8 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 ## Phase 4: The control and the confirmation
 
 - [x] Write failing tests: the confirmation message for each stage, as a display property beside `RideStatus.title`
-- [x] Add a Ride Options menu at the top right with Cancel Ride in it, and `confirmationDialog` attached to the menu, disabled during any request. (A Cancel Ride button below the step button came first. It was moved after review, as it sat too close to the step button and was too prominent.)
-- [x] Verify: the unit tests and the current ride audit pass; screenshots of the screen, the open menu, and the confirmation in the simulator, taken by a temporary UI test that wasn't kept. UI tests of the confirmation were written and then removed: they needed a coordinate tap and audit exceptions, and the screenshots show the same thing
+- [x] Add a Ride Options button at the top right that opens `RideOptionsSheet`, a sheet sized to its content with Cancel Ride in it, confirmed by an alert. Either answer closes the sheet, and the button is disabled during any request. (A Cancel Ride button below the step button came first, then a menu with a popover confirmation. Both were replaced after review: the button sat too close to the step button, and the menu and popover were unusual designs.)
+- [x] Verify: the unit tests and the current ride audit pass; screenshots of the sheet and the alert in the simulator, at the default and largest text sizes, taken by a temporary UI test that wasn't kept. UI tests of the confirmation were written and then removed: they needed a coordinate tap and audit exceptions, and the screenshots show the same thing
 
 ## Phase 5: Past Rides shows who cancelled
 
@@ -46,7 +46,7 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 - [x] Review with `swift-testing-pro` (every new and changed test file)
 - [x] Review with `swift-concurrency-pro` (`MockRideService.swift`, `DriverModel.swift`)
-- [x] Review with `swiftui-pro` (`CurrentRideView`, `RideOptionsMenu`, `RideStepButton`, `PastRideRow`, `PastRideDetailView`)
+- [x] Review with `swiftui-pro` (`CurrentRideView`, `RideOptionsButton`, `RideOptionsSheet`, `RideStepButton`, `PastRideRow`, `PastRideDetailView`)
 - [x] `swiftlint lint` reports no violations
 - [x] Run `/code-review`, and fix or record each finding
 - [x] Update docs/PLAN.md: the status table's new order (#31 next, then the extended features, then #10 just before #17), with the reason in the decision log, the decision log entries for this track, the assumption "A rider can cancel until the trip starts", and the ride lifecycle in "Domain". The README has no assumptions section until #10 writes it, which picks up the new assumption from docs/PLAN.md

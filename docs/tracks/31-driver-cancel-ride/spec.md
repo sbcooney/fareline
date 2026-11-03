@@ -10,13 +10,13 @@ A driver can get out of a ride at any stage, such as when a rider doesn't show u
 
 ### The driver can cancel at every stage
 
-The current ride screen has a Ride Options menu at the top while heading to pickup, at pickup, and on trip, with Cancel Ride in it. Choosing it opens a confirmation, attached to the menu, that explains the consequence for that stage. Nothing is sent until the driver confirms. Choosing Keep Ride closes the confirmation and leaves the ride as it was.
+The current ride screen has a Ride Options button at the top while heading to pickup, at pickup, and on trip. It opens a short sheet with Cancel Ride in it. Choosing it shows an alert that explains the consequence for that stage. Nothing is sent until the driver confirms. Choosing Keep Ride closes the alert and the sheet, and leaves the ride as it was.
 
 Tests:
 - The confirmation's wording for each of the three stages. (Parameterized over the stages.)
 - Confirming sends the cancellation for the ride on screen, not whichever ride is current by then.
-- Checked in the simulator, with screenshots: the confirmation opens from the menu, tapping outside it changes nothing, and Cancel Ride returns the driver to the available screen.
-- The accessibility audit passes on the ride screen with the new menu.
+- Checked in the simulator, with screenshots at the default and largest text sizes: the sheet opens from the button, Keep Ride closes it and changes nothing, and Cancel Ride returns the driver to the available screen.
+- The accessibility audit passes on the ride screen with the new button.
 
 ### Cancelling ends the ride and frees the driver
 
@@ -68,7 +68,7 @@ Decided on 2026-11-03 and recorded in the decision log in docs/PLAN.md:
 - A cancellation records who cancelled: `RideEvent.cancelled(by: RideRole, date: Date)`, with a new `RideRole` enum of `rider` and `driver`, and `Ride.cancelledBy`.
 - Only the driver can cancel on trip, and earns no fare. The driver can still end a trip with the full fare through Complete Trip.
 - The service and the model each get `cancelRide(rideID:)`, taking the ride's ID like the other ride steps.
-- The control is a "Ride Options" menu (⋯) at the top right, holding a red "Cancel Ride". It keeps cancelling, which is rare and can't be undone, away from the step button. While cancelling, a spinner replaces the ⋯.
+- The control is a "Ride Options" button (⋯) at the top right. It opens a sheet, sized to its content, titled "Ride Options" with a red "Cancel Ride" button. It keeps cancelling, which is rare and can't be undone, away from the step button. While cancelling, a spinner replaces the ⋯.
 - The confirmation is titled "Cancel This Ride?", with "Cancel Ride" (destructive) and "Keep Ride". Its message, by stage:
   - Heading to pickup and at pickup: "You won't earn the fare for this ride, and the rider will need to find another driver."
   - On trip: "The rider is with you. You won't earn the fare for this trip, so end it this way only if you can't complete it."
