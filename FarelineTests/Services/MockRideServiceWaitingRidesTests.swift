@@ -104,6 +104,72 @@ struct MockRideServiceWaitingRidesTests {
         #expect(try await service.currentSession().waitingRides.isEmpty)
     }
 
+    // MARK: - The demo list
+
+    /// Returns a service whose other drivers pass on a request every 20 seconds while this driver is online.
+    private func makeServiceWithPassedOverRequests(maximumWaitingRides: Int) -> MockRideService {
+        MockRideService(
+            configuration: MockRideServiceConfiguration(
+                offerDelay: nil,
+                offerLifetime: MockRideServiceTests.offerLifetime,
+                responseDelay: 0,
+                passedOverInterval: 20,
+                maximumWaitingRides: maximumWaitingRides
+            ),
+            timeSource: time,
+            driver: Driver(id: TestFixtures.driverID, name: PersonNameComponents())
+        )
+    }
+
+    @Test func seededRidesStartInTheList() async throws {
+        let older = waitingRide(id: 20, requestedSecondsAgo: 540)
+        let newer = waitingRide(id: 21, requestedSecondsAgo: 120)
+
+        let service = MockRideService(
+            configuration: MockRideServiceConfiguration(offerDelay: nil, offerLifetime: 30, responseDelay: 0),
+            timeSource: time,
+            waitingRides: [newer, older]
+        )
+
+        #expect(try await service.currentSession().waitingRides.map(\.id) == [older.id, newer.id])
+    }
+
+    @Test func demoSeedsRidersWhoHaveAlreadyWaited() {
+        let rides = MockRideData.passedOverRides(at: time.now)
+
+        #expect(rides.isEmpty == false)
+        #expect(rides.allSatisfy { $0.requestedAt < time.now && $0.status == .awaitingDriver })
+        #expect(Set(rides.map(\.id)).count == rides.count)
+    }
+
+    @Test func otherDriversPassOnARequestWhileTheDriverIsOnline() async throws {
+        let service = makeServiceWithPassedOverRequests(maximumWaitingRides: 5)
+        _ = try await service.goOnline()
+        await time.waitForSleeper()
+
+        time.advance(by: 20)
+
+        for await session in await service.sessionUpdates() where session.waitingRides.isEmpty == false {
+            #expect(session.waitingRides.count == 1)
+            #expect(session.pendingOffer == nil)
+            break
+        }
+    }
+
+    @Test func noRequestsArePassedOverBeyondTheLimit() async throws {
+        let service = makeServiceWithPassedOverRequests(maximumWaitingRides: 2)
+        _ = try await service.goOnline()
+
+        for _ in 0..<4 {
+            await time.waitForSleeper()
+            time.advance(by: 20)
+        }
+        // The timer keeps running at the limit, so its next wait shows the last one has been handled.
+        await time.waitForSleeper()
+
+        #expect(try await service.currentSession().waitingRides.count == 2)
+    }
+
     @Test func rideInTheListIsntOfferedAgain() async throws {
         _ = try await service.goOnline()
         try await offerAndDecline(ride)

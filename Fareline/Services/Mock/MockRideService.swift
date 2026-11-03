@@ -36,26 +36,35 @@ actor MockRideService: RideService {
     private var nextOfferTask: Task<Void, Never>?
     private var expiryTask: Task<Void, Never>?
     private var riderCancellationTask: Task<Void, Never>?
+    private var passedOverTask: Task<Void, Never>?
 
-    /// - Parameter pastRideStore: Where past rides are saved, or `nil` to keep them in memory only, as tests
-    ///   and previews do.
+    /// - Parameters:
+    ///   - pastRideStore: Where past rides are saved, or `nil` to keep them in memory only, as tests and previews
+    ///     do.
+    ///   - waitingRides: Rides that other drivers have already passed on, which start in the waiting list.
     init(
         configuration: MockRideServiceConfiguration = .demo,
         timeSource: any TimeSource = SystemTimeSource(),
         driver: Driver = MockRideData.driver,
-        pastRideStore: PastRideStore? = nil
+        pastRideStore: PastRideStore? = nil,
+        waitingRides: [Ride] = []
     ) {
         self.configuration = configuration
         self.timeSource = timeSource
         self.driver = driver
         self.pastRideStore = pastRideStore
         pastRides = pastRideStore?.load() ?? []
+        for ride in waitingRides {
+            rides[ride.id] = ride
+            passedOverRideIDs.insert(ride.id)
+        }
     }
 
     deinit {
         nextOfferTask?.cancel()
         expiryTask?.cancel()
         riderCancellationTask?.cancel()
+        passedOverTask?.cancel()
         subscribers.values.forEach { $0.finish() }
     }
 
@@ -80,6 +89,7 @@ actor MockRideService: RideService {
         try await beginRequest()
         try updateDriver(.wentOnline)
         scheduleNextOffer()
+        schedulePassedOverRequest()
         return publish()
     }
 
@@ -91,6 +101,7 @@ actor MockRideService: RideService {
         }
         clearPendingOffer()
         nextOfferTask?.cancel()
+        passedOverTask?.cancel()
         return publish()
     }
 
@@ -165,9 +176,14 @@ actor MockRideService: RideService {
 
     func cancelRide(rideID: Ride.ID) async throws(RideServiceError) -> DriverSession {
         try await beginRequest()
+        let rideBefore = rides[rideID]
         // If the rider cancelled first, the ride is no longer active, so this fails rather than changing who
         // cancelled. Ending the ride also stops the rider's own scheduled cancellation.
         try updateActiveRide(id: rideID, with: .cancelled(by: .driver, date: timeSource.now))
+        // A rider who wasn't picked up yet still needs a ride. Once the trip has started, the ride is over.
+        if let rideBefore, rideBefore.status != .inProgress {
+            listNewRequest(for: rideBefore)
+        }
         endActiveRide()
         scheduleNextOffer()
         return publish()
@@ -269,6 +285,22 @@ actor MockRideService: RideService {
         scheduleNextOffer()
     }
 
+    /// Adds a new request to the waiting list for a rider whose driver cancelled before picking them up.
+    ///
+    /// It keeps the original request time, as the rider has been waiting since then.
+    private func listNewRequest(for ride: Ride) {
+        let request = Ride(
+            id: UUID(),
+            rider: ride.rider,
+            pickup: ride.pickup,
+            dropoff: ride.dropoff,
+            fare: ride.fare,
+            requestedAt: ride.requestedAt
+        )
+        rides[request.id] = request
+        passedOverRideIDs.insert(request.id)
+    }
+
     /// Sends the current session to all subscribers.
     @discardableResult
     private func publish() -> DriverSession {
@@ -310,6 +342,41 @@ actor MockRideService: RideService {
         rides[ride.id] = ride
         // The guard above and the new ride's status mean the offer can't be refused.
         try? offerRide(id: ride.id)
+    }
+
+    /// Has another driver pass on a new request after the configured interval, and repeats while the driver is
+    /// online.
+    private func schedulePassedOverRequest() {
+        passedOverTask?.cancel()
+        guard let interval = configuration.passedOverInterval else {
+            return
+        }
+        let timeSource = timeSource
+        let date = timeSource.now.addingTimeInterval(interval)
+        passedOverTask = Task { [weak self] in
+            do {
+                try await timeSource.sleep(until: date)
+            } catch {
+                return
+            }
+            await self?.addPassedOverRequest()
+        }
+    }
+
+    private func addPassedOverRequest() {
+        // Checked on the actor, as with offers: going offline can cancel this task after its sleep ends.
+        guard Task.isCancelled == false, driver.availability != .offline else {
+            return
+        }
+        schedulePassedOverRequest()
+        guard waitingRides.count < configuration.maximumWaitingRides else {
+            return
+        }
+        let ride = MockRideData.makeRide(sequence: rideSequence, requestedAt: timeSource.now)
+        rideSequence += 1
+        rides[ride.id] = ride
+        passedOverRideIDs.insert(ride.id)
+        publish()
     }
 
     private func scheduleExpiry(of offer: RideOffer) {

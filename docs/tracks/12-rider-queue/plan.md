@@ -18,9 +18,9 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Phase 2: A driver's cancellation re-lists the rider, and the demo list changes
 
-- [ ] Write failing tests: cancelling while heading to pickup, and at pickup, each adds a request for the same rider, places, and fare, with the original request time and a new ID; the past ride stays cancelled by the driver; cancelling on trip adds nothing; the seeded rides start in the list with past request times; a passed-over request arrives after the interval, and none beyond the limit
-- [ ] Re-list the rider in `cancelRide(rideID:)` before the trip. Seed the list, add `passedOverInterval` and `maximumWaitingRides` to `MockRideServiceConfiguration`, and add the timer
-- [ ] Verify: the tests pass, including the existing offer, expiry, and cancellation tests. Re-listing on trip, or giving the new request the current time, each makes a test fail
+- [x] Write failing tests: cancelling while heading to pickup, and at pickup, each adds a request for the same rider, places, and fare, with the original request time and a new ID; the past ride stays cancelled by the driver; cancelling on trip adds nothing; the seeded rides start in the list with past request times; a passed-over request arrives after the interval, and none beyond the limit
+- [x] Re-list the rider in `cancelRide(rideID:)` before the trip. Seed the list through a `waitingRides` parameter on `MockRideService`'s initializer, filled by `MockRideData.passedOverRides(at:)` in the app. Add `passedOverInterval` and `maximumWaitingRides` to `MockRideServiceConfiguration`, and add the timer
+- [x] Verify: the tests pass, including the existing offer, expiry, and cancellation tests. Re-listing on trip, or giving the new request the current time, each makes a test fail. The timer stopping when the driver goes offline has no test: a timer that kept running would wake after the test's check, so the test would pass either way. It's checked by reading the code, as with the rider's scheduled cancellation in #31
 
 ## Phase 3: The service lets the driver claim a ride
 

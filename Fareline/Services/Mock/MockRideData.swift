@@ -69,6 +69,23 @@ enum MockRideData {
         )
     }
 
+    /// Returns rides that other drivers have already passed on, so the demo's waiting list starts with riders who
+    /// have waited several minutes.
+    static func passedOverRides(at date: Date) -> [Ride] {
+        // Riders that don't trigger demo events, waiting 9, 5, and 2 minutes.
+        [(2, 540), (3, 300), (0, 120)].map { index, secondsWaited in
+            let template = templates[index]
+            return Ride(
+                id: UUID(),
+                rider: template.rider,
+                pickup: template.pickup,
+                dropoff: template.dropoff,
+                fare: template.fare,
+                requestedAt: date.addingTimeInterval(-TimeInterval(secondsWaited))
+            )
+        }
+    }
+
     /// Returns how long after the driver accepts a ride its rider cancels, or `nil` if they don't.
     static func riderCancellationDelay(for ride: Ride) -> TimeInterval? {
         templates.first { $0.rider.id == ride.rider.id }?.riderCancelsAfter
