@@ -11,7 +11,7 @@ enum TestFixtures {
         .driverArrived,
         .tripStarted,
         .tripCompleted(date: date),
-        .cancelled
+        .cancelled(date: date)
     ]
 
     static func ride() -> Ride {

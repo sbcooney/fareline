@@ -6,9 +6,9 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Phase 1: A ride records when it ended
 
-- [ ] Write failing tests: completing and cancelling both set the end time; the end time is unchanged by a rejected event
-- [ ] Replace `completedAt` with `endedAt`, and give `.cancelled` a date, updating the mock service and existing tests
-- [ ] Verify: all tests pass, and the service lists past rides newest first by when they ended
+- [x] Write failing tests: completing and cancelling both set the end time; the end time is unchanged by a rejected event
+- [x] Replace `completedAt` with `endedAt`, and give `.cancelled` a date, updating the mock service and existing tests
+- [x] Verify: all tests pass, and the service lists past rides newest first by when they ended
 
 ## Phase 2: Saving and loading past rides
 

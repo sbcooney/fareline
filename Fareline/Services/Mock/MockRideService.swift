@@ -362,7 +362,7 @@ extension MockRideService {
     ///
     /// - Throws: ``RideServiceError/rideNoLongerAvailable`` if the ride can't be cancelled.
     func simulateRideCancelled(id: Ride.ID) throws(RideServiceError) {
-        try updateRide(id: id, with: .cancelled)
+        try updateRide(id: id, with: .cancelled(date: timeSource.now))
         if activeRideID == id {
             endActiveRide()
             scheduleNextOffer()

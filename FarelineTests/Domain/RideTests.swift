@@ -8,7 +8,7 @@ struct RideTests {
 
         #expect(ride.status == .awaitingDriver)
         #expect(ride.driverID == nil)
-        #expect(ride.completedAt == nil)
+        #expect(ride.endedAt == nil)
     }
 
     @Test func assigningADriverRecordsTheDriver() throws {
@@ -20,7 +20,7 @@ struct RideTests {
         #expect(ride.driverID == TestFixtures.driverID)
     }
 
-    @Test func completingATripRecordsTheCompletionTime() throws {
+    @Test func completingATripRecordsWhenItEnded() throws {
         var ride = TestFixtures.ride()
 
         try ride.apply(.driverAssigned(driverID: TestFixtures.driverID))
@@ -29,7 +29,31 @@ struct RideTests {
         try ride.apply(.tripCompleted(date: TestFixtures.date))
 
         #expect(ride.status == .completed)
-        #expect(ride.completedAt == TestFixtures.date)
+        #expect(ride.endedAt == TestFixtures.date)
+    }
+
+    @Test func cancellingRecordsWhenTheRideEnded() throws {
+        var ride = TestFixtures.ride()
+        try ride.apply(.driverAssigned(driverID: TestFixtures.driverID))
+
+        try ride.apply(.cancelled(date: TestFixtures.date))
+
+        #expect(ride.status == .cancelled)
+        #expect(ride.endedAt == TestFixtures.date)
+    }
+
+    @Test func rejectedCancellationLeavesTheEndTimeUnchanged() throws {
+        var ride = TestFixtures.ride()
+        try ride.apply(.driverAssigned(driverID: TestFixtures.driverID))
+        try ride.apply(.driverArrived)
+        try ride.apply(.tripStarted)
+        try ride.apply(.tripCompleted(date: TestFixtures.date))
+        let lateCancellation = RideEvent.cancelled(date: TestFixtures.date.addingTimeInterval(60))
+
+        #expect(throws: RideTransitionError(status: .completed, event: lateCancellation)) {
+            try ride.apply(lateCancellation)
+        }
+        #expect(ride.endedAt == TestFixtures.date)
     }
 
     @Test func invalidEventLeavesTheRideUnchanged() {
