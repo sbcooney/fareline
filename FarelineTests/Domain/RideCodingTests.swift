@@ -12,8 +12,10 @@ struct RideCodingTests {
             [assigned, .driverArrived],
             [assigned, .driverArrived, .tripStarted],
             [assigned, .driverArrived, .tripStarted, .tripCompleted(date: TestFixtures.date)],
-            [assigned, .cancelled(date: TestFixtures.date)],
-            [.cancelled(date: TestFixtures.date)]
+            [assigned, .cancelled(by: .rider, date: TestFixtures.date)],
+            [assigned, .cancelled(by: .driver, date: TestFixtures.date)],
+            [assigned, .driverArrived, .tripStarted, .cancelled(by: .driver, date: TestFixtures.date)],
+            [.cancelled(by: .rider, date: TestFixtures.date)]
         ]
         return paths.map { events in
             var ride = TestFixtures.ride()
@@ -65,6 +67,32 @@ struct RideCodingTests {
 
     @Test func completedRideWithNoDriverIsRejected() throws {
         let data = try savedJSON(of: TestFixtures.completedRide()) { $0["driverID"] = nil }
+
+        #expect(throws: DecodingError.self) {
+            try JSONDecoder().decode(Ride.self, from: data)
+        }
+    }
+
+    @Test func cancelledRideSavedWithoutACancellerWasCancelledByTheRider() throws {
+        // Rides saved before cancellations recorded who cancelled were all cancelled by riders.
+        let data = try savedJSON(of: TestFixtures.cancelledRide()) { $0["cancelledBy"] = nil }
+
+        #expect(try JSONDecoder().decode(Ride.self, from: data).cancelledBy == .rider)
+    }
+
+    @Test func rideCancelledByADriverWithNoDriverIsRejected() throws {
+        var ride = TestFixtures.ride()
+        try ride.apply(.driverAssigned(driverID: TestFixtures.driverID))
+        try ride.apply(.cancelled(by: .driver, date: TestFixtures.date))
+        let data = try savedJSON(of: ride) { $0["driverID"] = nil }
+
+        #expect(throws: DecodingError.self) {
+            try JSONDecoder().decode(Ride.self, from: data)
+        }
+    }
+
+    @Test func completedRideWithACancellerIsRejected() throws {
+        let data = try savedJSON(of: TestFixtures.completedRide()) { $0["cancelledBy"] = "driver" }
 
         #expect(throws: DecodingError.self) {
             try JSONDecoder().decode(Ride.self, from: data)

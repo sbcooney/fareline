@@ -17,6 +17,8 @@ struct Ride: Identifiable, Equatable, Sendable {
     private(set) var driverID: Driver.ID?
     /// When the ride was completed or cancelled. The status says which.
     private(set) var endedAt: Date?
+    /// Who cancelled the ride, or `nil` if it wasn't cancelled.
+    private(set) var cancelledBy: RideRole?
 
     init(id: UUID, rider: Rider, pickup: Place, dropoff: Place, fare: Fare, requestedAt: Date) {
         self.id = id
@@ -38,7 +40,10 @@ struct Ride: Identifiable, Equatable, Sendable {
         switch event {
         case .driverAssigned(let driverID):
             self.driverID = driverID
-        case .tripCompleted(let date), .cancelled(let date):
+        case .tripCompleted(let date):
+            endedAt = date
+        case .cancelled(let role, let date):
+            cancelledBy = role
             endedAt = date
         case .driverArrived, .tripStarted:
             break

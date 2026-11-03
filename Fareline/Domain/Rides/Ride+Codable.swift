@@ -7,7 +7,7 @@ import Foundation
 /// the events that lead to the saved status, then checks the result matches what was saved.
 extension Ride: Codable {
     private enum CodingKeys: String, CodingKey {
-        case id, rider, pickup, dropoff, fare, requestedAt, status, driverID, endedAt
+        case id, rider, pickup, dropoff, fare, requestedAt, status, driverID, endedAt, cancelledBy
     }
 
     init(from decoder: any Decoder) throws {
@@ -23,15 +23,21 @@ extension Ride: Codable {
         let status = try container.decode(RideStatus.self, forKey: .status)
         let driverID = try container.decodeIfPresent(Driver.ID.self, forKey: .driverID)
         let endedAt = try container.decodeIfPresent(Date.self, forKey: .endedAt)
+        // Rides saved before cancellations recorded who cancelled were all cancelled by riders.
+        let cancelledBy = try container.decodeIfPresent(RideRole.self, forKey: .cancelledBy)
+            ?? (status == .cancelled ? .rider : nil)
 
         do {
-            for event in Self.events(leadingTo: status, driverID: driverID, endedAt: endedAt) {
+            for event in Self.events(leadingTo: status, driverID: driverID, endedAt: endedAt, cancelledBy: cancelledBy) {
                 try apply(event)
             }
         } catch {
             throw Self.invalidState(in: container)
         }
-        guard self.status == status, self.driverID == driverID, self.endedAt == endedAt else {
+        guard self.status == status,
+              self.driverID == driverID,
+              self.endedAt == endedAt,
+              self.cancelledBy == cancelledBy else {
             throw Self.invalidState(in: container)
         }
     }
@@ -47,16 +53,18 @@ extension Ride: Codable {
         try container.encode(status, forKey: .status)
         try container.encodeIfPresent(driverID, forKey: .driverID)
         try container.encodeIfPresent(endedAt, forKey: .endedAt)
+        try container.encodeIfPresent(cancelledBy, forKey: .cancelledBy)
     }
 
     /// Returns the events that take a new ride to the given status.
     ///
-    /// A cancelled ride's events depend on whether a driver was assigned. Whether the driver had arrived
-    /// isn't saved, and doesn't change the result.
+    /// A cancelled ride's events depend on whether a driver was assigned. How far the ride got before it was
+    /// cancelled isn't saved, and doesn't change the result.
     private static func events(
         leadingTo status: RideStatus,
         driverID: Driver.ID?,
-        endedAt: Date?
+        endedAt: Date?,
+        cancelledBy: RideRole?
     ) -> [RideEvent] {
         let assigned = driverID.map { [RideEvent.driverAssigned(driverID: $0)] } ?? []
         // A missing end time makes the event list incomplete, so replaying it fails to reach the saved status.
@@ -72,7 +80,12 @@ extension Ride: Codable {
         case .completed:
             return assigned + [.driverArrived, .tripStarted] + ended.map { .tripCompleted(date: $0) }
         case .cancelled:
-            return assigned + ended.map { .cancelled(date: $0) }
+            // A missing canceller also leaves the list incomplete. Only a cancelled ride has one, so a canceller
+            // saved on any other ride fails the check after replaying.
+            guard let cancelledBy else {
+                return assigned
+            }
+            return assigned + ended.map { .cancelled(by: cancelledBy, date: $0) }
         }
     }
 

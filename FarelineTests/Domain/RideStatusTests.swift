@@ -27,8 +27,12 @@ struct RideStatusTests {
             status == .driverArrived ? .inProgress : nil
         case .tripCompleted:
             status == .inProgress ? .completed : nil
-        case .cancelled:
+        case .cancelled(by: .rider, _):
+            // A rider can cancel until they're in the car.
             [.awaitingDriver, .driverEnRoute, .driverArrived].contains(status) ? .cancelled : nil
+        case .cancelled(by: .driver, _):
+            // A driver can cancel only a ride they're on, including during the trip.
+            [.driverEnRoute, .driverArrived, .inProgress].contains(status) ? .cancelled : nil
         }
     }
 }

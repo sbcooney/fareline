@@ -28,7 +28,7 @@ struct PastRideRow: View {
     let ride = {
         var ride = MockRideData.makeRide(sequence: 0, requestedAt: .now)
         try? ride.apply(.driverAssigned(driverID: MockRideData.driver.id))
-        try? ride.apply(.cancelled(date: .now))
+        try? ride.apply(.cancelled(by: .rider, date: .now))
         return ride
     }()
 

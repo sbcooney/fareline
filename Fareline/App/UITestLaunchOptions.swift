@@ -68,7 +68,7 @@ struct UITestLaunchOptions {
 
         var cancelled = MockRideData.makeRide(sequence: 1, requestedAt: now.addingTimeInterval(-3_600))
         try? cancelled.apply(.driverAssigned(driverID: MockRideData.driver.id))
-        try? cancelled.apply(.cancelled(date: now.addingTimeInterval(-3_000)))
+        try? cancelled.apply(.cancelled(by: .rider, date: now.addingTimeInterval(-3_000)))
         return [cancelled, completed]
     }
 }

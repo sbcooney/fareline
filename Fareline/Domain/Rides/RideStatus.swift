@@ -11,11 +11,13 @@
 /// | `driverEnRoute`  | `driverArrived`  | `driverArrived`  |
 /// | `driverArrived`  | `tripStarted`    | `inProgress`     |
 /// | `inProgress`     | `tripCompleted`  | `completed`      |
-/// | `awaitingDriver` | `cancelled`      | `cancelled`      |
+/// | `awaitingDriver` | `cancelled` by the rider | `cancelled` |
 /// | `driverEnRoute`  | `cancelled`      | `cancelled`      |
 /// | `driverArrived`  | `cancelled`      | `cancelled`      |
+/// | `inProgress`     | `cancelled` by the driver | `cancelled` |
 ///
-/// `completed` and `cancelled` are terminal. A ride can't be cancelled once it's in progress.
+/// `completed` and `cancelled` are terminal. Only the driver can cancel a ride that's in progress, as the rider
+/// is in the car, and a driver can't cancel a ride before one is assigned.
 enum RideStatus: CaseIterable, Sendable, Codable {
     case awaitingDriver
     case driverEnRoute
@@ -37,7 +39,10 @@ enum RideStatus: CaseIterable, Sendable, Codable {
             .inProgress
         case (.inProgress, .tripCompleted):
             .completed
-        case (.awaitingDriver, .cancelled), (.driverEnRoute, .cancelled), (.driverArrived, .cancelled):
+        case (.awaitingDriver, .cancelled(by: .rider, _)),
+             (.driverEnRoute, .cancelled),
+             (.driverArrived, .cancelled),
+             (.inProgress, .cancelled(by: .driver, _)):
             .cancelled
         default:
             throw RideTransitionError(status: self, event: event)
