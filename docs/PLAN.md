@@ -24,7 +24,7 @@ Work proceeds top to bottom. Each row merges as its own PR and leaves the app wo
 | ✅ | #6 | Accept or decline a request | Required |
 | ✅ | #7 | View current ride information | Required |
 | ✅ | #26 | Per-issue spec and plan in the development flow | Setup |
-| 🟨 | #8 | Review past rides | Required |
+| ✅ | #8 | Review past rides | Required |
 | ⬜ | #9 | Error, empty, and accessibility states | Quality |
 | ⬜ | #19 | App icon and launch screen | Quality |
 | ⬜ | #10 | README and visual reference | Deliverable |
@@ -170,6 +170,7 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 - *Provisional:* a driver can't go offline during an active ride.
 - An offer expires if ignored, and the driver stays available.
 - A rider can cancel until the trip starts, and the driver is told why their ride ended.
+- Past rides are kept on the device, as the mock's stand-in for a backend's history, and aren't synced anywhere.
 
 ## Decision log
 
@@ -218,6 +219,7 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 | 2026-11-03 | Replace `completedAt` with `endedAt`, and give `.cancelled` a date | Cancelled rides can be sorted and show when they ended, and the status already says how. This changes a domain event, so every caller of `.cancelled` passes a time. |
 | 2026-11-03 | Clear the navigation path when an offer arrives | A driver on a pushed screen can't miss an offer. In exchange, they lose their place in Past Rides. #9 may revisit how offers appear. |
 | 2026-11-03 | Name the folder `Features/PastRides/`, not `RideHistory/` | It matches the screen's title and `AppDestination.pastRides`. |
+| 2026-11-03 | Turn off SwiftLint's `file_length` rule for `MockRideService.swift` | The actor's state is private, and splitting the file would mean exposing it to the whole module. In exchange, the file can grow past the limit unnoticed, so it should be split if it gains another responsibility. |
 
 ## Open questions
 

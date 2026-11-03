@@ -24,6 +24,11 @@ struct RideCodingTests {
         }
     }()
 
+    /// `states` builds each ride with `try?`, so this catches a path that silently stopped short.
+    @Test func statesCoverEveryStatus() {
+        #expect(Set(Self.states.map(\.status)) == Set(RideStatus.allCases))
+    }
+
     @Test(arguments: states)
     func everyStateRoundTrips(ride: Ride) throws {
         let data = try JSONEncoder().encode(ride)
