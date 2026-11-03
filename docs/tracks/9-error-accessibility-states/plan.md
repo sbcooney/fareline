@@ -19,8 +19,8 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Phase 2: Failures and empty states
 
-- [ ] Write failing tests: every `RideServiceError` has a message; after each kind of failed action, the control is enabled and the state unchanged
-- [ ] Fix anything the tests find
+- [x] Write tests: every `RideServiceError` has a message; after each kind of failed action, the control is enabled and the state unchanged
+- [x] Fix anything the tests find: nothing, as both passed straight away. They now guard against regressions
 - [ ] Verify: the tests pass, and simulator screenshots of Connecting, Past Rides with no rides, and a missing past ride
 
 ## Phase 3: Offers without pulling the driver away
