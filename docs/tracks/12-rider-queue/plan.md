@@ -6,15 +6,15 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Before starting
 
-- [ ] Load `swift-testing-pro` for the session, service, model, and display tests
-- [ ] Load `swift-concurrency-pro` for the list's timer in `MockRideService`, and the claim's races with offers, other drivers, and rider cancellations
-- [ ] Load `swiftui-pro`, with its navigation, data, and accessibility references, for the Waiting Riders screen, its rows, and the home screen's toolbar
+- [x] Load `swift-testing-pro` for the session, service, model, and display tests
+- [x] Load `swift-concurrency-pro` for the list's timer in `MockRideService`, and the claim's races with offers, other drivers, and rider cancellations
+- [x] Load `swiftui-pro`, with its navigation, data, and accessibility references, for the Waiting Riders screen, its rows, and the home screen's toolbar
 
 ## Phase 1: Passed-over rides join the list
 
-- [ ] Write failing tests: an offered ride isn't in the list; a ride joins the list when its offer is declined or expires; the list is longest wait first; a ride leaves the list when another driver takes it or its rider cancels; a ride in the list isn't offered again
-- [ ] Add `DriverSession.waitingRides`, and the service's record of passed-over rides, filled on decline and expiry. Update every place that makes a session, including test fixtures and previews
-- [ ] Verify: the tests pass, and sorting the list the wrong way, or leaving out the expiry case, each makes a test fail
+- [x] Write failing tests: an offered ride isn't in the list; a ride joins the list when its offer is declined, expires, or ends because the driver goes offline; the list is longest wait first; a ride leaves the list when another driver takes it or its rider cancels; a ride in the list isn't offered again
+- [x] Add `DriverSession.waitingRides`, and the service's record of passed-over rides, filled on decline and expiry. Update every place that makes a session, including test fixtures and previews
+- [x] Verify: the tests pass, and sorting the list the wrong way, or leaving out the expiry case, each makes a test fail
 
 ## Phase 2: A driver's cancellation re-lists the rider, and the demo list changes
 

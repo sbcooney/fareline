@@ -17,4 +17,10 @@ struct DriverSession: Equatable, Sendable {
     ///
     /// Each ride's status says how it ended, so the app can explain a ride that ended without the driver.
     let pastRides: [Ride]
+
+    /// Rides that no driver has taken, longest wait first, which the driver can take themselves.
+    ///
+    /// A ride joins this list once an offer for it ends without placing it. A ride that's being offered is never in
+    /// it, so the list and offers can't show the same ride.
+    let waitingRides: [Ride]
 }

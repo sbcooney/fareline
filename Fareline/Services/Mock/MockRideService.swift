@@ -23,6 +23,12 @@ actor MockRideService: RideService {
     private var activeRideID: Ride.ID?
     private var pastRides: [Ride] = []
 
+    /// Rides that an offer ended without placing, which the session lists while they're still waiting.
+    ///
+    /// A ride's status can't say this, as being passed over is about dispatch rather than the ride's lifecycle.
+    /// Rides that have since been taken or cancelled stay here, and the session leaves them out by status.
+    private var passedOverRideIDs: Set<Ride.ID> = []
+
     private var version = 0
     private var rideSequence = 0
     private var nextFailure: RideServiceError?
@@ -80,6 +86,9 @@ actor MockRideService: RideService {
     func goOffline() async throws(RideServiceError) -> DriverSession {
         try await beginRequest()
         try updateDriver(.wentOffline)
+        if let offer = pendingOffer {
+            passedOverRideIDs.insert(offer.ride.id)
+        }
         clearPendingOffer()
         nextOfferTask?.cancel()
         return publish()
@@ -126,7 +135,8 @@ actor MockRideService: RideService {
             throw .offerNoLongerAvailable
         }
 
-        // The ride stays awaiting a driver, as another driver could still take it.
+        // The ride stays awaiting a driver, and joins the list, as another driver could still take it.
+        passedOverRideIDs.insert(offer.ride.id)
         clearPendingOffer()
         scheduleNextOffer()
         return publish()
@@ -171,8 +181,18 @@ actor MockRideService: RideService {
             driver: driver,
             pendingOffer: pendingOffer,
             activeRide: activeRideID.flatMap { rides[$0] },
-            pastRides: pastRides
+            pastRides: pastRides,
+            waitingRides: waitingRides
         )
+    }
+
+    /// Passed-over rides that still need a driver, longest wait first.
+    private var waitingRides: [Ride] {
+        passedOverRideIDs
+            .compactMap { rides[$0] }
+            .filter { $0.status == .awaitingDriver }
+            // The ID breaks ties, so rides requested at the same moment keep one order between sessions.
+            .sorted { ($0.requestedAt, $0.id.uuidString) < ($1.requestedAt, $1.id.uuidString) }
     }
 
     /// Imitates the network. This is the only suspension point in a request.
@@ -327,6 +347,7 @@ actor MockRideService: RideService {
             scheduleExpiry(of: offer)
             return
         }
+        passedOverRideIDs.insert(offer.ride.id)
         clearPendingOffer()
         scheduleNextOffer()
         publish()
@@ -353,14 +374,16 @@ extension MockRideService {
 
     /// Offers a ride to the driver.
     ///
-    /// This is the only way an offer is created, which enforces two rules. A ride must be awaiting a driver,
-    /// and it's offered to one driver at a time. The second rule holds because this mock has a single
-    /// driver with a single pending offer. A real backend would have to track offers per ride.
+    /// This is the only way an offer is created, which enforces three rules. A ride must be awaiting a driver,
+    /// it's offered to one driver at a time, and a ride in the waiting list isn't offered again, as the driver can
+    /// already see and take it. The second rule holds because this mock has a single driver with a single pending
+    /// offer. A real backend would have to track offers per ride.
     ///
     /// - Throws: ``RideServiceError/actionNotAllowed`` if the ride can't be offered right now.
     func offerRide(id: Ride.ID) throws(RideServiceError) {
         guard driver.availability == .available,
               pendingOffer == nil,
+              passedOverRideIDs.contains(id) == false,
               let ride = rides[id],
               ride.status == .awaitingDriver else {
             throw .actionNotAllowed

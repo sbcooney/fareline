@@ -39,7 +39,8 @@ struct DriverModelTests {
             driver: Driver(id: TestFixtures.driverID, name: PersonNameComponents()),
             pendingOffer: nil,
             activeRide: nil,
-            pastRides: []
+            pastRides: [],
+            waitingRides: []
         )
     }
 

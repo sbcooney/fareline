@@ -18,10 +18,11 @@ Tests:
 - A new ride that's offered to this driver isn't in the list.
 - An offer's ride joins the list when this driver declines the offer.
 - An offer's ride joins the list when the offer expires.
+- An offer's ride joins the list when the driver goes offline while it's showing.
 
 ### The list holds rides no driver took
 
-A waiting ride is in the list once an offer for it has been declined or has expired, or once the driver who accepted it cancelled before the trip started. The session includes the list, longest wait first. A ride leaves the list as soon as any driver takes it or its rider cancels, in the same session that reports the change. Rides in the list aren't offered again, as the driver can already see and take them.
+A waiting ride is in the list once an offer for it has been declined, has expired, or ended because the driver went offline, or once the driver who accepted it cancelled before the trip started. The session includes the list, longest wait first. A ride leaves the list as soon as any driver takes it or its rider cancels, in the same session that reports the change. Rides in the list aren't offered again, as the driver can already see and take them.
 
 Tests:
 - The session lists waiting rides, longest wait first.
