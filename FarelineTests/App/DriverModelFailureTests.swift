@@ -25,19 +25,12 @@ struct DriverModelFailureTests {
         model = DriverModel(service: service)
     }
 
-    private func currentSession() async throws -> DriverSession {
-        for await session in await service.sessionUpdates() {
-            return session
-        }
-        throw CancellationError()
-    }
-
     /// Puts the driver in the state where the action is allowed, and returns how to perform it.
     private func prepare(_ action: Action) async throws -> Perform {
         let rideID = ride.id
         switch action {
         case .goOnline:
-            model.apply(try await currentSession())
+            model.apply(try await service.currentSession())
             return { await model.goOnline() }
         case .goOffline:
             await model.goOnline()
@@ -46,7 +39,7 @@ struct DriverModelFailureTests {
             await service.addRide(ride)
             await model.goOnline()
             try await service.offerRide(id: rideID)
-            model.apply(try await currentSession())
+            model.apply(try await service.currentSession())
             let offerID = try #require(model.session?.pendingOffer?.id)
             return action == .accept
                 ? { await model.acceptOffer(id: offerID) }
@@ -55,7 +48,7 @@ struct DriverModelFailureTests {
             await service.addRide(ride)
             await model.goOnline()
             try await service.offerRide(id: rideID)
-            model.apply(try await currentSession())
+            model.apply(try await service.currentSession())
             await model.acceptOffer(id: try #require(model.session?.pendingOffer?.id))
             if action == .markArrived {
                 return { await model.markArrived(rideID: rideID) }

@@ -38,7 +38,7 @@ struct DriverModelAvailabilityTests {
         await model.goOffline()
 
         #expect(model.session?.driver.availability == .available)
-        #expect(model.alert != nil)
+        #expect(model.alert == .error(.networkUnavailable))
     }
 
     @Test func availabilityCantChangeBeforeTheFirstSession() {

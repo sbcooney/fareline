@@ -26,13 +26,13 @@ struct UITestLaunchOptions {
         offerDelay = delayIndex.flatMap { arguments.indices.contains($0) ? TimeInterval(arguments[$0]) : nil } ?? 1
     }
 
-    /// Returns a mock service with its own history file, so each launch starts from the same state.
+    /// Returns a mock service whose history starts fresh, so each launch starts from the same state.
     func makeService() -> MockRideService {
         var configuration = MockRideServiceConfiguration.demo
         configuration.offerDelay = offerDelay
-        let pastRideStore = PastRideStore(
-            fileURL: .temporaryDirectory.appending(path: "UITestPastRides-\(UUID().uuidString).json")
-        )
+        let pastRideStore = PastRideStore(fileURL: .temporaryDirectory.appending(path: "UITestPastRides.json"))
+        // The file is reused across launches, so it's cleared to start each one fresh.
+        try? FileManager.default.removeItem(at: pastRideStore.fileURL)
         if seedsPastRides {
             try? pastRideStore.save(Self.seededPastRides())
         }

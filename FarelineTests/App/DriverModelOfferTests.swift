@@ -64,6 +64,27 @@ struct DriverModelOfferTests {
         #expect(model.unansweredOfferID == offerID)
     }
 
+    @Test func offerWhoseAcceptFailedIsStillReportedWhenItEnds() async throws {
+        let service = MockRideService.forModelTests(time: time)
+        let ride = TestFixtures.ride()
+        await service.addRide(ride)
+        let model = DriverModel(service: service)
+        let updates = Task { await model.start() }
+        defer { updates.cancel() }
+        await model.goOnline()
+        try await service.offerRide(id: ride.id)
+        await waitUntil { model.session?.pendingOffer != nil }
+        let offerID = try #require(model.session?.pendingOffer?.id)
+        await service.failNextRequest(with: .networkUnavailable)
+        await model.acceptOffer(id: offerID)
+
+        await time.waitForSleeper()
+        time.advance(by: 30)
+        await waitUntil { model.session?.pendingOffer == nil }
+
+        #expect(model.unansweredOfferID == offerID)
+    }
+
     @Test(arguments: [true, false])
     func answeredOfferIsntReportedAsEndedWithoutAResponse(accepting: Bool) async throws {
         let service = MockRideService.forModelTests(time: time)

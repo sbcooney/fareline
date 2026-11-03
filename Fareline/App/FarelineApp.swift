@@ -5,6 +5,10 @@ import SwiftUI
 struct FarelineApp: App {
     @State private var model = DriverModel(service: Self.makeService())
 
+    #if DEBUG
+    private static let uiTestOptions = UITestLaunchOptions()
+    #endif
+
     var body: some Scene {
         WindowGroup {
             RootView()
@@ -14,7 +18,7 @@ struct FarelineApp: App {
                 }
             #if DEBUG
                 .task {
-                    await UITestLaunchOptions()?.prepare(model)
+                    await Self.uiTestOptions?.prepare(model)
                 }
             #endif
         }
@@ -22,7 +26,7 @@ struct FarelineApp: App {
 
     private static func makeService() -> MockRideService {
         #if DEBUG
-        if let options = UITestLaunchOptions() {
+        if let options = uiTestOptions {
             return options.makeService()
         }
         #endif

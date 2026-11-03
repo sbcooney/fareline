@@ -26,7 +26,7 @@ final class DriverModel {
     /// Sighted drivers see the offer screen go away, but VoiceOver users don't, so views announce this.
     private(set) var unansweredOfferID: RideOffer.ID?
 
-    /// The offer the driver last accepted or declined, so its ending isn't reported as unanswered.
+    /// The offer the driver is responding to, or last responded to, so its ending isn't reported as unanswered.
     private var answeredOfferID: RideOffer.ID?
 
     /// Returns one of the driver's past rides, or `nil` if it isn't one.
@@ -102,16 +102,18 @@ final class DriverModel {
     /// the driver seeing it and the tap being handled, and a driver must never take a ride they didn't review.
     func acceptOffer(id: RideOffer.ID) async {
         await perform { () async throws(RideServiceError) in
-            answeredOfferID = id
-            return try await service.acceptOffer(id: id)
+            try await respond(to: id) { () async throws(RideServiceError) in
+                try await service.acceptOffer(id: id)
+            }
         }
     }
 
     /// Declines the offer the driver is looking at.
     func declineOffer(id: RideOffer.ID) async {
         await perform { () async throws(RideServiceError) in
-            answeredOfferID = id
-            return try await service.declineOffer(id: id)
+            try await respond(to: id) { () async throws(RideServiceError) in
+                try await service.declineOffer(id: id)
+            }
         }
     }
 
@@ -137,6 +139,24 @@ final class DriverModel {
         }
     }
 
+    /// Sends a response to an offer, marking it as answered unless the response fails.
+    ///
+    /// The mark is set before the request, because the session that removes the offer can arrive through the
+    /// stream before the request returns.
+    private func respond(
+        to offerID: RideOffer.ID,
+        with request: () async throws(RideServiceError) -> DriverSession
+    ) async throws(RideServiceError) -> DriverSession {
+        answeredOfferID = offerID
+        do {
+            return try await request()
+        } catch {
+            // The driver's response didn't take effect, so the offer can still end unanswered.
+            answeredOfferID = nil
+            throw error
+        }
+    }
+
     /// Runs one request at a time, so a double tap can't send the same action twice.
     ///
     /// Any other action sent during a request is also dropped, without an error. Views must disable their
@@ -146,6 +166,7 @@ final class DriverModel {
             return
         }
         isPerformingAction = true
+        let offerIDBefore = session?.pendingOffer?.id
         // A new attempt makes an earlier error out of date.
         if case .error = alert {
             alert = nil
@@ -155,6 +176,11 @@ final class DriverModel {
         do {
             apply(try await request())
         } catch {
+            // An error is about an earlier action, so if a new offer arrived during the request, it could seem to
+            // describe that offer instead.
+            if let offerID = session?.pendingOffer?.id, offerID != offerIDBefore {
+                return
+            }
             show(error)
         }
     }

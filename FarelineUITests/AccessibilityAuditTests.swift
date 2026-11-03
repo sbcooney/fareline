@@ -4,11 +4,6 @@ import XCTest
 ///
 /// The audit checks for missing labels, clipped text, contrast, and hit areas.
 final class AccessibilityAuditTests: FarelineUITestCase {
-    override func setUp() {
-        // Report every issue on a screen, not just the first.
-        continueAfterFailure = true
-    }
-
     @MainActor
     func testHomeScreen() throws {
         for largestText in [false, true] {

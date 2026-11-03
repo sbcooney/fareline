@@ -21,15 +21,8 @@ struct DriverModelAlertTests {
         await service.addRide(ride)
         await model.goOnline()
         try await service.offerRide(id: ride.id)
-        model.apply(try await currentSession())
+        model.apply(try await service.currentSession())
         await model.acceptOffer(id: try #require(model.session?.pendingOffer?.id))
-    }
-
-    private func currentSession() async throws -> DriverSession {
-        for await session in await service.sessionUpdates() {
-            return session
-        }
-        throw CancellationError()
     }
 
     @Test func riderCancellationReplacesAnError() async throws {
@@ -39,7 +32,7 @@ struct DriverModelAlertTests {
         try #require(model.alert == .error(.networkUnavailable))
 
         try await service.simulateRideCancelled(id: ride.id)
-        model.apply(try await currentSession())
+        model.apply(try await service.currentSession())
 
         #expect(model.alert?.cancelledRideID == ride.id)
     }
@@ -47,7 +40,7 @@ struct DriverModelAlertTests {
     @Test func errorDoesntReplaceARiderCancellation() async throws {
         try await startRide()
         try await service.simulateRideCancelled(id: ride.id)
-        model.apply(try await currentSession())
+        model.apply(try await service.currentSession())
         await service.failNextRequest(with: .networkUnavailable)
 
         await model.goOffline()
@@ -58,7 +51,7 @@ struct DriverModelAlertTests {
     @Test func stepFailingAfterTheCancellationWasDismissedShowsNoError() async throws {
         try await startRide()
         try await service.simulateRideCancelled(id: ride.id)
-        model.apply(try await currentSession())
+        model.apply(try await service.currentSession())
         model.alert = nil
 
         await model.markArrived(rideID: ride.id)
@@ -73,7 +66,42 @@ struct DriverModelAlertTests {
 
         await service.addRide(ride)
         try await service.offerRide(id: ride.id)
-        model.apply(try await currentSession())
+        model.apply(try await service.currentSession())
+
+        #expect(model.alert == nil)
+    }
+
+    @Test func errorFromBeforeANewOfferArrivedIsDropped() async throws {
+        let service = MockRideService.forModelTests(time: time, responseDelay: 1)
+        let model = DriverModel(service: service)
+        let updates = Task { await model.start() }
+        defer { updates.cancel() }
+        await service.addRide(ride)
+        let goingOnline = Task { await model.goOnline() }
+        await time.waitForSleeper()
+        time.advance(by: 1)
+        await goingOnline.value
+        try await service.offerRide(id: ride.id)
+        await waitUntil { model.session?.pendingOffer != nil }
+        let firstOfferID = try #require(model.session?.pendingOffer?.id)
+
+        // The accept is in flight while the first offer is withdrawn and a new one arrives.
+        let accepting = Task { await model.acceptOffer(id: firstOfferID) }
+        await time.waitForSleeper(count: 2)
+        try await service.simulateRideCancelled(id: ride.id)
+        let nextRide = Ride(
+            id: UUID(testValue: 22),
+            rider: ride.rider,
+            pickup: ride.pickup,
+            dropoff: ride.dropoff,
+            fare: ride.fare,
+            requestedAt: time.now
+        )
+        await service.addRide(nextRide)
+        try await service.offerRide(id: nextRide.id)
+        await waitUntil { model.session?.pendingOffer?.ride.id == nextRide.id }
+        time.advance(by: 1)
+        await accepting.value
 
         #expect(model.alert == nil)
     }
@@ -81,7 +109,7 @@ struct DriverModelAlertTests {
     @Test func newOfferKeepsARiderCancellation() async throws {
         try await startRide()
         try await service.simulateRideCancelled(id: ride.id)
-        model.apply(try await currentSession())
+        model.apply(try await service.currentSession())
 
         let nextRide = Ride(
             id: UUID(testValue: 21),
@@ -93,7 +121,7 @@ struct DriverModelAlertTests {
         )
         await service.addRide(nextRide)
         try await service.offerRide(id: nextRide.id)
-        model.apply(try await currentSession())
+        model.apply(try await service.currentSession())
 
         #expect(model.alert?.cancelledRideID == ride.id)
     }

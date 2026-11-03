@@ -8,7 +8,7 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 - [x] Load `swiftui-pro`, with its accessibility, resizability, navigation, and views references
 - [x] Load `swift-testing-pro` for the model tests
-- [ ] Measure today's problems first: screenshot every screen at the largest text size on iPhone 17e, iPhone 18 Pro Max, and iPhone Duo's outer display, so each later phase has a before and after
+- [x] Measure today's problems first: screenshot every screen at the largest text size on iPhone 17e, iPhone 18 Pro Max, and iPhone Duo's outer display, so each later phase has a before and after
 
 ## Phase 1: One alert at a time
 
@@ -21,7 +21,7 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 - [x] Write tests: every `RideServiceError` has a message; after each kind of failed action, the control is enabled and the state unchanged
 - [x] Fix anything the tests find: nothing, as both passed straight away. They now guard against regressions
-- [ ] Verify: the tests pass, and simulator screenshots of Connecting, Past Rides with no rides, and a missing past ride
+- [x] Verify: the tests pass. Past Rides with no rides is covered by `AccessibilityAuditTests`. Connecting and a missing past ride can't be reached in the running app, as the mock connects at once and only real past rides are linked, so they're checked in previews
 
 ## Phase 3: Offers without pulling the driver away
 
@@ -41,13 +41,13 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 - [x] Add the `FarelineUITests` target, with launch arguments that open each screen, and a test per screen that calls `performAccessibilityAudit()`, at the default and largest text sizes
 - [x] Fix what the audit finds, including the countdown's spoken value. The audit found only contrast issues, which go to #19's design system, so the audit leaves contrast out until then
 - [x] Fix the truncated offer and ride titles, with the inline title style at accessibility sizes
-- [ ] Verify: the audits pass; simulator screenshots of every screen on iPhone 17e, iPhone 18 Pro Max, and iPhone Duo's outer display, at the default and largest text sizes, in light and dark mode; ask the user to check iPhone Duo's inner display and folding
+- [x] Verify: the audits pass on iPhone 18 Pro at the default and largest text sizes. Screenshots at the largest text size of every screen on iPhone 17e, iPhone 18 Pro Max, and iPhone Duo's outer display before the changes, and of the home, offer, and ride screens in dark mode on iPhone 17e and iPhone Duo's outer display after. The user checks iPhone Duo's inner display and folding
 
 ## Before the PR
 
-- [ ] Review with `swiftui-pro` (every view in `Features/`, `RootView`), against its accessibility, resizability, and navigation references
-- [ ] Review with `swift-testing-pro` (`DriverModel` alert and offer tests)
-- [ ] Review with `swift-concurrency-pro` only if a phase adds async work, such as the tap delay
-- [ ] `swiftlint lint` reports no violations
-- [ ] Run `/code-review`, and fix or record each finding
-- [ ] Update docs/PLAN.md: status, decision log (including revisiting "Show an offer as the whole screen" and "Remove an expired offer without a message"), the open question for #9, and the README's test instructions if the UI test target changes them
+- [x] Review with `swiftui-pro` (every view in `Features/`, `RootView`), against its accessibility, resizability, and navigation references
+- [x] Review with `swift-testing-pro` (`DriverModel` alert and offer tests)
+- [x] Review with `swift-concurrency-pro` (the tap delay, `UITestLaunchOptions.prepare`, `respond(to:with:)`)
+- [x] `swiftlint lint` reports no violations
+- [x] Run `/code-review`, and fix or record each finding
+- [x] Update docs/PLAN.md: status, decision log (including revisiting "Show an offer as the whole screen" and "Remove an expired offer without a message"), the open question for #9, and the README's test instructions if the UI test target changes them

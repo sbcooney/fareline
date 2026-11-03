@@ -34,18 +34,13 @@ struct MockRideServiceTests {
         await service.addRide(ride)
         _ = try await service.goOnline()
         try await service.offerRide(id: ride.id)
-        return try #require(await currentSession().pendingOffer)
+        return try #require(await service.currentSession().pendingOffer)
     }
 
     /// Puts the driver on the fixture ride.
     private func startRide() async throws {
         let offer = try await makeOffer()
         _ = try await service.acceptOffer(id: offer.id)
-    }
-
-    private func currentSession() async throws -> DriverSession {
-        let session = await service.sessionUpdates().first { _ in true }
-        return try #require(session)
     }
 
     /// Waits for an update that happens on the service's own timers.
@@ -64,7 +59,7 @@ struct MockRideServiceTests {
     // MARK: - Availability
 
     @Test func newSubscriberReceivesTheCurrentSession() async throws {
-        let session = try await currentSession()
+        let session = try await service.currentSession()
 
         #expect(session.driver.availability == .offline)
         #expect(session.pendingOffer == nil)
@@ -84,7 +79,7 @@ struct MockRideServiceTests {
         await #expect(throws: RideServiceError.actionNotAllowed) {
             try await service.goOffline()
         }
-        #expect(try await currentSession().driver.availability == .onRide)
+        #expect(try await service.currentSession().driver.availability == .onRide)
     }
 
     @Test func goingOfflineWithdrawsThePendingOffer() async throws {
@@ -117,7 +112,7 @@ struct MockRideServiceTests {
         await #expect(throws: RideServiceError.actionNotAllowed) {
             try await service.offerRide(id: ride.id)
         }
-        #expect(try await currentSession().pendingOffer?.id == offer.id)
+        #expect(try await service.currentSession().pendingOffer?.id == offer.id)
     }
 
     @Test func onlyRidesAwaitingADriverCanBeOffered() async throws {
@@ -197,7 +192,7 @@ struct MockRideServiceTests {
         }
 
         // The offer ends right away, rather than staying on screen until the timer runs.
-        let session = try await currentSession()
+        let session = try await service.currentSession()
         #expect(session.pendingOffer == nil)
         #expect(session.driver.availability == .available)
     }
@@ -220,7 +215,7 @@ struct MockRideServiceTests {
             try await service.acceptOffer(id: offer.id)
         }
 
-        let session = try await currentSession()
+        let session = try await service.currentSession()
         #expect(session.activeRide == nil)
         #expect(session.driver.availability == .available)
         #expect(session.pastRides.isEmpty)
@@ -236,7 +231,7 @@ struct MockRideServiceTests {
             try await service.acceptOffer(id: offer.id)
         }
 
-        #expect(try await currentSession().driver.availability == .available)
+        #expect(try await service.currentSession().driver.availability == .available)
         #expect(await service.ride(id: ride.id)?.driverID == otherDriverID)
     }
 
@@ -248,7 +243,7 @@ struct MockRideServiceTests {
         await #expect(throws: RideServiceError.networkUnavailable) {
             try await service.goOnline()
         }
-        #expect(try await currentSession().driver.availability == .offline)
+        #expect(try await service.currentSession().driver.availability == .offline)
 
         let session = try await service.goOnline()
         #expect(session.driver.availability == .available)

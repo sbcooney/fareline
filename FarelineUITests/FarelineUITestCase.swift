@@ -20,18 +20,22 @@ class FarelineUITestCase: XCTestCase {
         return app
     }
 
-    /// Runs Apple's accessibility audit, logging each issue with the element it's about, since the
-    /// audit's own failure message doesn't say which element failed.
+    /// Runs Apple's accessibility audit, and fails once listing every issue with the element it's about.
+    ///
+    /// The audit's own failures stop at the first issue and don't say which element it was.
     ///
     /// Contrast is left out until #19 adds a design system with contrast-checked colors. Today the app uses
     /// the system's default blue and secondary gray, which fall just short. #19 turns this check back on.
     @MainActor
     func audit(_ app: XCUIApplication) throws {
+        var issues: [String] = []
         try app.performAccessibilityAudit(for: XCUIAccessibilityAuditType.all.subtracting(.contrast)) { issue in
             let element = issue.element.map { "\($0.elementType) \"\($0.label)\"" } ?? "no element"
-            print("Audit issue: \(issue.compactDescription) on \(element). \(issue.detailedDescription)")
-            return false
+            issues.append("\(issue.compactDescription) on \(element)")
+            // Each issue is recorded here and reported together below.
+            return true
         }
+        XCTAssertTrue(issues.isEmpty, "Accessibility audit issues:\n" + issues.joined(separator: "\n"))
     }
 
     /// Waits for an element to appear, failing the test if it doesn't.
