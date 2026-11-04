@@ -2,6 +2,8 @@ import SwiftUI
 
 /// The driver's home screen, showing their status and the control that changes it.
 struct AvailabilityView: View {
+    @Environment(DriverModel.self) private var model
+
     let availability: DriverAvailability
 
     var body: some View {
@@ -14,8 +16,16 @@ struct AvailabilityView: View {
         .defaultScrollAnchor(.center)
         .scrollBounceBehavior(.basedOnSize)
         .safeAreaInset(edge: .bottom) {
-            AvailabilityButton(availability: availability)
-                .padding()
+            VStack {
+                // The button is disabled offline, so this says why.
+                if model.isOffline {
+                    Text("Changing your status needs a connection.")
+                        .font(.footnote)
+                        .foregroundStyle(.textSecondary)
+                }
+                AvailabilityButton(availability: availability)
+            }
+            .padding()
         }
     }
 }

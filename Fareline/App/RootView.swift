@@ -42,14 +42,29 @@ struct RootView: View {
                     ProgressView("Connecting")
                 }
             }
+            // Over the content rather than beside it, so nothing moves when the connection drops.
+            .overlay(alignment: .top) {
+                ConnectionToast()
+            }
             .navigationDestination(for: AppDestination.self, destination: AppDestinationView.init)
             // The buttons live here rather than on the home screen, because an offer can replace the home screen
             // mid-tap. A link on the disappearing screen crashed SwiftUI. Changing the path here is always safe.
             .toolbar {
                 if isShowingHome {
-                    Button("Waiting Riders", systemImage: "person.2", action: openWaitingRiders)
-                    Button("Past Rides", systemImage: "clock", action: openPastRides)
+                    ToolbarItemGroup(placement: .topBarTrailing) {
+                        Button("Waiting Riders", systemImage: "person.2", action: openWaitingRiders)
+                        Button("Past Rides", systemImage: "clock", action: openPastRides)
+                    }
                 }
+                ToolbarItem(placement: .topBarTrailing) {
+                    ConnectionStatusButton()
+                }
+                // On every root screen, so the connection can be lost mid-ride.
+                #if DEBUG
+                ToolbarItem(placement: .topBarLeading) {
+                    DemoMenu()
+                }
+                #endif
             }
         }
         .safeAreaInset(edge: .bottom) {
@@ -80,6 +95,14 @@ struct RootView: View {
             announceNewOffer()
             if id == nil {
                 returnToPathBeforeOffer()
+            }
+        }
+        .onChange(of: model.isOffline) {
+            announceConnection()
+        }
+        .onChange(of: model.pendingSteps.count) { oldCount, newCount in
+            if model.isOffline, newCount > oldCount {
+                AccessibilityNotification.Announcement(String(localized: ConnectionToast.savedMessage)).post()
             }
         }
         .onChange(of: model.unansweredOfferID) {
@@ -134,6 +157,14 @@ struct RootView: View {
         if model.session?.activeRide == nil {
             path = savedPath
         }
+    }
+
+    /// Tells VoiceOver users the connection changed, as the toast is hidden from VoiceOver to avoid repeating it.
+    private func announceConnection() {
+        let announcement = model.isOffline
+            ? ConnectionToast.lostMessage
+            : ConnectionToast.restoredMessage(pendingStepCount: model.pendingSteps.count)
+        AccessibilityNotification.Announcement(String(localized: announcement)).post()
     }
 
     /// Tells VoiceOver users about a new offer, which they might not notice replacing the screen.

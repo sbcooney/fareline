@@ -33,6 +33,8 @@ actor MockRideService: RideService {
     private var rideSequence = 0
     private var nextFailure: RideServiceError?
     private var subscribers: [UUID: AsyncStream<DriverSession>.Continuation] = [:]
+    private var isConnected = true
+    private var connectionSubscribers: [UUID: AsyncStream<Bool>.Continuation] = [:]
     private var nextOfferTask: Task<Void, Never>?
     private var expiryTask: Task<Void, Never>?
     private var riderCancellationTask: Task<Void, Never>?
@@ -66,6 +68,7 @@ actor MockRideService: RideService {
         riderCancellationTask?.cancel()
         passedOverTask?.cancel()
         subscribers.values.forEach { $0.finish() }
+        connectionSubscribers.values.forEach { $0.finish() }
     }
 
     // MARK: - RideService
@@ -81,7 +84,22 @@ actor MockRideService: RideService {
         continuation.onTermination = { [weak self] _ in
             Task { await self?.removeSubscriber(id: id) }
         }
-        continuation.yield(session)
+        // A driver who's offline can't receive anything, so the session waits for the connection.
+        if isConnected {
+            continuation.yield(session)
+        }
+        return stream
+    }
+
+    func connectionUpdates() -> AsyncStream<Bool> {
+        // Only the current state matters, so an older unread one can be dropped.
+        let (stream, continuation) = AsyncStream.makeStream(of: Bool.self, bufferingPolicy: .bufferingNewest(1))
+        let id = UUID()
+        connectionSubscribers[id] = continuation
+        continuation.onTermination = { [weak self] _ in
+            Task { await self?.removeConnectionSubscriber(id: id) }
+        }
+        continuation.yield(isConnected)
         return stream
     }
 
@@ -204,20 +222,21 @@ actor MockRideService: RideService {
         return publish()
     }
 
-    func completeTrip(rideID: Ride.ID) async throws(RideServiceError) -> DriverSession {
+    func completeTrip(rideID: Ride.ID, at date: Date) async throws(RideServiceError) -> DriverSession {
         try await beginRequest()
-        try updateActiveRide(id: rideID, with: .tripCompleted(date: timeSource.now))
+        // The driver's time is trusted, as a step queued offline happened before it was sent.
+        try updateActiveRide(id: rideID, with: .tripCompleted(date: date))
         endActiveRide()
         scheduleNextOffer()
         return publish()
     }
 
-    func cancelRide(rideID: Ride.ID) async throws(RideServiceError) -> DriverSession {
+    func cancelRide(rideID: Ride.ID, at date: Date) async throws(RideServiceError) -> DriverSession {
         try await beginRequest()
         let rideBefore = rides[rideID]
         // If the rider cancelled first, the ride is no longer active, so this fails rather than changing who
         // cancelled. Ending the ride also stops the rider's own scheduled cancellation.
-        try updateActiveRide(id: rideID, with: .cancelled(by: .driver, date: timeSource.now))
+        try updateActiveRide(id: rideID, with: .cancelled(by: .driver, date: date))
         // A rider who wasn't picked up yet still needs a ride. Once the trip has started, the ride is over.
         if let rideBefore, rideBefore.status != .inProgress {
             listNewRequest(for: rideBefore)
@@ -261,6 +280,11 @@ actor MockRideService: RideService {
         }
         if let failure {
             throw failure
+        }
+        // Checked after the delay, so a connection lost while a request is on its way fails it, as a real network
+        // would. Nothing changes, so the driver's action can be sent again.
+        if isConnected == false {
+            throw .networkUnavailable
         }
     }
 
@@ -344,12 +368,19 @@ actor MockRideService: RideService {
     private func publish() -> DriverSession {
         version += 1
         let session = session
-        subscribers.values.forEach { $0.yield(session) }
+        // While disconnected, changes still happen, but the driver hears about them only when the connection returns.
+        if isConnected {
+            subscribers.values.forEach { $0.yield(session) }
+        }
         return session
     }
 
     private func removeSubscriber(id: UUID) {
         subscribers[id] = nil
+    }
+
+    private func removeConnectionSubscriber(id: UUID) {
+        connectionSubscribers[id] = nil
     }
 
     private func scheduleNextOffer() {
@@ -484,6 +515,23 @@ actor MockRideService: RideService {
 // MARK: - Simulating the rest of the system
 
 extension MockRideService {
+    /// Imitates losing or regaining the driver's connection.
+    ///
+    /// While disconnected, requests fail with ``RideServiceError/networkUnavailable`` and change nothing, and no
+    /// sessions are sent. The mock's own world keeps running, so offers still expire and riders still cancel. On
+    /// reconnecting, the latest session is sent.
+    func setConnected(_ connected: Bool) {
+        guard connected != isConnected else {
+            return
+        }
+        isConnected = connected
+        connectionSubscribers.values.forEach { $0.yield(connected) }
+        if connected {
+            let session = session
+            subscribers.values.forEach { $0.yield(session) }
+        }
+    }
+
     /// Makes the next request fail with the given error, leaving all state unchanged.
     func failNextRequest(with error: RideServiceError) {
         nextFailure = error

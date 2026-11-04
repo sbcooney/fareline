@@ -7,7 +7,7 @@ struct WaitingRidersView: View {
     var body: some View {
         let rides = model.session?.waitingRides ?? []
         let availability = model.session?.driver.availability
-        let canTake = availability == .available && model.isPerformingAction == false
+        let canTake = availability == .available && model.isPerformingAction == false && model.isOffline == false
 
         Group {
             if rides.isEmpty {
@@ -23,8 +23,12 @@ struct WaitingRidersView: View {
                             WaitingRideRow(ride: ride, canTake: canTake)
                         }
                     } footer: {
-                        // The list still shows while offline, so the driver can decide whether to go online.
-                        if availability == .offline {
+                        // Offline, the list shows what was last received, and taking a ride waits for the connection.
+                        if model.isOffline {
+                            Text("Taking a ride needs a connection.")
+                        } else if availability == .offline {
+                            // The list still shows while the driver is offline, so they can decide whether to go
+                            // online.
                             Text("Go online to take a ride.")
                         }
                     }

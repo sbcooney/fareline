@@ -20,13 +20,24 @@ struct AppDestinationView: View {
     let destination: AppDestination
 
     var body: some View {
-        switch destination {
-        case .pastRides:
-            PastRidesView()
-        case .pastRide(let id):
-            PastRideDetailView(rideID: id)
-        case .waitingRiders:
-            WaitingRidersView()
+        Group {
+            switch destination {
+            case .pastRides:
+                PastRidesView()
+            case .pastRide(let id):
+                PastRideDetailView(rideID: id)
+            case .waitingRiders:
+                WaitingRidersView()
+            }
+        }
+        // Pushed screens show the connection's toast and status too, as the root screen does.
+        .overlay(alignment: .top) {
+            ConnectionToast()
+        }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                ConnectionStatusButton()
+            }
         }
     }
 }

@@ -1,3 +1,5 @@
+import Foundation
+
 /// The boundary between the app and whatever provides ride data.
 ///
 /// This models what a real backend would provide. The backend owns the rules that span a driver and other
@@ -8,7 +10,15 @@
 /// or a cancelled ride, arrive through ``sessionUpdates()``.
 protocol RideService: Sendable {
     /// Returns a stream that immediately provides the current session, followed by each later change.
+    ///
+    /// While the connection is down, nothing arrives, and the latest session follows when it returns.
     func sessionUpdates() async -> AsyncStream<DriverSession>
+
+    /// Returns a stream that immediately provides whether the connection is up, followed by each change.
+    ///
+    /// Nothing polls for this. A client of a real backend would feed it from `NWPathMonitor`, which reports
+    /// changes as they happen.
+    func connectionUpdates() async -> AsyncStream<Bool>
 
     /// Makes the driver available for rides.
     func goOnline() async throws(RideServiceError) -> DriverSession
@@ -29,7 +39,10 @@ protocol RideService: Sendable {
     func startTrip(rideID: Ride.ID) async throws(RideServiceError) -> DriverSession
 
     /// Records that the trip ended, and makes the driver available again.
-    func completeTrip(rideID: Ride.ID) async throws(RideServiceError) -> DriverSession
+    ///
+    /// - Parameter date: When the driver completed the trip, which may be earlier than this request if it was
+    ///   queued while offline.
+    func completeTrip(rideID: Ride.ID, at date: Date) async throws(RideServiceError) -> DriverSession
 
     /// Takes a ride from the waiting list, and starts it as accepting an offer does. A pending offer is declined,
     /// as the driver has chosen another ride.
@@ -37,5 +50,8 @@ protocol RideService: Sendable {
 
     /// Cancels the driver's current ride, at any stage from accepting it until the trip ends, and makes the driver
     /// available again. The driver earns no fare.
-    func cancelRide(rideID: Ride.ID) async throws(RideServiceError) -> DriverSession
+    ///
+    /// - Parameter date: When the driver cancelled, which may be earlier than this request if it was queued while
+    ///   offline.
+    func cancelRide(rideID: Ride.ID, at date: Date) async throws(RideServiceError) -> DriverSession
 }
