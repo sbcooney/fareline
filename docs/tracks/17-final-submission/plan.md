@@ -6,7 +6,7 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Before starting
 
-- [x] Load the Swift skills this issue needs: none of the three. The only code change is to the XCTest UI tests in `FarelineUITests/FarelineUITestCase.swift` and `FarelineUITests/AccessibilityAuditTests.swift`, which `swift-testing-pro` doesn't cover, and no app code changes
+- [x] Load the Swift skills this issue needs: `swift-concurrency-pro` for the `@MainActor` teardown block in `FarelineUITests/FarelineUITestCase.swift`. This was missed when the plan was written, and found by `/code-review`, so the skill reviewed the code after it was written rather than before. `swift-testing-pro` doesn't cover XCTest UI tests, and no app code changes
 
 ## Phase 1: Audits in both modes
 
@@ -22,15 +22,16 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Phase 3: Nothing private
 
-- [ ] You revert your signing team, once you're done testing on your phone
+- [x] You revert your signing team, once you're done testing on your phone
 - [x] Search every commit for PDFs, keys, tokens, and absolute paths, and the project file for a signing team. None in any commit. The signing team is only in the working copy
 - [ ] Verify: the searches find nothing
 
 ## Before the PR
 
-- [ ] Fresh clone (Claude): clone the pushed branch into a new folder, with no DerivedData, and build and test with the README's terminal command
-- [ ] `swiftlint lint` reports no violations, and all tests pass
-- [ ] Run `/code-review`, and fix or record each finding
+- [x] Fresh clone (Claude): clone the pushed branch into a new folder, with no DerivedData, and build and test with the README's terminal command. All 228 unit tests and 10 UI tests pass. A first run reported no UI tests, because another test was using the same simulator at the time
+- [x] `swiftlint lint` reports no violations, and all tests pass
+- [x] Run `/code-review`, and fix or record each finding
+- [x] Review with `swift-concurrency-pro`: the teardown closure is `@MainActor`, as `XCUIDevice` requires, and captures only the original appearance, a `Sendable` enum. No findings
 - [ ] Open the PR, saying "Part of #17"
 
 ## After the PR merges

@@ -10,7 +10,7 @@ The repository is public, someone else can clone and run it from the README alon
 
 ### The audits run in light and dark mode
 
-Each accessibility audit runs in both appearances, as it already runs at two text sizes. The test sets the simulator's appearance itself, through `XCUIDevice.shared.appearance`, and puts it back afterwards, so the result no longer depends on how the simulator was left.
+Each accessibility audit runs in both appearances, as it already runs at two text sizes. The test sets the simulator's appearance itself, through `XCUIDevice.shared.appearance`, and a teardown block puts it back afterwards, so the result no longer depends on how the simulator was left.
 
 Tests:
 - Every audit passes in both modes.
@@ -47,7 +47,7 @@ Tests:
 
 Decided with the user on 2026-11-04:
 
-- Each audit test loops over light and dark, as it loops over text sizes. The shared `launch` sets the appearance, and `tearDown` restores the one the test found.
+- Each audit test loops over light and dark, as it loops over text sizes. The shared `launch` sets the appearance, and the first time it does, registers a teardown block that restores the one the test found.
 - No recording. The screenshots meet the assignment.
 - Claude makes the repository public only when you say so at that moment, and you send the link yourself.
 - The clean-clone check is shortened to what catches real problems: Claude clones into a new folder and builds and tests from the terminal, and searches for private details. You open the public link in a private browser window, and optionally run the clone in Xcode. Cloning without credentials, a full walkthrough, and a second person were dropped, as the private window and your earlier review cover them.

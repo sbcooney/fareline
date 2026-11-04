@@ -77,8 +77,16 @@ class FarelineUITestCase: XCTestCase {
             // Each issue is recorded here and reported together below.
             return true
         }
-        let mode = XCUIDevice.shared.appearance == .dark ? "dark" : "light"
-        XCTAssertTrue(issues.isEmpty, "Accessibility audit issues in \(mode) mode:\n" + issues.joined(separator: "\n"))
+        let mode: String
+        switch XCUIDevice.shared.appearance {
+        case .light:
+            mode = "light mode"
+        case .dark:
+            mode = "dark mode"
+        default:
+            mode = "an unspecified appearance"
+        }
+        XCTAssertTrue(issues.isEmpty, "Accessibility audit issues in \(mode):\n" + issues.joined(separator: "\n"))
     }
 
     /// Waits for an element to appear, failing the test if it doesn't.

@@ -39,8 +39,9 @@ final class AccessibilityAuditTests: FarelineUITestCase {
         waitFor(app.buttons["Accept"])
         // The buttons are dimmed for a moment as the offer appears, and the audit would flag that dimmed text.
         waitUntilEnabled(app.buttons["Decline"])
-        // The audit reports Decline's text on its glass capsule as failing contrast, but measured on screen
-        // it's 6.3:1 against the capsule, and `ColorTokenTests` checks brandPrimary on every background.
+        // The audit reports Decline's text on its glass capsule as failing contrast, but measured from screenshots
+        // it's 6.3:1 against the capsule in light mode and 8.8:1 in dark, and `ColorTokenTests` checks brandPrimary
+        // on every background.
         guard largestText else {
             try audit(app, ignoringContrastOn: ["Decline"])
             return

@@ -153,7 +153,7 @@ Each issue follows the same steps:
 | #33 Past rides filter | Main | | Yes |
 | #15 Offline | Yes | Main (replay and ordering) | Main |
 | #16 Rider Companion | | Light (the renamed protocol) | |
-| #17 Final submission | | | Not used: only XCTest UI tests change |
+| #17 Final submission | | Light (the UI tests' `@MainActor` teardown block) | |
 | #41 Code quality pass | Main (shared views, navigation) | Main (the mock's timers and subscribers) | Main |
 
 Skill findings are suggestions:
