@@ -65,9 +65,12 @@ final class DriverModel {
     }
 
     private let service: any DriverService
+    private let timeSource: any TimeSource
 
-    init(service: any DriverService) {
+    /// - Parameter timeSource: Supplies the time a trip is completed or cancelled, so tests can control it.
+    init(service: any DriverService, timeSource: any TimeSource = SystemTimeSource()) {
         self.service = service
+        self.timeSource = timeSource
     }
 
     /// Receives session and connection updates until the calling task is cancelled.
@@ -183,7 +186,7 @@ final class DriverModel {
     }
 
     func completeTrip(rideID: Ride.ID) async {
-        await takeStep(PendingRideStep(rideID: rideID, event: .tripCompleted(date: .now)))
+        await takeStep(PendingRideStep(rideID: rideID, event: .tripCompleted(date: timeSource.now)))
     }
 
     /// Takes a ride from the waiting list, which the driver chose over waiting for an offer.
@@ -199,7 +202,7 @@ final class DriverModel {
     /// Cancels the ride the driver is looking at, after they've confirmed it. Offline, it queues like a ride step,
     /// so a driver can end an unsafe trip without signal.
     func cancelRide(rideID: Ride.ID) async {
-        let step = PendingRideStep(rideID: rideID, event: .cancelled(by: .driver, date: .now))
+        let step = PendingRideStep(rideID: rideID, event: .cancelled(by: .driver, date: timeSource.now))
         guard isOffline == false else {
             queue(step)
             return
