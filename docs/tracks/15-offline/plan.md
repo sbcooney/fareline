@@ -19,8 +19,8 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Phase 2: Live actions are disabled offline
 
-- [ ] Write failing tests: actions that need a connection are refused offline without a request
-- [ ] Disable those controls offline, with a line saying they need a connection
+- [x] Write failing tests: actions that need a connection are refused offline without a request
+- [x] Disable those controls offline, with a line saying they need a connection
 - [ ] Verify: the tests pass, and the user checks the current ride, Past Rides, and Waiting Riders offline in the app
 
 ## Phase 3: Ride steps queue and replay

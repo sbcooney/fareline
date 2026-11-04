@@ -27,4 +27,32 @@ struct DriverModelOfflineTests {
         await service.setConnected(true)
         await waitUntil { model.isOffline == false }
     }
+
+    /// Starts the model and waits until it knows it's offline.
+    private func goOffline() async -> Task<Void, Never> {
+        let updates = Task { await model.start() }
+        await waitUntil { model.session != nil }
+        await service.setConnected(false)
+        await waitUntil { model.isOffline }
+        return updates
+    }
+
+    @Test func actionNeedingAConnectionIsRefusedOfflineWithoutARequest() async throws {
+        let updates = await goOffline()
+        defer { updates.cancel() }
+
+        await model.goOnline()
+
+        // Sent, the request would fail with networkUnavailable and show an error.
+        #expect(model.alert == nil)
+        await service.setConnected(true)
+        #expect(try await service.currentSession().driver.availability == .offline)
+    }
+
+    @Test func availabilityCantChangeOffline() async {
+        let updates = await goOffline()
+        defer { updates.cancel() }
+
+        #expect(model.canChangeAvailability == false)
+    }
 }

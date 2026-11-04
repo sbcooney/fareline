@@ -45,7 +45,9 @@ final class DriverModel {
     ///
     /// This only decides what the control offers. The service still enforces the rule.
     var canChangeAvailability: Bool {
-        guard isPerformingAction == false, let availability = session?.driver.availability else {
+        guard isPerformingAction == false,
+              isOffline == false,
+              let availability = session?.driver.availability else {
             return false
         }
         return availability != .onRide
@@ -211,8 +213,9 @@ final class DriverModel {
     ///
     /// Any other action sent during a request is also dropped, without an error. Views must disable their
     /// controls while ``isPerformingAction`` is true, so that a driver's tap is never silently ignored.
+    /// Offline, nothing is sent: views disable these actions, as each needs a live answer.
     private func perform(_ request: () async throws(RideServiceError) -> DriverSession) async {
-        guard isPerformingAction == false else {
+        guard isPerformingAction == false, isOffline == false else {
             return
         }
         isPerformingAction = true
