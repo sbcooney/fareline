@@ -64,9 +64,9 @@ final class DriverModel {
         return availability != .onRide
     }
 
-    private let service: any RideService
+    private let service: any DriverService
 
-    init(service: any RideService) {
+    init(service: any DriverService) {
         self.service = service
     }
 

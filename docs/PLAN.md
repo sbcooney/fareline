@@ -35,7 +35,7 @@ Work proceeds top to bottom. Each row merges as its own PR and leaves the app wo
 | ➖ | #11 | See other drivers on a map: described in #10 instead | Extended |
 | ➖ | #23 | Status outside the app: described in #10 instead | Extended |
 | ✅ | #15 | Offline capability | Extended |
-| ⬜ | #16 | Rider Companion readiness | Extended |
+| ✅ | #16 | Rider Companion readiness | Extended |
 | ✅ | #34 | Offer screen's largest-text audit fails with unattributed contrast issues | Quality |
 | ⬜ | #10 | README and visual reference | Deliverable |
 | ⬜ | #17 | Final submission | Deliverable |
@@ -53,9 +53,9 @@ Issue numbers follow the order they were filed, not the order of work. Status ke
 ## Architecture
 
 ```
-SwiftUI views  →  DriverModel (@Observable, @MainActor)  →  RideService protocol  →  MockRideService
-                                                                                  ↓
-                                                            Domain state machines (pure, no UI or service dependencies)
+SwiftUI views  →  DriverModel (@Observable, @MainActor)  →  DriverService protocol  →  MockRideService
+                                                                                    ↓
+                                                              Domain state machines (pure, no UI or service dependencies)
 ```
 
 ### Domain
@@ -86,7 +86,7 @@ The one exception is offline. The service reports the connection through `connec
 
 ### Services
 
-`RideService` is the boundary a real backend would sit behind. `MockRideService` implements it as an actor with fixed data. It delivers session changes, including new offers, through an `AsyncStream`, and takes an injected `TimeSource` so tests don't wait on real delays. It can also simulate failures and events from elsewhere in the system, such as a rider cancelling. In the demo, riders whose names describe what they do trigger these events, so a reviewer knows what to expect. Will Cancel cancels 10 seconds after the driver accepts, unless the trip has already started. Taylor Taken, in the waiting list, is taken by another driver just as this driver claims their ride.
+`DriverService` is the driver's boundary with the backend, and a rider app would add its own beside it. `MockRideService` implements it as an actor with fixed data. It delivers session changes, including new offers, through an `AsyncStream`, and takes an injected `TimeSource` so tests don't wait on real delays. It can also simulate failures and events from elsewhere in the system, such as a rider cancelling. In the demo, riders whose names describe what they do trigger these events, so a reviewer knows what to expect. Will Cancel cancels 10 seconds after the driver accepts, unless the trip has already started. Taylor Taken, in the waiting list, is taken by another driver just as this driver claims their ride.
 
 ### Project structure
 
@@ -96,7 +96,7 @@ Folders follow features, with one primary type per file. Each folder is created 
 Fareline/
   App/         App entry point and dependency wiring
   Domain/      Rides, offers, drivers, state machines
-  Services/    RideService protocol and mock implementation
+  Services/    DriverService protocol and mock implementation
   Features/    Availability, Offers, CurrentRide, PastRides, Shared, ...
   Resources/   Asset catalog, including the design system's color tokens
 FarelineTests/
@@ -106,12 +106,13 @@ The Xcode project uses folder-synced groups, so files added to these folders joi
 
 ## Rider Companion considerations
 
-The assignment says a Rider Companion app may be built later. No rider code is planned. Issue #16 audits the finished code and documents these choices in the README:
+The assignment says a Rider Companion app may be built later. No rider code is built. #16 audited the finished code, and the README's "Ready for a Rider Companion" section documents the result:
 
 - Domain names describe the ride, not the driver's view of it. For example, `driverEnRoute` rather than `goingToPickup`.
-- Ride state is separate from driver state, so a rider app needs only the ride lifecycle.
-- `RideService` models what a backend would provide, so a rider client could use the same contract.
-- Domain code stays free of driver UI dependencies, so it could move into a shared Swift package once a second app exists.
+- Ride state is separate from driver state, so a rider app needs only the ride lifecycle, whose rules already cover the rider's cancellation.
+- `DriverService` is the driver's contract, returning a `DriverSession`. A rider app would add a `RiderService` and `RiderSession` beside it, keeping the same conventions, and `MockRideService` would conform to both.
+- Domain code imports only Foundation, so it could move into a shared Swift package once a second app exists.
+- A rider app would still need what the driver app doesn't: the driver's name and vehicle, a history that includes rides cancelled before a driver was assigned, and its own display wording.
 
 ## Definition of done
 
@@ -148,6 +149,7 @@ Each issue follows the same steps:
 | #13 Self-assign | Main | Main (the conflict case) | Main |
 | #33 Past rides filter | Main | | Yes |
 | #15 Offline | Yes | Main (replay and ordering) | Main |
+| #16 Rider Companion | | Light (the renamed protocol) | |
 
 Skill findings are suggestions:
 
@@ -279,6 +281,8 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 | 2026-11-03 | Let the service win a conflict when replaying | Steps after a refused one would build on a ride that no longer exists as the driver saw it, so they're dropped, and the driver is told. A rider's cancellation shows its own alert instead. |
 | 2026-11-03 | Report the connection through a stream from the service, and simulate it with a Debug-only Demo menu | Nothing polls. A real client would feed the same stream from `NWPathMonitor`. The menu is on every main screen, so the connection can be lost mid-ride. |
 | 2026-11-03 | Show a lost connection with a brief toast, and a status button in the navigation bar while it lasts, saying "no connection" | Losing the connection is usually brief, so a toast over the content tells the driver without moving the screen. A button stays in the bar for a longer loss, so an available driver knows why no offers arrive. A banner was tried first: it moved the screen, and the ride and offer screens had to switch to small titles. "Offline" already means a driver who isn't taking rides. |
+| 2026-11-04 | Rename `RideService` to `DriverService` | Every method is a driver action and it returns a `DriverSession`, so the old name suggested a contract a rider app could share, which it couldn't. The new name pairs with `DriverSession` and `DriverModel`, and leaves room for a `RiderService`. `MockRideService` and `RideServiceError` keep their names, as the mock plays the whole backend and most errors apply to either client. |
+| 2026-11-04 | Describe a shared Swift package in the README rather than create one | One app gains nothing from a package, which would need `public` on every shared type and its own test target. The README says when to move: once a second app target exists. In exchange, a rider app would start with that move. |
 
 ## Open questions
 

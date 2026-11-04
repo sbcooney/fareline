@@ -1,6 +1,10 @@
 import Foundation
 
-/// The boundary between the app and whatever provides ride data.
+/// The driver's boundary with whatever provides ride data.
+///
+/// Every method is something a driver does, and every session is the driver's. A rider app would add its own
+/// contract beside this one, such as requesting a ride and following it, served by the same backend and sharing
+/// the domain's rides and rules.
 ///
 /// This models what a real backend would provide. The backend owns the rules that span a driver and other
 /// people, such as who gets offered which ride, so the app only sends requests and displays the results.
@@ -8,7 +12,7 @@ import Foundation
 ///
 /// Each request returns the resulting session. Changes that the driver didn't request, such as a new offer
 /// or a cancelled ride, arrive through ``sessionUpdates()``.
-protocol RideService: Sendable {
+protocol DriverService: Sendable {
     /// Returns a stream that immediately provides the current session, followed by each later change.
     ///
     /// While the connection is down, nothing arrives, and the latest session follows when it returns.

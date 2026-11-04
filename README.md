@@ -78,6 +78,26 @@ The app icon and launch mark are drawn by a script from the same tokens. After c
 swift scripts/generate-artwork.swift
 ```
 
+## Ready for a Rider Companion
+
+The assignment says a Rider Companion app may follow. No rider code is built, but the code was audited so that one could be added without reworking the driver app.
+
+**What a rider app would reuse:**
+
+- **The domain, unchanged.** `Domain/` imports only Foundation and knows nothing of the app, the service, or SwiftUI. Ride statuses describe the ride rather than the driver's view of it, such as `driverEnRoute` rather than `goingToPickup`, so a rider reads the same values. `RideRole` records who cancelled without taking a side.
+- **The rules for both parties.** The ride's lifecycle already holds the rider's rule, cancelling until the trip starts, and `RideStatus.canBeCancelled(by:)` answers it for either role. Ride state is separate from the driver's availability, which a rider never needs.
+- **The service's conventions.** Complete, versioned snapshots, `connectionUpdates()`, typed `RideServiceError`s, and the injected `TimeSource` don't depend on who the client is.
+- **The mock backend.** `MockRideService` plays the whole backend, riders included: `simulateRideCancelled(id:)` already applies a rider's cancellation through the domain's rules. A rider contract would be a second conformance on the same actor.
+
+**What it would add:**
+
+- **Its own contract and session.** The driver's contract is `DriverService`, returning a `DriverSession`. It was renamed from `RideService`, which sounded shared, though every method is a driver action. A rider app would add a `RiderService` beside it, with methods such as `requestRide(pickup:dropoff:)`, `cancelRide(rideID:at:)`, and `sessionUpdates()`, and a `RiderSession` holding the rider's current ride and history, with no offers or waiting list.
+- **Who the driver is.** A ride holds only its driver's ID. A rider needs the driver's name and vehicle, which the rider session would carry.
+- **A rider's history.** Saved past rides must have a driver, which suits a driver's history. A rider's would include rides they cancelled before any driver was assigned.
+- **Its own wording.** Text such as "Heading to Pickup" and "Cancelled by You" lives in the driver app's display extensions, not the domain, so a rider app would write its own, such as "Driver on the way", from the same statuses.
+
+**When to move to a shared package:** once a second app target exists, and not before. The package would hold `Domain/`, both service contracts with their sessions, and the mock, so each app could build and demo against it. With one app, a package adds cost and no benefit: every shared type and method would need to be `public`, and the package would need its own test target. Because the domain already depends on nothing in the app, the move would be mechanical.
+
 ## AI tools used and how
 
 The app was built with Claude Code, with a person directing each step and reviewing every change. The workflow:
