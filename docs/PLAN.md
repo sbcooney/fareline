@@ -36,7 +36,7 @@ Work proceeds top to bottom. Each row merges as its own PR and leaves the app wo
 | ➖ | #23 | Status outside the app: described in #10 instead | Extended |
 | ⬜ | #15 | Offline capability | Extended |
 | ⬜ | #16 | Rider Companion readiness | Extended |
-| ⬜ | #34 | Offer screen's largest-text audit fails with unattributed contrast issues | Quality |
+| ✅ | #34 | Offer screen's largest-text audit fails with unattributed contrast issues | Quality |
 | ⬜ | #10 | README and visual reference | Deliverable |
 | ⬜ | #17 | Final submission | Deliverable |
 
@@ -266,6 +266,7 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 | 2026-11-03 | Open Past Rides on Completed, with one Cancelled choice for both parties | The rides a driver was paid for come first, and each cancelled row already says who cancelled. A count header, such as "3 of 8 rides", shows that some rides are hidden. |
 | 2026-11-03 | Keep the past rides filter in the screen's own state, resetting to Completed each time Past Rides opens | The screen always opens the same way, and a choice survives viewing a ride's details. Remembering it until the app closes would depend on a restart the driver can't see. In exchange, a driver who prefers All Rides chooses it each visit. |
 | 2026-11-03 | Write singular and plural text in code, in `PastRideFilter` | The project has no String Catalog yet, so the text is English only. A catalog's plural variations would replace these cases. |
+| 2026-11-03 | Skip only text hidden under the Accept and Decline bar in the largest-text offer audit, replacing the countdown row's exception (revises "Keep two exceptions in the offer screen's contrast audit") | At the largest text size, the last rows scroll under the bar, hidden but still on screen, and the audit measures their text against it. Removing the countdown row only helped by moving rows up. Contrast runs on its own in that test, so each issue names its element, and any other contrast issue still fails. Decline's exception stays. In exchange, the test depends on the bar's position, read from the Decline button. |
 
 ## Open questions
 

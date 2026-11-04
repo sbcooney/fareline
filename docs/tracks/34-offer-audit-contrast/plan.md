@@ -24,7 +24,7 @@ Each phase leaves the app building and the tests passing, apart from this audit 
 
 ## Before the PR
 
-- [ ] Review with `swiftui-pro` (`OfferView`, if it changes)
-- [ ] `swiftlint lint` reports no violations
-- [ ] Run `/code-review`, and fix or record each finding
-- [ ] Update docs/PLAN.md: #34's status, and a decision log entry that revises "Keep two exceptions in the offer screen's contrast audit"
+- [x] Review with `swiftui-pro` (`OfferView`, if it changes): it didn't change, so the review doesn't apply
+- [x] `swiftlint lint` reports no violations
+- [x] Run `/code-review`, and fix or record each finding. Fixed: the bar's top now includes its padding. Recorded in the PR: `isHittable` can't tell covered text from visible text, partly hidden text stays checked, the default size keeps no exception, and the rest
+- [x] Update docs/PLAN.md: #34's status, and a decision log entry that revises "Keep two exceptions in the offer screen's contrast audit"

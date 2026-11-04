@@ -39,7 +39,9 @@ final class AccessibilityAuditTests: FarelineUITestCase {
         // At the largest text size, the last rows scroll under the Accept and Decline bar, hidden but still on
         // screen, and the audit measures their text against the bar. Contrast runs on its own so each issue names
         // its element, and only text under the bar is skipped. Any other contrast issue still fails.
-        let barTop = app.buttons["Decline"].frame.minY
+        // The bar's padding is the same on every side, so Decline's left edge shows how far above it the bar starts.
+        let decline = app.buttons["Decline"].frame
+        let barTop = decline.minY - decline.minX
         try audit(app, for: XCUIAccessibilityAuditType.all.subtracting(.contrast))
         try audit(app, for: .contrast, ignoringContrastOn: ["Decline"], ignoringContrastBelow: barTop)
     }
