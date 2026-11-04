@@ -17,9 +17,9 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Phase 2: Screenshots
 
-- [ ] No unit test: images
-- [ ] Capture the primary flow with a temporary UI test into `docs/images/`, then delete the test
-- [ ] Verify: each image shows what its alt text says, at a size that reads on GitHub
+- [x] No unit test: images
+- [x] Capture the primary flow with a temporary UI test into `docs/images/`, then delete the test. Past Rides shows All Rides, so all three outcomes appear, and the status bar keeps the real time, so it agrees with the rides' times
+- [x] Verify: each image shows what its alt text says, at a size that reads on GitHub
 
 ## Phase 3: The README
 
