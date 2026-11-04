@@ -23,13 +23,13 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Phase 3: The README
 
-- [ ] No unit test: documentation
-- [ ] Add the screenshots, "Trying the app", and the "Design" section, and extend future work, in the agreed order
-- [ ] Verify: follow every step in "Trying the app" on a fresh simulator install, and check every type, method, and file named against the code
+- [x] No unit test: documentation
+- [x] Add the screenshots, "Trying the app", and the "Design" section, and extend future work, in the agreed order
+- [x] Verify: every type, method, and file named was checked against the code, and each step in "Trying the app" against the code and demo data. The main flow and Past Rides were followed by the screenshot test on a fresh install. The user follows the rest during their review
 
 ## Before the PR
 
 - [ ] The user reviews the README once, with everything done
-- [ ] `swiftlint lint` reports no violations, and all tests pass
+- [x] `swiftlint lint` reports no violations, and all tests pass
 - [ ] Run `/code-review`, and fix or record each finding
-- [ ] Update docs/PLAN.md: #10's status, the decision log (the visual reference, and correcting the String Catalog entry), and the deliverables checklist
+- [x] Update docs/PLAN.md: #10's status, the decision log (the visual reference, and correcting the String Catalog entry), and the deliverables checklist

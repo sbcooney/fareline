@@ -38,7 +38,7 @@ Work proceeds top to bottom. Each row merges as its own PR and leaves the app wo
 | ✅ | #16 | Rider Companion readiness | Extended |
 | ✅ | #34 | Offer screen's largest-text audit fails with unattributed contrast issues | Quality |
 | ✅ | #41 | Code quality pass before submission | Quality |
-| ⬜ | #10 | README and visual reference | Deliverable |
+| ✅ | #10 | README and visual reference | Deliverable |
 | ⬜ | #17 | Final submission | Deliverable |
 
 Issue numbers follow the order they were filed, not the order of work. Status key: ⬜ not started, 🟨 in progress, ✅ done, ➖ not doing (with the reason in the decision log).
@@ -295,6 +295,9 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 | 2026-11-04 | Pull `WaitingList`, `SubscriberList`, and one timer helper out of `MockRideService`, and keep its lint exceptions (revises "Turn off SwiftLint's `file_length` rule…") | Each has rules of its own and now has tests. The file shrank from 621 to 593 lines, still over both limits. What remains changes the ride, driver, and offer together on one actor, which is what makes each request atomic. |
 | 2026-11-04 | Add folders for `Model/`, `Debug/`, `Features/Connection/`, and `FarelineTests/TestSupport/` | `App/` held the entry point, the model, debug tooling, and display text together. |
 | 2026-11-04 | Add a String Catalog for plural text (revises "Write singular and plural text in code, in `PastRideFilter`") | The catalog's plural variations replace singular cases written by hand in four places. Zero cases stay in code, as they're different sentences rather than plural forms. Every other string is synced in, so building in Xcode doesn't change the file. |
+| 2026-11-04 | Keep Debug-only and preview text out of the String Catalog (corrects "Add a String Catalog for plural text") | That entry said building in Xcode doesn't change the catalog. It did: Xcode re-sorted it and dropped the Demo menu's titles and a preview's placeholder, for a reason that wasn't found. That text is now marked as not for translation, so no build adds or removes it. A developer tool and preview text never needed translating. |
+| 2026-11-04 | Show the app with four light mode screenshots and one in dark mode, rather than a recording | GitHub shows images reliably at a glance, each has alt text, and they're small. A temporary UI test captured them and isn't kept, so #17 runs one again if the screens change. In exchange, the README doesn't show motion, such as an offer arriving. |
+| 2026-11-04 | Order the README for a reviewer: what it looks like, how to run and try it, then the design | A reviewer can run the app before reading the reasoning, and every feature has steps to reach it. The design section covers the assignment's questions, and links to this log for the rest. |
 
 ## Open questions
 
@@ -305,12 +308,12 @@ None are open. #15's question, which actions queue offline and how conflicts res
 ## Deliverables checklist
 
 - [ ] Public GitHub repository, with the link sent to the recruiting contact
-- [ ] Clear build and run instructions
+- [x] Clear build and run instructions
 - [ ] Clean-clone check passed: the public repo clones and runs using only the README (see #17)
-- [ ] One screenshot or a short recording of the primary flow
-- [ ] README design section covering:
-  - [ ] Architecture and state management
-  - [ ] At least one real trade-off
-  - [ ] What I'd change or add with more time
-  - [ ] Simplifying assumptions
-  - [ ] AI tools used and how
+- [x] One screenshot or a short recording of the primary flow
+- [x] README design section covering:
+  - [x] Architecture and state management
+  - [x] At least one real trade-off
+  - [x] What I'd change or add with more time
+  - [x] Simplifying assumptions
+  - [x] AI tools used and how
