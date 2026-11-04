@@ -1,4 +1,6 @@
-/// A reason a ride service request failed.
+/// A reason a request to the ride backend failed.
+///
+/// Some cases, such as ``networkUnavailable``, would apply to a rider app too. Others are the driver's.
 enum RideServiceError: Error {
     /// The service couldn't be reached. Nothing changed, so the request can be retried.
     case networkUnavailable

@@ -6,13 +6,17 @@ import Foundation
 
 /// An in-memory stand-in for a backend, including its role in deciding who gets offered which ride.
 ///
+/// It's named for rides rather than the driver because it plays the whole backend, riders included. It serves one
+/// implied driver, so a rider app would add a rider-facing type over the same state rather than a second
+/// conformance here.
+///
 /// Each request has at most one suspension point, at the start, for the simulated network delay. All state
 /// is read and changed after that with no further `await`, so the actor's serial execution makes each
 /// request atomic. This matters because actors can run other work during an `await`.
 ///
-/// Methods beyond ``RideService``, such as ``simulateRideCancelled(id:)``, imitate things that happen
+/// Methods beyond ``DriverService``, such as ``simulateRideCancelled(id:)``, imitate things that happen
 /// elsewhere in a real system, such as a rider cancelling.
-actor MockRideService: RideService {
+actor MockRideService: DriverService {
     private let configuration: MockRideServiceConfiguration
     private let timeSource: any TimeSource
     private let pastRideStore: PastRideStore?
@@ -71,7 +75,7 @@ actor MockRideService: RideService {
         connectionSubscribers.values.forEach { $0.finish() }
     }
 
-    // MARK: - RideService
+    // MARK: - DriverService
 
     func sessionUpdates() -> AsyncStream<DriverSession> {
         // Only the newest snapshot matters because each one is complete, so older unread ones can be dropped.
