@@ -13,7 +13,7 @@ struct DriverModelOfflineTests {
 
     init() {
         service = .forModelTests(time: time)
-        model = DriverModel(service: service)
+        model = DriverModel(service: service, timeSource: time)
     }
 
     @Test func modelFollowsTheConnection() async {
@@ -117,9 +117,10 @@ struct DriverModelOfflineTests {
         defer { updates.cancel() }
         await model.markArrived(rideID: ride.id)
         await model.startTrip(rideID: ride.id)
-        let beforeTap = Date.now
+        let tapTime = time.now
         await model.completeTrip(rideID: ride.id)
-        let afterTap = Date.now
+        // Time moves on before the step is sent, as it would while offline.
+        time.advance(by: 60)
 
         await service.setConnected(true)
         await waitUntil { model.pendingSteps.isEmpty && model.isPerformingAction == false }
@@ -128,10 +129,24 @@ struct DriverModelOfflineTests {
         #expect(completed.id == ride.id)
         #expect(completed.status == .completed)
         // The trip ended when the driver tapped, not when the step reached the service.
-        let endedAt = try #require(completed.endedAt)
-        #expect(endedAt >= beforeTap && endedAt <= afterTap)
+        #expect(completed.endedAt == tapTime)
         #expect(model.session?.pastRides.first?.status == .completed)
         #expect(model.alert == nil)
+    }
+
+    @Test func cancellingOfflineKeepsTheTimeOfTheTap() async throws {
+        let updates = try await startRideThenGoOffline()
+        defer { updates.cancel() }
+        let tapTime = time.now
+        await model.cancelRide(rideID: ride.id)
+        time.advance(by: 60)
+
+        await service.setConnected(true)
+        await waitUntil { model.pendingSteps.isEmpty && model.isPerformingAction == false }
+
+        let cancelled = try #require(await service.currentSession().pastRides.first)
+        #expect(cancelled.status == .cancelled)
+        #expect(cancelled.endedAt == tapTime)
     }
 
     @Test func rejectedStepDropsTheRestOfTheQueueAndSaysSo() async throws {
@@ -188,7 +203,7 @@ struct DriverModelOfflineTests {
 
     @Test func connectionLostDuringReplayKeepsTheQueue() async throws {
         let delayedService = MockRideService.forModelTests(time: time, responseDelay: 1)
-        let delayedModel = DriverModel(service: delayedService)
+        let delayedModel = DriverModel(service: delayedService, timeSource: time)
         let updates = Task { await delayedModel.start() }
         defer { updates.cancel() }
         try await startRideThenGoOffline(on: delayedService, model: delayedModel)
@@ -207,7 +222,7 @@ struct DriverModelOfflineTests {
 
     @Test func dismissedRiderCancellationIsntFollowedByTheConflictMessage() async throws {
         let delayedService = MockRideService.forModelTests(time: time, responseDelay: 1)
-        let delayedModel = DriverModel(service: delayedService)
+        let delayedModel = DriverModel(service: delayedService, timeSource: time)
         let updates = Task { await delayedModel.start() }
         defer { updates.cancel() }
         try await startRideThenGoOffline(on: delayedService, model: delayedModel)

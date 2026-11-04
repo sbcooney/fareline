@@ -17,7 +17,6 @@ struct AvailabilityView: View {
         .scrollBounceBehavior(.basedOnSize)
         .safeAreaInset(edge: .bottom) {
             VStack {
-                // The button is disabled offline, so this says why.
                 if model.isOffline {
                     Text("Changing your status needs a connection.")
                         .font(.footnote)

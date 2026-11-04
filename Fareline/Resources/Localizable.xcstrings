@@ -1,0 +1,420 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "" : {
+
+    },
+    "%@ cancelled the ride. You're available for new offers." : {
+
+    },
+    "%@ to %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ to %2$@"
+          }
+        }
+      }
+    },
+    "%@, %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@, %2$@"
+          }
+        }
+      }
+    },
+    "%lld of %lld rides" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld of %2$#@rides@"
+          },
+          "substitutions" : {
+            "rides" : {
+              "argNum" : 2,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg ride"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg rides"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Accept" : {
+
+    },
+    "All Rides" : {
+
+    },
+    "Answering an offer needs a connection." : {
+
+    },
+    "At Pickup" : {
+
+    },
+    "Cancel Ride" : {
+
+    },
+    "Cancel This Ride?" : {
+
+    },
+    "Cancelled" : {
+
+    },
+    "Cancelled by Rider" : {
+
+    },
+    "Cancelled by You" : {
+
+    },
+    "Changing your status needs a connection." : {
+
+    },
+    "Complete Trip" : {
+
+    },
+    "Completed" : {
+
+    },
+    "Connecting" : {
+
+    },
+    "Connection restored." : {
+
+    },
+    "Connection restored. Sending %lld ride steps." : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Connection restored. Sending %lld ride step."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Connection restored. Sending %lld ride steps."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Current ride" : {
+
+    },
+    "Decline" : {
+
+    },
+    "Demo" : {
+
+    },
+    "Drop-off" : {
+
+    },
+    "Ended" : {
+
+    },
+    "Estimated Fare" : {
+
+    },
+    "Fare" : {
+
+    },
+    "Fareline couldn't connect. Check your connection and try again." : {
+
+    },
+    "Filter" : {
+
+    },
+    "Go Offline" : {
+
+    },
+    "Go Online" : {
+
+    },
+    "Go online to start receiving ride offers." : {
+
+    },
+    "Go online to take a ride." : {
+
+    },
+    "Heading to Pickup" : {
+
+    },
+    "I've Arrived" : {
+
+    },
+    "Keep Ride" : {
+
+    },
+    "New Ride Offer" : {
+
+    },
+    "New ride offers will appear here." : {
+
+    },
+    "No Cancelled Rides" : {
+
+    },
+    "No Completed Rides" : {
+
+    },
+    "No Connection" : {
+
+    },
+    "No Past Rides" : {
+
+    },
+    "No Riders Waiting" : {
+
+    },
+    "No cancelled rides" : {
+
+    },
+    "No completed rides" : {
+
+    },
+    "No connection. %lld ride steps will be sent when it's back. Offers, changing your status, and taking a ride need a connection." : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "No connection. %lld ride step will be sent when it's back. Offers, changing your status, and taking a ride need a connection."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "No connection. %lld ride steps will be sent when it's back. Offers, changing your status, and taking a ride need a connection."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "No connection. Ride steps you take will be sent when it's back." : {
+
+    },
+    "No connection. Ride steps you take will be sent when it's back. Offers, changing your status, and taking a ride need a connection." : {
+
+    },
+    "No past rides" : {
+
+    },
+    "On Trip" : {
+
+    },
+    "Opens the offer" : {
+
+    },
+    "Past Rides" : {
+
+    },
+    "Pickup" : {
+
+    },
+    "Requested" : {
+
+    },
+    "Restore Connection" : {
+
+    },
+    "Ride Cancelled" : {
+
+    },
+    "Ride Details" : {
+
+    },
+    "Ride Not Available" : {
+
+    },
+    "Ride Options" : {
+
+    },
+    "Ride Steps Not Sent" : {
+
+    },
+    "Rider" : {
+
+    },
+    "Riders that no driver has taken will appear here." : {
+
+    },
+    "Rides you finish will appear here." : {
+
+    },
+    "Saved. It'll be sent when the connection's back." : {
+
+    },
+    "Show" : {
+
+    },
+    "Show All Rides" : {
+
+    },
+    "Showing %lld cancelled rides" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Showing %lld cancelled ride"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Showing %lld cancelled rides"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Showing %lld completed rides" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Showing %lld completed ride"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Showing %lld completed rides"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Showing all %lld rides" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Showing %lld ride"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Showing all %lld rides"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Simulate No Connection" : {
+
+    },
+    "Some steps you took offline couldn't be sent. Your ride shows its latest state." : {
+
+    },
+    "Something Went Wrong" : {
+
+    },
+    "Start Trip" : {
+
+    },
+    "Status" : {
+
+    },
+    "Take Ride" : {
+
+    },
+    "Taking a ride needs a connection." : {
+
+    },
+    "The rider is with you. You won't earn the fare for this trip, so end it this way only if you can't complete it." : {
+
+    },
+    "This ride is no longer available." : {
+
+    },
+    "This ride offer is no longer available." : {
+
+    },
+    "This rider is no longer waiting. Another driver may have taken the ride, or the rider cancelled." : {
+
+    },
+    "Time Left" : {
+
+    },
+    "Updating" : {
+
+    },
+    "Waiting %@" : {
+
+    },
+    "Waiting Riders" : {
+
+    },
+    "Waiting for a Driver" : {
+
+    },
+    "Waiting less than a minute" : {
+
+    },
+    "You can go offline after this ride ends." : {
+
+    },
+    "You can't do that right now." : {
+
+    },
+    "You won't earn the fare for this ride, and the rider will need to find another driver." : {
+
+    },
+    "You're Available" : {
+
+    },
+    "You're Offline" : {
+
+    },
+    "You're On a Ride" : {
+
+    }
+  },
+  "version" : "1.0"
+}

@@ -20,7 +20,7 @@ final class DriverModel {
     /// The session on screen: the latest from the service, with any queued steps applied on top, so the driver
     /// sees where they've got to. Without queued steps, it's the service's session as it is.
     var session: DriverSession? {
-        receivedSession.map(showingPendingSteps)
+        receivedSession?.applying(pendingSteps)
     }
 
     /// Whether a request is in progress. Views use this to show progress and prevent repeat taps.
@@ -64,10 +64,30 @@ final class DriverModel {
         return availability != .onRide
     }
 
-    private let service: any DriverService
+    /// Whether the driver can accept or decline the pending offer now. Answering needs a live response, so not
+    /// offline.
+    var canAnswerOffer: Bool {
+        isPerformingAction == false && isOffline == false && session?.pendingOffer != nil
+    }
 
-    init(service: any DriverService) {
+    /// Whether the driver can take a ride from the waiting list now. Claiming needs a live response, so not offline.
+    var canClaimRide: Bool {
+        isPerformingAction == false && isOffline == false && session?.driver.availability == .available
+    }
+
+    /// Whether the driver can take a step on their ride now, including cancelling it. Steps queue offline, so they
+    /// stay available without a connection.
+    var canTakeRideStep: Bool {
+        isPerformingAction == false && session?.activeRide != nil
+    }
+
+    private let service: any DriverService
+    private let timeSource: any TimeSource
+
+    /// - Parameter timeSource: Supplies the time a trip is completed or cancelled, so tests can control it.
+    init(service: any DriverService, timeSource: any TimeSource = SystemTimeSource()) {
         self.service = service
+        self.timeSource = timeSource
     }
 
     /// Receives session and connection updates until the calling task is cancelled.
@@ -183,7 +203,7 @@ final class DriverModel {
     }
 
     func completeTrip(rideID: Ride.ID) async {
-        await takeStep(PendingRideStep(rideID: rideID, event: .tripCompleted(date: .now)))
+        await takeStep(PendingRideStep(rideID: rideID, event: .tripCompleted(date: timeSource.now)))
     }
 
     /// Takes a ride from the waiting list, which the driver chose over waiting for an offer.
@@ -199,7 +219,7 @@ final class DriverModel {
     /// Cancels the ride the driver is looking at, after they've confirmed it. Offline, it queues like a ride step,
     /// so a driver can end an unsafe trip without signal.
     func cancelRide(rideID: Ride.ID) async {
-        let step = PendingRideStep(rideID: rideID, event: .cancelled(by: .driver, date: .now))
+        let step = PendingRideStep(rideID: rideID, event: .cancelled(by: .driver, date: timeSource.now))
         guard isOffline == false else {
             queue(step)
             return
@@ -288,38 +308,6 @@ final class DriverModel {
                 return
             }
         }
-    }
-
-    /// Returns a session from the service with the queued steps applied to its current ride.
-    ///
-    /// A step that no longer applies is skipped: during replay, one the service has just confirmed, whose session can
-    /// arrive before the step leaves the queue. Replay still sends every step, and the service's answer decides.
-    /// Steps for another ride are skipped too, so a ride the rider has since cancelled shows as the service has it.
-    private func showingPendingSteps(on received: DriverSession) -> DriverSession {
-        guard pendingSteps.isEmpty == false, var ride = received.activeRide else {
-            return received
-        }
-        for step in pendingSteps where step.rideID == ride.id {
-            try? ride.apply(step.event)
-        }
-        var driver = received.driver
-        var activeRide: Ride? = ride
-        var pastRides = received.pastRides
-        if ride.status == .completed || ride.status == .cancelled {
-            // The ride ended offline, so it moves to the driver's history, and they're free again, as the service
-            // will record once the steps are sent.
-            try? driver.apply(.rideEnded)
-            activeRide = nil
-            pastRides.insert(ride, at: 0)
-        }
-        return DriverSession(
-            version: received.version,
-            driver: driver,
-            pendingOffer: received.pendingOffer,
-            activeRide: activeRide,
-            pastRides: pastRides,
-            waitingRides: received.waitingRides
-        )
     }
 
     /// Sends a response to an offer, marking it as answered unless the response fails.

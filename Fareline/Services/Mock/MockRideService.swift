@@ -1,7 +1,8 @@
 import Foundation
 
-// The actor's state is private, and Swift's `private` doesn't cross files, so splitting this file or the actor's
-// body would mean exposing that state to the rest of the module.
+// Parts with rules of their own are separate types: `WaitingList`, `SubscriberList`, and `PastRideStore`. What remains
+// changes the ride, driver, and offer together on one actor, which is what makes each request atomic. Splitting it
+// further would mean exposing that state to the rest of the module, as Swift's `private` doesn't cross files.
 // swiftlint:disable file_length type_body_length
 
 /// An in-memory stand-in for a backend, including its role in deciding who gets offered which ride.
@@ -27,18 +28,14 @@ actor MockRideService: DriverService {
     private var activeRideID: Ride.ID?
     private var pastRides: [Ride] = []
 
-    /// Rides that an offer ended without placing, which the session lists while they're still waiting.
-    ///
-    /// A ride's status can't say this, as being passed over is about dispatch rather than the ride's lifecycle.
-    /// Rides that have since been taken or cancelled stay here, and the session leaves them out by status.
-    private var passedOverRideIDs: Set<Ride.ID> = []
+    private var waitingList = WaitingList()
 
     private var version = 0
     private var rideSequence = 0
     private var nextFailure: RideServiceError?
-    private var subscribers: [UUID: AsyncStream<DriverSession>.Continuation] = [:]
+    private var sessionSubscribers = SubscriberList<DriverSession>()
     private var isConnected = true
-    private var connectionSubscribers: [UUID: AsyncStream<Bool>.Continuation] = [:]
+    private var connectionSubscribers = SubscriberList<Bool>()
     private var nextOfferTask: Task<Void, Never>?
     private var expiryTask: Task<Void, Never>?
     private var riderCancellationTask: Task<Void, Never>?
@@ -62,7 +59,7 @@ actor MockRideService: DriverService {
         pastRides = pastRideStore?.load() ?? []
         for ride in waitingRides {
             rides[ride.id] = ride
-            passedOverRideIDs.insert(ride.id)
+            waitingList.add(ride.id)
         }
     }
 
@@ -71,40 +68,23 @@ actor MockRideService: DriverService {
         expiryTask?.cancel()
         riderCancellationTask?.cancel()
         passedOverTask?.cancel()
-        subscribers.values.forEach { $0.finish() }
-        connectionSubscribers.values.forEach { $0.finish() }
+        sessionSubscribers.finishAll()
+        connectionSubscribers.finishAll()
     }
 
     // MARK: - DriverService
 
     func sessionUpdates() -> AsyncStream<DriverSession> {
-        // Only the newest snapshot matters because each one is complete, so older unread ones can be dropped.
-        let (stream, continuation) = AsyncStream.makeStream(
-            of: DriverSession.self,
-            bufferingPolicy: .bufferingNewest(1)
-        )
-        let id = UUID()
-        subscribers[id] = continuation
-        continuation.onTermination = { [weak self] _ in
+        // A driver who's offline can't receive anything, so the session waits for the connection.
+        sessionSubscribers.add(startingWith: isConnected ? session : nil) { [weak self] id in
             Task { await self?.removeSubscriber(id: id) }
         }
-        // A driver who's offline can't receive anything, so the session waits for the connection.
-        if isConnected {
-            continuation.yield(session)
-        }
-        return stream
     }
 
     func connectionUpdates() -> AsyncStream<Bool> {
-        // Only the current state matters, so an older unread one can be dropped.
-        let (stream, continuation) = AsyncStream.makeStream(of: Bool.self, bufferingPolicy: .bufferingNewest(1))
-        let id = UUID()
-        connectionSubscribers[id] = continuation
-        continuation.onTermination = { [weak self] _ in
-            Task { await self?.removeConnectionSubscriber(id: id) }
+        connectionSubscribers.add(startingWith: isConnected) { [weak self] id in
+            Task { await self?.removeSubscriber(id: id) }
         }
-        continuation.yield(isConnected)
-        return stream
     }
 
     func goOnline() async throws(RideServiceError) -> DriverSession {
@@ -119,7 +99,7 @@ actor MockRideService: DriverService {
         try await beginRequest()
         try updateDriver(.wentOffline)
         if let offer = pendingOffer {
-            passedOverRideIDs.insert(offer.ride.id)
+            waitingList.add(offer.ride.id)
         }
         clearPendingOffer()
         nextOfferTask?.cancel()
@@ -169,7 +149,7 @@ actor MockRideService: DriverService {
         }
 
         // The ride stays awaiting a driver, and joins the list, as another driver could still take it.
-        passedOverRideIDs.insert(offer.ride.id)
+        waitingList.add(offer.ride.id)
         clearPendingOffer()
         scheduleNextOffer()
         return publish()
@@ -187,7 +167,7 @@ actor MockRideService: DriverService {
             publish()
             throw .rideNoLongerWaiting
         }
-        guard passedOverRideIDs.contains(rideID), var ride = rides[rideID] else {
+        guard waitingList.hasListed(rideID), var ride = rides[rideID] else {
             throw .rideNoLongerWaiting
         }
         var updatedDriver = driver
@@ -200,9 +180,8 @@ actor MockRideService: DriverService {
             throw .rideNoLongerWaiting
         }
 
-        // The driver chose another ride, so a pending offer is declined, and its ride joins the list.
         if let offer = pendingOffer {
-            passedOverRideIDs.insert(offer.ride.id)
+            waitingList.add(offer.ride.id)
             clearPendingOffer()
         }
         nextOfferTask?.cancel()
@@ -265,11 +244,7 @@ actor MockRideService: DriverService {
 
     /// Passed-over rides that still need a driver, longest wait first.
     private var waitingRides: [Ride] {
-        passedOverRideIDs
-            .compactMap { rides[$0] }
-            .filter { $0.status == .awaitingDriver }
-            // The ID breaks ties, so rides requested at the same moment keep one order between sessions.
-            .sorted { ($0.requestedAt, $0.id.uuidString) < ($1.requestedAt, $1.id.uuidString) }
+        waitingList.rides(in: rides)
     }
 
     /// Imitates the network. This is the only suspension point in a request.
@@ -364,7 +339,7 @@ actor MockRideService: DriverService {
             requestedAt: ride.requestedAt
         )
         rides[request.id] = request
-        passedOverRideIDs.insert(request.id)
+        waitingList.add(request.id)
     }
 
     /// Sends the current session to all subscribers.
@@ -374,17 +349,37 @@ actor MockRideService: DriverService {
         let session = session
         // While disconnected, changes still happen, but the driver hears about them only when the connection returns.
         if isConnected {
-            subscribers.values.forEach { $0.yield(session) }
+            sessionSubscribers.send(session)
         }
         return session
     }
 
+    /// Removes a subscriber whose stream ended. IDs are unique, so this doesn't need to know which stream it was.
     private func removeSubscriber(id: UUID) {
-        subscribers[id] = nil
+        sessionSubscribers.remove(id: id)
+        connectionSubscribers.remove(id: id)
     }
 
-    private func removeConnectionSubscriber(id: UUID) {
-        connectionSubscribers[id] = nil
+    /// Runs work on the actor once the given time arrives, unless the returned task is cancelled first.
+    ///
+    /// The work is checked on the actor, not before it gets there: a task can be cancelled after its sleep ends but
+    /// before its turn on the actor, so work that must not run late checks `Task.isCancelled` itself.
+    private func runTask(
+        at date: Date,
+        _ work: @escaping @Sendable (isolated MockRideService) async -> Void
+    ) -> Task<Void, Never> {
+        let timeSource = timeSource
+        return Task { [weak self] in
+            do {
+                try await timeSource.sleep(until: date)
+            } catch {
+                return
+            }
+            guard let self else {
+                return
+            }
+            await work(self)
+        }
     }
 
     private func scheduleNextOffer() {
@@ -392,21 +387,13 @@ actor MockRideService: DriverService {
         guard let delay = configuration.offerDelay else {
             return
         }
-        let timeSource = timeSource
-        let date = timeSource.now.addingTimeInterval(delay)
-        nextOfferTask = Task { [weak self] in
-            do {
-                try await timeSource.sleep(until: date)
-            } catch {
-                return
-            }
-            await self?.offerNextRide()
+        nextOfferTask = runTask(at: timeSource.now.addingTimeInterval(delay)) { service in
+            service.offerNextRide()
         }
     }
 
     private func offerNextRide() {
-        // This must be checked here, on the actor. A task can be cancelled after its sleep ends but before
-        // it gets its turn on the actor, and running then would create an offer ahead of its replacement timer.
+        // Running after a cancellation would create an offer ahead of its replacement timer. See `runTask(at:_:)`.
         guard Task.isCancelled == false, driver.availability == .available, pendingOffer == nil else {
             return
         }
@@ -445,20 +432,13 @@ actor MockRideService: DriverService {
         guard let interval = configuration.passedOverInterval else {
             return
         }
-        let timeSource = timeSource
-        let date = timeSource.now.addingTimeInterval(interval)
-        passedOverTask = Task { [weak self] in
-            do {
-                try await timeSource.sleep(until: date)
-            } catch {
-                return
-            }
-            await self?.addPassedOverRequest()
+        passedOverTask = runTask(at: timeSource.now.addingTimeInterval(interval)) { service in
+            service.addPassedOverRequest()
         }
     }
 
     private func addPassedOverRequest() {
-        // Checked on the actor, as with offers: going offline can cancel this task after its sleep ends.
+        // Going offline can cancel this task after its sleep ends. See `runTask(at:_:)`.
         guard Task.isCancelled == false, driver.availability != .offline else {
             return
         }
@@ -470,22 +450,15 @@ actor MockRideService: DriverService {
             return
         }
         rides[ride.id] = ride
-        passedOverRideIDs.insert(ride.id)
+        waitingList.add(ride.id)
         publish()
     }
 
     private func scheduleExpiry(of offer: RideOffer) {
         expiryTask?.cancel()
-        let timeSource = timeSource
         let id = offer.id
-        let expiresAt = offer.expiresAt
-        expiryTask = Task { [weak self] in
-            do {
-                try await timeSource.sleep(until: expiresAt)
-            } catch {
-                return
-            }
-            await self?.expireOffer(id: id)
+        expiryTask = runTask(at: offer.expiresAt) { service in
+            service.expireOffer(id: id)
         }
     }
 
@@ -509,7 +482,7 @@ actor MockRideService: DriverService {
             scheduleExpiry(of: offer)
             return
         }
-        passedOverRideIDs.insert(offer.ride.id)
+        waitingList.add(offer.ride.id)
         clearPendingOffer()
         scheduleNextOffer()
         publish()
@@ -529,10 +502,9 @@ extension MockRideService {
             return
         }
         isConnected = connected
-        connectionSubscribers.values.forEach { $0.yield(connected) }
+        connectionSubscribers.send(connected)
         if connected {
-            let session = session
-            subscribers.values.forEach { $0.yield(session) }
+            sessionSubscribers.send(session)
         }
     }
 
@@ -562,7 +534,7 @@ extension MockRideService {
     func offerRide(id: Ride.ID) throws(RideServiceError) {
         guard driver.availability == .available,
               pendingOffer == nil,
-              passedOverRideIDs.contains(id) == false,
+              waitingList.hasListed(id) == false,
               let ride = rides[id],
               ride.status == .awaitingDriver else {
             throw .actionNotAllowed
@@ -601,16 +573,10 @@ extension MockRideService {
         guard let delay = MockRideData.riderCancellationDelay(for: ride) else {
             return
         }
-        let timeSource = timeSource
-        let date = timeSource.now.addingTimeInterval(delay)
-        riderCancellationTask = Task { [weak self] in
-            do {
-                try await timeSource.sleep(until: date)
-            } catch {
-                return
-            }
+        let id = ride.id
+        riderCancellationTask = runTask(at: timeSource.now.addingTimeInterval(delay)) { service in
             // Starting the trip cancels this task, and the service rejects a cancellation that runs anyway.
-            try? await self?.simulateRideCancelled(id: ride.id)
+            try? service.simulateRideCancelled(id: id)
         }
     }
 

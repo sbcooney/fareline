@@ -37,6 +37,7 @@ Work proceeds top to bottom. Each row merges as its own PR and leaves the app wo
 | ✅ | #15 | Offline capability | Extended |
 | ✅ | #16 | Rider Companion readiness | Extended |
 | ✅ | #34 | Offer screen's largest-text audit fails with unattributed contrast issues | Quality |
+| ✅ | #41 | Code quality pass before submission | Quality |
 | ⬜ | #10 | README and visual reference | Deliverable |
 | ⬜ | #17 | Final submission | Deliverable |
 
@@ -80,9 +81,9 @@ Each type enforces only its own rules. The service coordinates changes across a 
 
 ### State management
 
-A single `@Observable`, `@MainActor` `DriverModel` is the app's source of truth. Views render its state and call its intent methods, such as `acceptOffer(id:)`. The model holds no business rules: it sends requests and replaces its state with the complete `DriverSession` the service returns. Sessions carry a version, so one that arrives late is ignored.
+A single `@Observable`, `@MainActor` `DriverModel` is the app's source of truth. Views render its state, ask it what the driver can do now, such as `canAnswerOffer`, and call its intent methods, such as `acceptOffer(id:)`. Navigation is view state, so it stays in `RootView`, but its rules are in `AppNavigation`, a value type with its own tests. The model holds no business rules: it sends requests and replaces its state with the complete `DriverSession` the service returns. Sessions carry a version, so one that arrives late is ignored.
 
-The one exception is offline. The service reports the connection through `connectionUpdates()`, which a real client would feed from `NWPathMonitor`, so nothing polls. While it's down, the driver's own ride steps queue in the model's `pendingSteps`, and the session on screen is the service's last session with those steps applied by the domain's own transition rules. On reconnecting, the steps are sent in order, and the service's answer wins any conflict.
+The one exception is offline. The service reports the connection through `connectionUpdates()`, which a real client would feed from `NWPathMonitor`, so nothing polls. While it's down, the driver's own ride steps queue in the model's `pendingSteps`, and the session on screen is the service's last session with those steps applied by the domain's own transition rules, through `DriverSession.applying(_:)`. On reconnecting, the steps are sent in order, and the service's answer wins any conflict.
 
 ### Services
 
@@ -94,12 +95,14 @@ Folders follow features, with one primary type per file. Each folder is created 
 
 ```
 Fareline/
-  App/         App entry point and dependency wiring
+  App/         Entry point, dependency wiring, root view, and navigation
+  Model/       DriverModel, the app's state and intents, and what it shows offline
   Domain/      Rides, offers, drivers, state machines
   Services/    DriverService protocol and mock implementation
-  Features/    Availability, Offers, CurrentRide, PastRides, Shared, ...
+  Features/    Availability, Offers, CurrentRide, PastRides, WaitingRiders, Connection, Shared
+  Debug/       The Demo menu and UI test launch options, in Debug builds only
   Resources/   Asset catalog, including the design system's color tokens
-FarelineTests/
+FarelineTests/ The same folders, plus TestSupport/ for fixtures and the manual time source
 ```
 
 The Xcode project uses folder-synced groups, so files added to these folders join their target automatically.
@@ -150,6 +153,7 @@ Each issue follows the same steps:
 | #33 Past rides filter | Main | | Yes |
 | #15 Offline | Yes | Main (replay and ordering) | Main |
 | #16 Rider Companion | | Light (the renamed protocol) | |
+| #41 Code quality pass | Main (shared views, navigation) | Main (the mock's timers and subscribers) | Main |
 
 Skill findings are suggestions:
 
@@ -283,6 +287,14 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 | 2026-11-03 | Show a lost connection with a brief toast, and a status button in the navigation bar while it lasts, saying "no connection" | Losing the connection is usually brief, so a toast over the content tells the driver without moving the screen. A button stays in the bar for a longer loss, so an available driver knows why no offers arrive. A banner was tried first: it moved the screen, and the ride and offer screens had to switch to small titles. "Offline" already means a driver who isn't taking rides. |
 | 2026-11-04 | Rename `RideService` to `DriverService` | Every method is a driver action and it returns a `DriverSession`, so the old name suggested a contract a rider app could share, which it couldn't. The new name pairs with `DriverSession` and `DriverModel`, and leaves room for a `RiderService`. `MockRideService` and `RideServiceError` keep their names, as the mock plays the whole backend and the errors come from the ride backend, with some cases, such as `networkUnavailable`, applying to either client. |
 | 2026-11-04 | Describe a shared Swift package in the README rather than create one | One app gains nothing from a package, which would need `public` on every shared type and its own test target. The README says when to move: once a second app target exists. In exchange, a rider app would start with that move. |
+| 2026-11-04 | Do a code quality pass (#41) before the README | A review of the whole project as a Swift expert would see it found no bugs, but copied view code, rules in views, untested navigation, a clock read directly, and folders that mixed concerns. Fixing them first means the README describes the final code. In exchange, #10 starts later. |
+| 2026-11-04 | Give `DriverModel` an injected `TimeSource` for ride end times | Completion and cancellation read the clock directly, unlike the rest of the project, so a test could only check a range. Now it checks the exact time. |
+| 2026-11-04 | Put "can the driver do this now" rules on the model: `canAnswerOffer`, `canClaimRide`, and `canTakeRideStep` | `canChangeAvailability` already lived there, while views combined state for the rest. Each rule now has tests, and every screen asks the same way. |
+| 2026-11-04 | Share the main button as a `PrimaryActionButton` view, and the tap guard as `ignoresTapsBriefly(after:)` | The button's look and the 0.75-second guard were copied into three views. A custom `ButtonStyle` was considered, but it would have had to redraw the system's bordered style. The button reads whether it's enabled from the environment, so the guard dims it too. Accept sets its own accessibility value from outside, which a temporary test confirmed replaces the button's. |
+| 2026-11-04 | Move `RootView`'s navigation rules into an `AppNavigation` struct (revises the untested navigation noted in "Return to the screens the driver left…") | The rules had no tests. A value type in `@State` can be tested with no model or timing, where an `@Observable` class would add shared state for something one view owns. Mutation checks found two rules no test covered, which now have tests. |
+| 2026-11-04 | Pull `WaitingList`, `SubscriberList`, and one timer helper out of `MockRideService`, and keep its lint exceptions (revises "Turn off SwiftLint's `file_length` rule…") | Each has rules of its own and now has tests. The file shrank from 621 to 593 lines, still over both limits. What remains changes the ride, driver, and offer together on one actor, which is what makes each request atomic. |
+| 2026-11-04 | Add folders for `Model/`, `Debug/`, `Features/Connection/`, and `FarelineTests/TestSupport/` | `App/` held the entry point, the model, debug tooling, and display text together. |
+| 2026-11-04 | Add a String Catalog for plural text (revises "Write singular and plural text in code, in `PastRideFilter`") | The catalog's plural variations replace singular cases written by hand in four places. Zero cases stay in code, as they're different sentences rather than plural forms. Every other string is synced in, so building in Xcode doesn't change the file. |
 
 ## Open questions
 

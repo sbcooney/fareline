@@ -30,7 +30,6 @@ struct AppDestinationView: View {
                 WaitingRidersView()
             }
         }
-        // Pushed screens show the connection's toast and status too, as the root screen does.
         .overlay(alignment: .top) {
             ConnectionToast()
         }

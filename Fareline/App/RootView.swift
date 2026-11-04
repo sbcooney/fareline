@@ -4,19 +4,11 @@ import SwiftUI
 struct RootView: View {
     @Environment(DriverModel.self) private var model
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var path: [AppDestination] = []
-
-    /// The screens the driver was on when they opened an offer from the bar, to return to if it ends without a ride
-    /// starting, such as Waiting Riders after a decline.
-    @State private var pathBeforeOffer: [AppDestination]?
-
-    /// Whether the current ride was taken from Waiting Riders and its trip hasn't started, so cancelling it returns
-    /// the driver to the list they were choosing from.
-    @State private var returnsToWaitingRiders = false
+    @State private var navigation = AppNavigation()
 
     /// The offer to show in the pending offer bar: one that arrives while the driver is on a pushed screen.
     private var barOffer: RideOffer? {
-        path.isEmpty ? nil : model.session?.pendingOffer
+        navigation.path.isEmpty ? nil : model.session?.pendingOffer
     }
 
     /// Whether the home screen is showing, rather than an offer, a ride, or the connecting state.
@@ -30,7 +22,7 @@ struct RootView: View {
     var body: some View {
         @Bindable var model = model
 
-        NavigationStack(path: $path) {
+        NavigationStack(path: $navigation.path) {
             Group {
                 if let ride = model.session?.activeRide {
                     CurrentRideView(ride: ride)
@@ -77,24 +69,22 @@ struct RootView: View {
             }
             .animation(.default, value: barOffer?.id)
         }
-        // A ride replaces the root screen, and unlike an offer it has no bar, so the driver is taken to it.
         .onChange(of: model.session?.activeRide?.id) { oldID, id in
             if id != nil {
-                startRide()
+                navigation.rideStarted()
             } else if oldID != nil {
-                endRide()
+                navigation.rideEnded(cancelledByDriver: model.session?.pastRides.first?.cancelledBy == .driver)
             }
         }
         .onChange(of: model.session?.activeRide?.status) { _, status in
-            // Once the rider is in the car, a cancelled ride is over rather than a reason to choose another.
             if status == .inProgress {
-                returnsToWaitingRiders = false
+                navigation.tripStarted()
             }
         }
         .onChange(of: model.session?.pendingOffer?.id) { _, id in
             announceNewOffer()
             if id == nil {
-                returnToPathBeforeOffer()
+                navigation.offerEnded(rideStarted: model.session?.activeRide != nil)
             }
         }
         .onChange(of: model.isOffline) {
@@ -119,44 +109,15 @@ struct RootView: View {
     }
 
     private func openPastRides() {
-        path.append(.pastRides)
+        navigation.open(.pastRides)
     }
 
     private func openWaitingRiders() {
-        path.append(.waitingRiders)
+        navigation.open(.waitingRiders)
     }
 
-    /// Returns to the root screen, where a pending offer is shown.
     private func openOffer() {
-        pathBeforeOffer = path
-        path.removeAll()
-    }
-
-    /// Makes a ride the root screen. A ride taken from Waiting Riders remembers it, so cancelling can return there.
-    private func startRide() {
-        returnsToWaitingRiders = path.last == .waitingRiders
-        path.removeAll()
-        pathBeforeOffer = nil
-    }
-
-    /// Returns to Waiting Riders after the driver cancels a ride they took from it, before the trip started.
-    private func endRide() {
-        defer { returnsToWaitingRiders = false }
-        if returnsToWaitingRiders, model.session?.pastRides.first?.cancelledBy == .driver {
-            path = [.waitingRiders]
-        }
-    }
-
-    /// Puts back the screens the driver left to see an offer, once it ends without a ride starting: declined,
-    /// expired, or withdrawn. An accepted offer starts a ride, which stays the root screen.
-    private func returnToPathBeforeOffer() {
-        guard let savedPath = pathBeforeOffer else {
-            return
-        }
-        pathBeforeOffer = nil
-        if model.session?.activeRide == nil {
-            path = savedPath
-        }
+        navigation.openOffer()
     }
 
     /// Tells VoiceOver users the connection changed, as the toast is hidden from VoiceOver to avoid repeating it.

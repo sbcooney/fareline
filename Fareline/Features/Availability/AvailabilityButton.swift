@@ -6,48 +6,15 @@ struct AvailabilityButton: View {
 
     let availability: DriverAvailability
 
-    private var isDisabled: Bool {
-        model.canChangeAvailability == false || isReady == false
-    }
-
-    /// Whether the button has been showing long enough to take a tap. See ``ignoreTapsBriefly()``.
-    @State private var isReady = false
-
     var body: some View {
-        Button(action: changeAvailability) {
-            // The title stays in the layout during a request, so the button's size doesn't change.
-            Text(availability.actionTitle)
-                .opacity(model.isPerformingAction ? 0 : 1)
-                .overlay {
-                    if model.isPerformingAction {
-                        ProgressView()
-                    }
-                }
-                .frame(maxWidth: .infinity)
-        }
-        .buttonStyle(.borderedProminent)
-        // In dark mode the brand color is light, so white text on it wouldn't be readable. A disabled button
-        // keeps the system's dimmed label, so it doesn't look tappable.
-        .foregroundStyle(isDisabled ? AnyShapeStyle(.tertiary) : AnyShapeStyle(.textOnBrand))
-        .controlSize(.large)
-        .disabled(isDisabled)
-        .task(id: availability, ignoreTapsBriefly)
-        // VoiceOver can skip fully transparent text, so the name is set explicitly.
-        .accessibilityLabel(Text(availability.actionTitle))
-        .accessibilityValue(model.isPerformingAction ? Text("Updating") : Text(""))
-    }
-
-    /// Go Offline appears where Accept was when an offer ends, and where Go Online was after going online, so a
-    /// tap meant for those could otherwise take the driver offline. `OfferResponseButtons` uses the same delay.
-    private func ignoreTapsBriefly() async {
-        isReady = false
-        do {
-            try await Task.sleep(for: .seconds(0.75))
-        } catch {
-            // A cancelled wait belongs to a status that's gone, so it mustn't ready the button for the next one.
-            return
-        }
-        isReady = true
+        PrimaryActionButton(
+            title: availability.actionTitle,
+            isInProgress: model.isPerformingAction,
+            action: changeAvailability
+        )
+        .disabled(model.canChangeAvailability == false)
+        // Go Offline appears where Accept was when an offer ends, and where Go Online was after going online.
+        .ignoresTapsBriefly(after: availability)
     }
 
     /// Requests the change this button's title describes.

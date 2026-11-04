@@ -19,7 +19,7 @@ struct RideOptionsButton: View {
                     Label("Ride Options", systemImage: "ellipsis")
                 }
             }
-            .disabled(model.isPerformingAction)
+            .disabled(model.canTakeRideStep == false)
             // The progress view replaces the label while cancelling, so the name is set explicitly.
             .accessibilityLabel(Text("Ride Options"))
             .accessibilityValue(model.isCancellingRide ? Text("Updating") : Text(""))

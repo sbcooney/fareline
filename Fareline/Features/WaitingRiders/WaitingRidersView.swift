@@ -7,7 +7,6 @@ struct WaitingRidersView: View {
     var body: some View {
         let rides = model.session?.waitingRides ?? []
         let availability = model.session?.driver.availability
-        let canTake = availability == .available && model.isPerformingAction == false && model.isOffline == false
 
         Group {
             if rides.isEmpty {
@@ -20,10 +19,9 @@ struct WaitingRidersView: View {
                 List {
                     Section {
                         ForEach(rides) { ride in
-                            WaitingRideRow(ride: ride, canTake: canTake)
+                            WaitingRideRow(ride: ride, canTake: model.canClaimRide)
                         }
                     } footer: {
-                        // Offline, the list shows what was last received, and taking a ride waits for the connection.
                         if model.isOffline {
                             Text("Taking a ride needs a connection.")
                         } else if availability == .offline {
