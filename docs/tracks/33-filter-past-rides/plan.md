@@ -18,8 +18,8 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Phase 2: The filter on Past Rides
 
-- [ ] No unit test: the chosen filter is state held in `PastRidesView`
-- [ ] Add the filter as `PastRidesView`'s own state, starting on Completed, and the toolbar menu, which shows a different symbol while a filter other than All Rides is on, the filtered list with its count header, the no-match empty state with a button to show all rides, and the announcement when the filter changes
+- [x] No unit test: the chosen filter is state held in `PastRidesView`
+- [x] Add the filter as `PastRidesView`'s own state, starting on Completed, and the toolbar menu, which shows a different symbol while a filter other than All Rides is on, the filtered list with its count header, the no-match empty state with a button to show all rides, and the announcement when the filter changes
 - [ ] Verify: the user runs the app and checks that Past Rides opens on Completed, that a choice survives viewing a ride's details and resets after leaving, each filter, the header, the empty state and its button, and the announcement with VoiceOver. No UI tests, per CLAUDE.md
 
 ## Before the PR
