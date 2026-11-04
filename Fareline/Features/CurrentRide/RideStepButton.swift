@@ -10,7 +10,7 @@ struct RideStepButton: View {
     @State private var isReady = false
 
     private var isDisabled: Bool {
-        model.isPerformingAction || isReady == false
+        model.canTakeRideStep == false || isReady == false
     }
 
     var body: some View {

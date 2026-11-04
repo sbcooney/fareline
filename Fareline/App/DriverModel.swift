@@ -64,6 +64,23 @@ final class DriverModel {
         return availability != .onRide
     }
 
+    /// Whether the driver can accept or decline the pending offer now. Answering needs a live response, so not
+    /// offline.
+    var canAnswerOffer: Bool {
+        isPerformingAction == false && isOffline == false && session?.pendingOffer != nil
+    }
+
+    /// Whether the driver can take a ride from the waiting list now. Claiming needs a live response, so not offline.
+    var canClaimRide: Bool {
+        isPerformingAction == false && isOffline == false && session?.driver.availability == .available
+    }
+
+    /// Whether the driver can take a step on their ride now, including cancelling it. Steps queue offline, so they
+    /// stay available without a connection.
+    var canTakeRideStep: Bool {
+        isPerformingAction == false && session?.activeRide != nil
+    }
+
     private let service: any DriverService
     private let timeSource: any TimeSource
 

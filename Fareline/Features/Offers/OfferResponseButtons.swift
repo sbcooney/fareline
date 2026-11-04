@@ -8,7 +8,7 @@ struct OfferResponseButtons: View {
     let offerID: RideOffer.ID
 
     private var isDisabled: Bool {
-        model.isPerformingAction || model.isOffline || isReady == false
+        model.canAnswerOffer == false || isReady == false
     }
 
     /// Whether the buttons have been showing long enough to take a tap. See ``ignoreTapsBriefly()``.

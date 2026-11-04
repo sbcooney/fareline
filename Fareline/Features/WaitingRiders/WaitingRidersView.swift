@@ -7,7 +7,7 @@ struct WaitingRidersView: View {
     var body: some View {
         let rides = model.session?.waitingRides ?? []
         let availability = model.session?.driver.availability
-        let canTake = availability == .available && model.isPerformingAction == false && model.isOffline == false
+        let canTake = model.canClaimRide
 
         Group {
             if rides.isEmpty {

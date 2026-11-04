@@ -16,9 +16,9 @@ Each phase leaves the app building and the tests passing, in its own commit. Che
 
 ## Phase 2: Rules on the model
 
-- [ ] Write failing tests: `canAnswerOffer`, `canClaimRide`, `canTakeRideStep`
-- [ ] Add them, and use them in the offer buttons, Waiting Riders, the step button, and Ride Options
-- [ ] Verify: tests pass, and a mutation check on each
+- [x] Write failing tests: `canAnswerOffer`, `canClaimRide`, `canTakeRideStep`
+- [x] Add them, and use them in the offer buttons, Waiting Riders, the step button, and Ride Options
+- [x] Verify: tests pass, and a mutation check on each
 
 ## Phase 3: Shared button and tap guard
 
