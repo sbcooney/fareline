@@ -28,9 +28,9 @@ Each phase leaves the app building and the tests passing, in its own commit. Che
 
 ## Phase 4: Testable navigation
 
-- [ ] Write failing tests: every `AppNavigation` case in the spec
-- [ ] Add `AppNavigation`, and have `RootView` use it
-- [ ] Verify: tests pass, mutation checks, and UI tests pass
+- [x] Write failing tests: every `AppNavigation` case in the spec, plus an offer ending before its ride starts
+- [x] Add `AppNavigation`, and have `RootView` use it
+- [x] Verify: tests pass, mutation checks, and UI tests pass. Mutation checks showed two lines carried over from `RootView` were redundant, so they were removed
 
 ## Phase 5: Queued steps as a pure function
 
