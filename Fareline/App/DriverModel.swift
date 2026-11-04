@@ -82,8 +82,12 @@ final class DriverModel {
         if let offer = session?.pendingOffer, newSession.pendingOffer?.id != offer.id, offer.id != answeredOfferID {
             unansweredOfferID = offer.id
         }
-        // An error is about an earlier action, so it could seem to describe a new offer.
-        if let offer = newSession.pendingOffer, offer.id != session?.pendingOffer?.id, case .error = alert {
+        // An error is about an earlier action, so it could seem to describe a new offer. A claim's conflict says
+        // the rider is no longer waiting, which can't be mistaken for one about an offer, so it stays.
+        if let offer = newSession.pendingOffer,
+           offer.id != session?.pendingOffer?.id,
+           case .error(let error) = alert,
+           error != .rideNoLongerWaiting {
             alert = nil
         }
         session = newSession
@@ -207,8 +211,8 @@ final class DriverModel {
             apply(try await request())
         } catch {
             // An error is about an earlier action, so if a new offer arrived during the request, it could seem to
-            // describe that offer instead.
-            if let offerID = session?.pendingOffer?.id, offerID != offerIDBefore {
+            // describe that offer instead. A claim's conflict can't, as above.
+            if let offerID = session?.pendingOffer?.id, offerID != offerIDBefore, error != .rideNoLongerWaiting {
                 return
             }
             show(error)

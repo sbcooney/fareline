@@ -76,6 +76,7 @@ Tests:
 - Taking a ride that another driver has taken fails with the new error, and nothing about the driver changes.
 - Taking a ride whose rider has cancelled fails the same way.
 - The model shows the new error's message, and the ride is gone from the model's list.
+- A new offer, arriving during the request or after the message shows, doesn't hide the message. Other errors are still cleared by a new offer, as they could seem to describe it, but this one says the rider is no longer waiting.
 
 ## Out of scope
 

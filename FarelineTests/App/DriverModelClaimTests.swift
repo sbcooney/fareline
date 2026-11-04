@@ -46,6 +46,52 @@ struct DriverModelClaimTests {
         #expect(model.session?.activeRide == nil)
     }
 
+    @Test func newOfferKeepsTheConflictMessage() async throws {
+        let seeded = MockRideData.passedOverRides(at: time.now)
+        let taylor = try #require(seeded.first { MockRideData.isTakenByAnotherDriverWhenClaimed($0) })
+        let (service, model) = await makeOnlineModel(waitingRides: seeded)
+        let updates = Task { await model.start() }
+        defer { updates.cancel() }
+        await model.claimRide(rideID: taylor.id)
+        try #require(model.alert == .error(.rideNoLongerWaiting))
+
+        await service.addRide(ride)
+        try await service.offerRide(id: ride.id)
+        await waitUntil { model.session?.pendingOffer != nil }
+
+        // The message says the rider is no longer waiting, so it can't be mistaken for one about the new offer.
+        #expect(model.alert == .error(.rideNoLongerWaiting))
+    }
+
+    @Test func offerArrivingDuringTheClaimKeepsTheConflictMessage() async throws {
+        let seeded = MockRideData.passedOverRides(at: time.now)
+        let taylor = try #require(seeded.first { MockRideData.isTakenByAnotherDriverWhenClaimed($0) })
+        let service = MockRideService(
+            configuration: MockRideServiceConfiguration(offerDelay: nil, offerLifetime: 30, responseDelay: 1),
+            timeSource: time,
+            driver: Driver(id: TestFixtures.driverID, name: PersonNameComponents()),
+            waitingRides: seeded
+        )
+        let model = DriverModel(service: service)
+        let updates = Task { await model.start() }
+        defer { updates.cancel() }
+        let goingOnline = Task { await model.goOnline() }
+        await time.waitForSleeper()
+        time.advance(by: 1)
+        await goingOnline.value
+
+        let claiming = Task { await model.claimRide(rideID: taylor.id) }
+        await time.waitForSleeper()
+        await service.addRide(ride)
+        try await service.offerRide(id: ride.id)
+        await waitUntil { model.session?.pendingOffer != nil }
+        // The offer's expiry is also waiting now, and only the claim's delay needs to end.
+        time.advance(by: 1)
+        await claiming.value
+
+        #expect(model.alert == .error(.rideNoLongerWaiting))
+    }
+
     @Test func offerDeclinedByClaimingIsntReportedAsUnanswered() async throws {
         let offered = Ride(
             id: UUID(testValue: 40),
