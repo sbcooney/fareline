@@ -35,9 +35,9 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Before the PR
 
-- [ ] Review with `swift-testing-pro` (every new and changed test file)
-- [ ] Review with `swift-concurrency-pro` (`MockRideService.swift`, `DriverModel.swift`)
-- [ ] Review with `swiftui-pro` (the offline banner, the demo menu, and every view whose controls are disabled offline)
+- [x] Review with `swift-testing-pro` (every new and changed test file)
+- [x] Review with `swift-concurrency-pro` (`MockRideService.swift`, `DriverModel.swift`)
+- [x] Review with `swiftui-pro` (the offline banner, the demo menu, and every view whose controls are disabled offline)
 - [x] `swiftlint lint` reports no violations
 - [ ] Run `/code-review`, and fix or record each finding
 - [x] Add a "Simulating no connection" section to the README: where the Demo menu is, what it does, and a walk-through of a ride completed offline

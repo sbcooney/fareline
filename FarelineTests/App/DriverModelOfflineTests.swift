@@ -7,6 +7,7 @@ import Testing
 @Suite(.timeLimit(.minutes(1)))
 struct DriverModelOfflineTests {
     private let time = ManualTimeSource()
+    private let ride = TestFixtures.ride()
     private let service: MockRideService
     private let model: DriverModel
 
@@ -57,8 +58,6 @@ struct DriverModelOfflineTests {
     }
 
     // MARK: - Queued ride steps
-
-    private let ride = TestFixtures.ride()
 
     /// Puts the driver on the fixture ride while online, then loses the connection.
     private func startRideThenGoOffline() async throws -> Task<Void, Never> {
@@ -165,35 +164,35 @@ struct DriverModelOfflineTests {
     }
 
     @Test func connectionLostDuringReplayKeepsTheQueue() async throws {
-        let service = MockRideService.forModelTests(time: time, responseDelay: 1)
-        let model = DriverModel(service: service)
-        let updates = Task { await model.start() }
+        let delayedService = MockRideService.forModelTests(time: time, responseDelay: 1)
+        let delayedModel = DriverModel(service: delayedService)
+        let updates = Task { await delayedModel.start() }
         defer { updates.cancel() }
-        await service.addRide(ride)
-        let goingOnline = Task { await model.goOnline() }
+        await delayedService.addRide(ride)
+        let goingOnline = Task { await delayedModel.goOnline() }
         await time.waitForSleeper()
         time.advance(by: 1)
         await goingOnline.value
-        try await service.offerRide(id: ride.id)
-        await waitUntil { model.session?.pendingOffer != nil }
-        let offerID = try #require(model.session?.pendingOffer?.id)
-        let accepting = Task { await model.acceptOffer(id: offerID) }
+        try await delayedService.offerRide(id: ride.id)
+        await waitUntil { delayedModel.session?.pendingOffer != nil }
+        let offerID = try #require(delayedModel.session?.pendingOffer?.id)
+        let accepting = Task { await delayedModel.acceptOffer(id: offerID) }
         // The offer's expiry is also waiting.
         await time.waitForSleeper(count: 2)
         time.advance(by: 1)
         await accepting.value
-        await service.setConnected(false)
-        await waitUntil { model.isOffline }
-        await model.markArrived(rideID: ride.id)
+        await delayedService.setConnected(false)
+        await waitUntil { delayedModel.isOffline }
+        await delayedModel.markArrived(rideID: ride.id)
 
-        await service.setConnected(true)
+        await delayedService.setConnected(true)
         // The replayed step is on its way when the connection drops again.
         await time.waitForSleeper()
-        await service.setConnected(false)
+        await delayedService.setConnected(false)
         time.advance(by: 1)
-        await waitUntil { model.isPerformingAction == false && model.isOffline }
+        await waitUntil { delayedModel.isPerformingAction == false && delayedModel.isOffline }
 
-        #expect(model.pendingSteps.map(\.event) == [.driverArrived])
-        #expect(model.alert == nil)
+        #expect(delayedModel.pendingSteps.map(\.event) == [.driverArrived])
+        #expect(delayedModel.alert == nil)
     }
 }
