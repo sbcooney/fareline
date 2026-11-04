@@ -2,7 +2,6 @@ import SwiftUI
 
 /// Shows an incoming ride offer, with what the driver needs to decide whether to take it.
 struct OfferView: View {
-    @Environment(DriverModel.self) private var model
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     let offer: RideOffer
@@ -26,9 +25,8 @@ struct OfferView: View {
             }
         }
         .navigationTitle("New Ride Offer")
-        // A large title truncates at accessibility text sizes, and the smaller inline title fits. Offline, the
-        // banner sits where a large title would, so the title moves into the bar.
-        .navigationBarTitleDisplayMode(dynamicTypeSize.isAccessibilitySize || model.isOffline ? .inline : .automatic)
+        // A large title truncates at accessibility text sizes, and the smaller inline title fits.
+        .navigationBarTitleDisplayMode(dynamicTypeSize.isAccessibilitySize ? .inline : .automatic)
         .safeAreaInset(edge: .bottom) {
             OfferResponseButtons(offerID: offer.id)
                 .padding()

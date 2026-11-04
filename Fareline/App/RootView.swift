@@ -42,9 +42,9 @@ struct RootView: View {
                     ProgressView("Connecting")
                 }
             }
-            // Below the navigation bar, so its buttons, including the demo menu, stay reachable offline.
-            .safeAreaBar(edge: .top, spacing: 0) {
-                OfflineBanner()
+            // Over the content rather than beside it, so nothing moves when the connection drops.
+            .overlay(alignment: .top) {
+                ConnectionToast()
             }
             .navigationDestination(for: AppDestination.self, destination: AppDestinationView.init)
             // The buttons live here rather than on the home screen, because an offer can replace the home screen
@@ -55,6 +55,9 @@ struct RootView: View {
                         Button("Waiting Riders", systemImage: "person.2", action: openWaitingRiders)
                         Button("Past Rides", systemImage: "clock", action: openPastRides)
                     }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    ConnectionStatusButton()
                 }
                 // On every root screen, so the connection can be lost mid-ride.
                 #if DEBUG
@@ -96,6 +99,11 @@ struct RootView: View {
         }
         .onChange(of: model.isOffline) {
             announceConnection()
+        }
+        .onChange(of: model.pendingSteps.count) { oldCount, newCount in
+            if model.isOffline, newCount > oldCount {
+                AccessibilityNotification.Announcement(String(localized: ConnectionToast.savedMessage)).post()
+            }
         }
         .onChange(of: model.unansweredOfferID) {
             AccessibilityNotification.Announcement("The ride offer ended.").post()
@@ -151,9 +159,11 @@ struct RootView: View {
         }
     }
 
-    /// Tells VoiceOver users the connection changed, as the banner appearing doesn't move their focus.
+    /// Tells VoiceOver users the connection changed, as the toast is hidden from VoiceOver to avoid repeating it.
     private func announceConnection() {
-        let announcement: LocalizedStringResource = model.isOffline ? "Connection lost." : "Connection restored."
+        let announcement = model.isOffline
+            ? ConnectionToast.lostMessage
+            : ConnectionToast.restoredMessage(pendingStepCount: model.pendingSteps.count)
         AccessibilityNotification.Announcement(String(localized: announcement)).post()
     }
 

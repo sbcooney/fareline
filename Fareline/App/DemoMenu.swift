@@ -16,7 +16,7 @@ struct DemoMenu: View {
     var body: some View {
         if service != nil {
             Menu("Demo", systemImage: "wrench.and.screwdriver") {
-                // The title follows the model's state, so it can't disagree with the banner.
+                // The title follows the model's state, so it can't disagree with the toast and status button.
                 Button(
                     model.isOffline ? "Restore Connection" : "Simulate No Connection",
                     systemImage: model.isOffline ? "wifi" : "wifi.slash",

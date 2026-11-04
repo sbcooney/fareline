@@ -30,9 +30,14 @@ struct AppDestinationView: View {
                 WaitingRidersView()
             }
         }
-        // Pushed screens show the offline banner below their navigation bar too, as the root screen does.
-        .safeAreaBar(edge: .top, spacing: 0) {
-            OfflineBanner()
+        // Pushed screens show the connection's toast and status too, as the root screen does.
+        .overlay(alignment: .top) {
+            ConnectionToast()
+        }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                ConnectionStatusButton()
+            }
         }
     }
 }

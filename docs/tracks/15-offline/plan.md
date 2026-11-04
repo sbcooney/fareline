@@ -29,6 +29,11 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 - [x] Add the model's queue and replay on reconnecting, and the time of the tap to `completeTrip` and `cancelRide`, if decided
 - [x] Verify: the tests pass, and replaying out of order, dropping only the refused step, or the mock ignoring the tap's time, each makes a test fail. A temporary UI test, not kept, confirmed two steps queue offline and replay on reconnecting.
 
+## Replacing the banner
+
+- [x] The banner moved the screen when it appeared, and needed small titles on the ride and offer screens, which animated badly. Replace it with `ConnectionToast`, a brief message over the content, and `ConnectionStatusButton`, a button in the navigation bar while the connection is lost, so nothing moves and titles stay large
+- [x] Verify: the unit tests for their text pass, and a temporary UI test, not kept, confirmed the step button and title don't move while the toast shows
+
 ## The user's check
 
 - [ ] The user tries the whole feature in the app once, after the reviews below, rather than after each phase

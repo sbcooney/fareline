@@ -24,7 +24,7 @@ The app has no real network, so a **Demo** menu lets you lose and restore the co
 - **Simulate No Connection** cuts the app off from the mock service. Requests fail and no updates arrive, while the service's own world keeps going, so offers still expire and riders still cancel.
 - **Restore Connection** reconnects. The app receives everything that changed meanwhile, then sends any ride steps you took offline, in order.
 
-While there's no connection, a banner below the navigation bar says so, and how many ride steps are waiting to be sent. VoiceOver announces losing and regaining the connection.
+Losing the connection is usually brief, so a toast says so for a few seconds over the top of the screen, without moving anything. It also confirms each ride step saved offline, and says when the connection is back. While there's no connection, a wifi-slash button stays in the navigation bar, with a badge counting the ride steps waiting. Tap it for what works without a connection. VoiceOver announces each change.
 
 What works with no connection:
 
@@ -37,8 +37,8 @@ To try it:
 
 1. Tap **Go Online**, and accept the offer that arrives.
 2. From the Demo menu, choose **Simulate No Connection**.
-3. Tap **I've Arrived**, then **Start Trip**. The ride moves on, and the banner says 2 ride steps are waiting.
-4. Choose **Restore Connection**. The banner goes away, and the service records both steps.
+3. Tap **I've Arrived**, then **Start Trip**. The ride moves on, a toast confirms each step is saved, and the bar's badge shows 2.
+4. Choose **Restore Connection**. A toast says 2 ride steps are being sent, the bar's button goes away, and the service records both steps.
 
 To see a conflict, decline offers until one from **Will Cancel** arrives, and accept it. Will Cancel cancels 10 seconds after you accept. Lose the connection straight away and tap **I've Arrived**. After 10 seconds, restore the connection: the service refuses the step, as the rider has cancelled, and you're told the rider cancelled. If the service refuses a queued step for another reason, the steps after it are dropped, the ride shows as the service has it, and you're told your offline steps couldn't all be sent.
 

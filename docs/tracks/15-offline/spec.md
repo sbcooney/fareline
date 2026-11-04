@@ -18,13 +18,13 @@ The mock service is the app's stand-in for a backend, and it runs inside the app
 
 The mock can be told the connection is lost or back. While it's lost, every request fails with `networkUnavailable` and changes nothing, and the session stream sends nothing. When the connection returns, the stream sends the latest session. A demo control turns it on and off.
 
-While offline, a banner below each screen's navigation bar says there's no connection, and how many ride steps are waiting to be sent, if any. It says "no connection" rather than "offline", which the app already uses for a driver who isn't taking rides. The ride and offer screens show their title small in the bar while offline, as the banner sits where a large title would. VoiceOver announces "Connection lost" and "Connection restored".
+Losing the connection is usually brief, so a toast floats over the top of the content for a few seconds when it drops, when a ride step is saved offline, and when it returns, saying how many steps are being sent. Nothing moves, and the toast ignores touches. For a longer loss, such as an available driver wondering why no offers arrive, a wifi-slash button stays in the navigation bar while disconnected, with a badge counting the waiting steps, and a popover explaining what works. Messages say "no connection" rather than "offline", which the app already uses for a driver who isn't taking rides. VoiceOver announces each change.
 
 Tests:
 - While disconnected, each request fails with `networkUnavailable`, and the mock's state is unchanged.
 - While disconnected, the stream sends nothing, and on reconnecting it sends the latest session, including changes made meanwhile, such as an expired offer.
-- The banner's text with no steps waiting, one, and several.
-- Checked in the simulator: the banner appears and disappears with the demo control, and VoiceOver announces each change.
+- The restored toast's text, and the status button's explanation, with no steps waiting, one, and several.
+- Checked in the simulator: the toast and the status button appear and go with the demo control, nothing on the screen moves, and VoiceOver announces each change.
 
 ### The current ride and history stay available
 
@@ -70,7 +70,7 @@ Tests:
   - `DriverModel.isOffline`, and `DriverModel.pendingSteps: [PendingRideStep]`, in order.
   - `PendingRideStep`, a ride ID and the domain's `RideEvent`.
   - `DriverAlert.offlineStepsNotSent`: "Some steps you took offline couldn't be sent. Your ride shows its latest state."
-  - `OfflineBanner` and `DemoMenu`, with a Debug-only `demoService` environment value that gives the menu the mock.
+  - `ConnectionToast`, `ConnectionStatusButton`, and `DemoMenu`, with a Debug-only `demoService` environment value that gives the menu the mock. A first design, an `OfflineBanner` below the navigation bar, was replaced: it moved the screen, and the ride and offer screens had to switch to small titles, which animated badly.
   - A "Simulating no connection" section in the README.
 
 These go in the decision log in docs/PLAN.md with the PR.

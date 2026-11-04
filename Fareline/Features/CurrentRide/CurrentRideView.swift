@@ -2,7 +2,6 @@ import SwiftUI
 
 /// Shows the ride the driver is on, with the one step they take next.
 struct CurrentRideView: View {
-    @Environment(DriverModel.self) private var model
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     let ride: Ride
@@ -23,9 +22,8 @@ struct CurrentRideView: View {
             }
         }
         .navigationTitle(Text(ride.status.title))
-        // A large title truncates at accessibility text sizes, and the smaller inline title fits. Offline, the
-        // banner sits where a large title would, so the title moves into the bar.
-        .navigationBarTitleDisplayMode(dynamicTypeSize.isAccessibilitySize || model.isOffline ? .inline : .automatic)
+        // A large title truncates at accessibility text sizes, and the smaller inline title fits.
+        .navigationBarTitleDisplayMode(dynamicTypeSize.isAccessibilitySize ? .inline : .automatic)
         // Cancelling is rare and can't be undone, so it's behind a button up here, away from the step button.
         .toolbar {
             RideOptionsButton(ride: ride)
