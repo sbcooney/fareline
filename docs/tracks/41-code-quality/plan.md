@@ -22,9 +22,9 @@ Each phase leaves the app building and the tests passing, in its own commit. Che
 
 ## Phase 3: Shared button and tap guard
 
-- [ ] No unit test: view state
-- [ ] Add `PrimaryActionButton` and `ignoresTapsBriefly(after:)`, and use them in the three buttons
-- [ ] Verify: screenshots from a temporary test match the old ones, and UI tests pass
+- [x] No unit test: view state
+- [x] Add `PrimaryActionButton` and `ignoresTapsBriefly(after:)`, and use them in the three buttons
+- [x] Verify: screenshots from a temporary test match the old ones, and UI tests pass. A temporary test also confirmed that an `accessibilityValue` applied outside `PrimaryActionButton` replaces its own, which Accept relies on
 
 ## Phase 4: Testable navigation
 

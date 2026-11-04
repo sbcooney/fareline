@@ -7,13 +7,6 @@ struct OfferResponseButtons: View {
 
     let offerID: RideOffer.ID
 
-    private var isDisabled: Bool {
-        model.canAnswerOffer == false || isReady == false
-    }
-
-    /// Whether the buttons have been showing long enough to take a tap. See ``ignoreTapsBriefly()``.
-    @State private var isReady = false
-
     var body: some View {
         // The buttons stack at the largest text sizes, where side by side they'd run out of room.
         let layout = dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout()) : AnyLayout(HStackLayout())
@@ -33,38 +26,20 @@ struct OfferResponseButtons: View {
                 .buttonStyle(.bordered)
                 .accessibilityValue(model.isPerformingAction ? Text("Updating") : Text(""))
 
-                Button(action: accept) {
-                    Text("Accept")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                // In dark mode the brand color is light, so white text on it wouldn't be readable. A disabled button
-                // keeps the system's dimmed label, so it doesn't look tappable.
-                .foregroundStyle(isDisabled ? AnyShapeStyle(.tertiary) : AnyShapeStyle(.textOnBrand))
-                .accessibilityValue(model.isPerformingAction ? Text("Updating") : Text(""))
+                // Progress shows over both buttons, as either could be the one waiting, so Accept shows none itself.
+                PrimaryActionButton(title: "Accept", action: accept)
+                    .accessibilityValue(model.isPerformingAction ? Text("Updating") : Text(""))
             }
         }
         .controlSize(.large)
-        .disabled(isDisabled)
-        .task(id: offerID, ignoreTapsBriefly)
+        .disabled(model.canAnswerOffer == false)
+        // Accept appears where Go Offline was, so a tap meant for Go Offline could otherwise take the ride.
+        .ignoresTapsBriefly(after: offerID)
         .overlay {
             if model.isPerformingAction {
                 ProgressView()
             }
         }
-    }
-
-    /// Accept appears where Go Offline was, so a tap meant for Go Offline could otherwise take the ride.
-    /// `AvailabilityButton` uses the same delay.
-    private func ignoreTapsBriefly() async {
-        isReady = false
-        do {
-            try await Task.sleep(for: .seconds(0.75))
-        } catch {
-            // A cancelled wait belongs to an offer that's gone, so it mustn't ready the buttons for the next one.
-            return
-        }
-        isReady = true
     }
 
     private func accept() {
