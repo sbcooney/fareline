@@ -17,6 +17,31 @@ Open `Fareline.xcodeproj` in Xcode, select an iPhone simulator running iOS 27.2 
 
 To run on a physical iPhone, select your own team and a unique bundle identifier under **Signing & Capabilities**. The simulator needs neither.
 
+## Simulating no connection
+
+The app has no real network, so a **Demo** menu lets you lose and restore the connection. It's the wrench button at the top left of the main screen, whether that's showing your status, an offer, or your current ride, and it's in Debug builds only, which is what Xcode runs.
+
+- **Simulate No Connection** cuts the app off from the mock service. Requests fail and no updates arrive, while the service's own world keeps going, so offers still expire and riders still cancel.
+- **Restore Connection** reconnects. The app receives everything that changed meanwhile, then sends any ride steps you took offline, in order.
+
+While there's no connection, a banner below the navigation bar says so, and how many ride steps are waiting to be sent. VoiceOver announces losing and regaining the connection.
+
+What works with no connection:
+
+- **Your own ride's steps:** I've Arrived, Start Trip, Complete Trip, and Cancel Ride. Each shows straight away and is sent when the connection returns. A completed or cancelled trip keeps the time you tapped.
+- **Reading:** your current ride, Past Rides, and Waiting Riders, as last received.
+
+What needs a connection, and is disabled with a line saying so: going online or offline, accepting or declining an offer, and taking a ride from Waiting Riders. Each needs a live answer from the service.
+
+To try it:
+
+1. Tap **Go Online**, and accept the offer that arrives.
+2. From the Demo menu, choose **Simulate No Connection**.
+3. Tap **I've Arrived**, then **Start Trip**. The ride moves on, and the banner says 2 ride steps are waiting.
+4. Choose **Restore Connection**. The banner goes away, and the service records both steps.
+
+To see a conflict, decline offers until one from **Will Cancel** arrives, and accept it. Will Cancel cancels 10 seconds after you accept. Lose the connection straight away and tap **I've Arrived**. After 10 seconds, restore the connection: the service refuses the step, as the rider has cancelled, and you're told the rider cancelled. If the service refuses a queued step for another reason, the steps after it are dropped, the ride shows as the service has it, and you're told your offline steps couldn't all be sent.
+
 ## Run the tests
 
 In Xcode, press **Cmd+U**. This runs both test targets:

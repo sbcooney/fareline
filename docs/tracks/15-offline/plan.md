@@ -38,7 +38,7 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 - [ ] Review with `swift-testing-pro` (every new and changed test file)
 - [ ] Review with `swift-concurrency-pro` (`MockRideService.swift`, `DriverModel.swift`)
 - [ ] Review with `swiftui-pro` (the offline banner, the demo menu, and every view whose controls are disabled offline)
-- [ ] `swiftlint lint` reports no violations
+- [x] `swiftlint lint` reports no violations
 - [ ] Run `/code-review`, and fix or record each finding
-- [ ] Add a "Simulating no connection" section to the README: where the Demo menu is, what it does, and a walk-through of a ride completed offline
-- [ ] Update docs/PLAN.md: #15's status, the decision log entries for this track, the assumptions it adds, the architecture note that the model now holds queued steps, and the open question about #15, now answered
+- [x] Add a "Simulating no connection" section to the README: where the Demo menu is, what it does, and a walk-through of a ride completed offline
+- [x] Update docs/PLAN.md: #15's status, the decision log entries for this track, the assumptions it adds, the architecture note that the model now holds queued steps, and the open question about #15, now answered

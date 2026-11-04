@@ -34,7 +34,7 @@ Work proceeds top to bottom. Each row merges as its own PR and leaves the app wo
 | ➖ | #14 | See a queue of other drivers and their statuses: described in #10 instead | Extended |
 | ➖ | #11 | See other drivers on a map: described in #10 instead | Extended |
 | ➖ | #23 | Status outside the app: described in #10 instead | Extended |
-| ⬜ | #15 | Offline capability | Extended |
+| ✅ | #15 | Offline capability | Extended |
 | ⬜ | #16 | Rider Companion readiness | Extended |
 | ✅ | #34 | Offer screen's largest-text audit fails with unattributed contrast issues | Quality |
 | ⬜ | #10 | README and visual reference | Deliverable |
@@ -80,7 +80,9 @@ Each type enforces only its own rules. The service coordinates changes across a 
 
 ### State management
 
-A single `@Observable`, `@MainActor` `DriverModel` is the app's source of truth. Views render its state and call its intent methods, such as `acceptOffer(id:)`. The model holds no business rules: it sends requests and replaces its state with the complete `DriverSession` the service returns. Sessions carry a version, so one that arrives late is ignored. Because every action goes through the model, offline support can later queue actions in one place.
+A single `@Observable`, `@MainActor` `DriverModel` is the app's source of truth. Views render its state and call its intent methods, such as `acceptOffer(id:)`. The model holds no business rules: it sends requests and replaces its state with the complete `DriverSession` the service returns. Sessions carry a version, so one that arrives late is ignored.
+
+The one exception is offline. The service reports the connection through `connectionUpdates()`, which a real client would feed from `NWPathMonitor`, so nothing polls. While it's down, the driver's own ride steps queue in the model's `pendingSteps`, and the session on screen is the service's last session with those steps applied by the domain's own transition rules. On reconnecting, the steps are sent in order, and the service's answer wins any conflict.
 
 ### Services
 
@@ -178,6 +180,9 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 - An offer expires if ignored, and the driver stays available.
 - A rider can cancel until the trip starts, and the driver is told why their ride ended.
 - A driver can cancel at any stage, after a confirmation, and earns no fare for a cancelled ride. The mock has no distance travelled, so there's no partial fare for a trip ended early.
+- Being offline is simulated with a Debug-only Demo menu, as the app has no real network. A real client would learn about its connection from `NWPathMonitor`.
+- Queued ride steps don't survive relaunching the app while offline. The mock "server" restarts with the app and saves only past rides, so surviving a relaunch would need the app and the mock to save their whole state.
+- When the service refuses a queued step, the service wins: the steps after it are dropped, rather than each kind of conflict being resolved differently.
 - Past rides are kept on the device, as the mock's stand-in for a backend's history, and aren't synced anywhere.
 
 ## Decision log
@@ -267,12 +272,19 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 | 2026-11-03 | Keep the past rides filter in the screen's own state, resetting to Completed each time Past Rides opens | The screen always opens the same way, and a choice survives viewing a ride's details. Remembering it until the app closes would depend on a restart the driver can't see. In exchange, a driver who prefers All Rides chooses it each visit. |
 | 2026-11-03 | Write singular and plural text in code, in `PastRideFilter` | The project has no String Catalog yet, so the text is English only. A catalog's plural variations would replace these cases. |
 | 2026-11-03 | Skip only text hidden under the Accept and Decline bar in the largest-text offer audit, replacing the countdown row's exception (revises "Keep two exceptions in the offer screen's contrast audit") | At the largest text size, the last rows scroll under the bar, hidden but still on screen, and the audit measures their text against it. Removing the countdown row only helped by moving rows up. Contrast runs on its own in that test, so each issue names its element, and any other contrast issue still fails. Decline's exception stays. In exchange, the test depends on the bar's position, read from the Decline button. |
+| 2026-11-03 | Keep #15 to what makes the app useful offline, and document the rest as assumptions | The assignment asks only for "offline capability in case of loss of connectivity", and warns against over-engineering. Surviving a relaunch offline, real network monitoring, and conflict handling per case are assumptions in the README rather than code. |
+| 2026-11-03 | Queue the driver's own ride steps offline, including Cancel Ride, and disable everything else | Steps on a ride the driver is already on don't need anyone else's answer, and a driver may need to end an unsafe trip without signal. Accepting, declining, taking a ride from the list, and changing availability need a live answer. |
+| 2026-11-03 | Show queued steps straight away, by applying them to the service's last session with the domain's rules | The driver can keep going, and the screen can't jump back when the service's older session arrives on reconnecting. In exchange, the model holds a little logic of its own, and it compares news against the service's session, not the one on screen. |
+| 2026-11-03 | Let `completeTrip` and `cancelRide` take the time of the tap | A trip completed offline keeps its real end time, as a backend would accept a client's timestamp. In exchange, the protocol changed, and the service trusts the client's time. |
+| 2026-11-03 | Let the service win a conflict when replaying | Steps after a refused one would build on a ride that no longer exists as the driver saw it, so they're dropped, and the driver is told. A rider's cancellation shows its own alert instead. |
+| 2026-11-03 | Report the connection through a stream from the service, and simulate it with a Debug-only Demo menu | Nothing polls. A real client would feed the same stream from `NWPathMonitor`. The menu is on every main screen, so the connection can be lost mid-ride. |
+| 2026-11-03 | Say "no connection" rather than "offline" in the banner, and show it below each navigation bar | "Offline" already means a driver who isn't taking rides. Attached to the whole stack, the banner covered the navigation bar's buttons, so each screen shows it below its own bar, and the ride and offer screens use the small title while offline. |
 
 ## Open questions
 
 Decide these in the issue noted, then record the outcome in the decision log.
 
-- **#15:** Which actions can queue offline, and what happens when a queued action conflicts with the server state on reconnect?
+None are open. #15's question, which actions queue offline and how conflicts resolve, is answered in the decision log.
 
 ## Deliverables checklist
 
