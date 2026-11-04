@@ -56,6 +56,46 @@ enum MockRideData {
         )
     ]
 
+    /// Riders who start in the waiting list, kept apart from the repeating offers so a rider can't be in both.
+    private static let seededTemplates = [
+        makeTemplate(
+            givenName: "Margaret",
+            familyName: "Hamilton",
+            pickup: Place(name: "Smithsonian Castle", address: "1000 Jefferson Dr SW"),
+            dropoff: Place(name: "Georgetown University", address: "3700 O St NW"),
+            cents: 2210
+        ),
+        makeTemplate(
+            givenName: "Dorothy",
+            familyName: "Vaughan",
+            pickup: Place(name: "Lincoln Memorial", address: "2 Lincoln Memorial Cir NW"),
+            dropoff: Place(name: "Nationals Park", address: "1500 S Capitol St SE"),
+            cents: 1980
+        ),
+        makeTemplate(
+            givenName: "Mary",
+            familyName: "Jackson",
+            pickup: Place(name: "Howard University", address: "2400 6th St NW"),
+            dropoff: Place(name: "Union Station", address: "50 Massachusetts Ave NE"),
+            cents: 1350
+        )
+    ]
+
+    /// A rider who demonstrates the conflict case. Another driver takes their ride just as this driver claims it,
+    /// so they appear only in the waiting list, and never in an offer.
+    private static let takenTemplate = makeTemplate(
+        givenName: "Taylor",
+        familyName: "Taken",
+        pickup: Place(name: "Navy Yard", address: "1100 1st St SE"),
+        dropoff: Place(name: "Union Market", address: "1309 5th St NE"),
+        cents: 1620
+    )
+
+    /// How many riders ``makeRide(sequence:requestedAt:)`` cycles through.
+    static var repeatingRiderCount: Int {
+        templates.count
+    }
+
     /// Creates a new ride from a repeating list, so a demo never runs out of offers.
     static func makeRide(sequence: Int, requestedAt: Date) -> Ride {
         let template = templates[sequence % templates.count]
@@ -67,6 +107,30 @@ enum MockRideData {
             fare: template.fare,
             requestedAt: requestedAt
         )
+    }
+
+    /// Returns rides that other drivers have already passed on, so the demo's waiting list starts with riders who
+    /// have waited several minutes.
+    static func passedOverRides(at date: Date) -> [Ride] {
+        // Taylor Taken shows the conflict case. The others don't trigger demo events.
+        let waits = [
+            (seededTemplates[0], 540), (takenTemplate, 420), (seededTemplates[1], 300), (seededTemplates[2], 120)
+        ]
+        return waits.map { template, secondsWaited in
+            Ride(
+                id: UUID(),
+                rider: template.rider,
+                pickup: template.pickup,
+                dropoff: template.dropoff,
+                fare: template.fare,
+                requestedAt: date.addingTimeInterval(-TimeInterval(secondsWaited))
+            )
+        }
+    }
+
+    /// Returns whether another driver takes this ride just as the driver claims it, as Taylor Taken's is.
+    static func isTakenByAnotherDriverWhenClaimed(_ ride: Ride) -> Bool {
+        ride.rider.id == takenTemplate.rider.id
     }
 
     /// Returns how long after the driver accepts a ride its rider cancels, or `nil` if they don't.

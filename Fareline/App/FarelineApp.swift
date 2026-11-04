@@ -30,6 +30,6 @@ struct FarelineApp: App {
             return options.makeService()
         }
         #endif
-        return MockRideService(pastRideStore: .app)
+        return MockRideService(pastRideStore: .app, waitingRides: MockRideData.passedOverRides(at: .now))
     }
 }

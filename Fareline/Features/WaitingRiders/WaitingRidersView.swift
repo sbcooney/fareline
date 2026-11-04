@@ -1,0 +1,50 @@
+import SwiftUI
+
+/// Lists the riders that no driver has taken, longest wait first, so the driver can take one themselves.
+struct WaitingRidersView: View {
+    @Environment(DriverModel.self) private var model
+
+    var body: some View {
+        let rides = model.session?.waitingRides ?? []
+        let availability = model.session?.driver.availability
+        let canTake = availability == .available && model.isPerformingAction == false
+
+        Group {
+            if rides.isEmpty {
+                ContentUnavailableView(
+                    "No Riders Waiting",
+                    systemImage: "person.2",
+                    description: Text("Riders that no driver has taken will appear here.")
+                )
+            } else {
+                List {
+                    Section {
+                        ForEach(rides) { ride in
+                            WaitingRideRow(ride: ride, canTake: canTake)
+                        }
+                    } footer: {
+                        // The list still shows while offline, so the driver can decide whether to go online.
+                        if availability == .offline {
+                            Text("Go online to take a ride.")
+                        }
+                    }
+                }
+            }
+        }
+        .navigationTitle("Waiting Riders")
+    }
+}
+
+#Preview {
+    @Previewable @State var model = DriverModel(
+        service: MockRideService(waitingRides: MockRideData.passedOverRides(at: .now))
+    )
+
+    NavigationStack {
+        WaitingRidersView()
+    }
+    .environment(model)
+    .task {
+        await model.start()
+    }
+}

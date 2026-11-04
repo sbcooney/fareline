@@ -28,12 +28,15 @@ Work proceeds top to bottom. Each row merges as its own PR and leaves the app wo
 | ✅ | #9 | Error, empty, and accessibility states | Quality |
 | ✅ | #19 | App icon, launch screen, and design system | Quality |
 | ✅ | #31 | Let the driver cancel their current ride | Extended |
-| ⬜ | #12 | See a queue of waiting riders | Extended |
-| ⬜ | #13 | Self-assign to a ride | Extended |
-| ⬜ | #14 | See a queue of other drivers and their statuses | Extended |
-| ⬜ | #11 | See other drivers on a map | Extended |
+| ✅ | #12 | See a queue of waiting riders | Extended |
+| ✅ | #13 | Self-assign to a ride | Extended |
+| ➖ | #14 | See a queue of other drivers and their statuses: described in #10 instead | Extended |
+| ➖ | #11 | See other drivers on a map: described in #10 instead | Extended |
+| ➖ | #23 | Status outside the app: described in #10 instead | Extended |
 | ⬜ | #15 | Offline capability | Extended |
 | ⬜ | #16 | Rider Companion readiness | Extended |
+| ⬜ | #33 | Filter past rides | Extended |
+| ⬜ | #34 | Offer screen's largest-text audit fails with unattributed contrast issues | Quality |
 | ⬜ | #10 | README and visual reference | Deliverable |
 | ⬜ | #17 | Final submission | Deliverable |
 
@@ -69,7 +72,9 @@ A ride can also become `cancelled`, and records who cancelled it. A rider can ca
 
 **Driver availability** describes only the driver: `offline`, `available`, or `onRide`.
 
-**Ride offers** connect the two. An offer is a proposal of one ride to one driver, with an expiry time. It moves from `pending` to `accepted`, `declined`, or `expired`. Declining or ignoring an offer ends the offer, not the ride, which stays `awaitingDriver`. This also lets the rider queue and self-assign reuse the same model.
+**Ride offers** connect the two. An offer is a proposal of one ride to one driver, with an expiry time. It moves from `pending` to `accepted`, `declined`, or `expired`. Declining or ignoring an offer ends the offer, not the ride, which stays `awaitingDriver`.
+
+**The waiting list** holds rides that no driver took. Every new request is offered first. A ride joins the list once its offer is declined, expires, or ends because the driver went offline, or when the driver who accepted it cancels before the trip, which gives the rider a new request with their original request time. A ride being offered is never in the list, and a ride in the list isn't offered again. The driver can claim a ride from the list, which starts it as accepting an offer does and declines any pending offer. Being passed over is about dispatch, not the ride's lifecycle, so the service tracks it, and the ride's status stays `awaitingDriver`.
 
 Each type enforces only its own rules. The service coordinates changes across a ride, a driver, and an offer.
 
@@ -79,7 +84,7 @@ A single `@Observable`, `@MainActor` `DriverModel` is the app's source of truth.
 
 ### Services
 
-`RideService` is the boundary a real backend would sit behind. `MockRideService` implements it as an actor with fixed data. It delivers session changes, including new offers, through an `AsyncStream`, and takes an injected `TimeSource` so tests don't wait on real delays. It can also simulate failures and events from elsewhere in the system, such as a rider cancelling. In the demo, riders whose names describe what they do trigger these events, so a reviewer knows what to expect. Will Cancel cancels 10 seconds after the driver accepts, unless the trip has already started.
+`RideService` is the boundary a real backend would sit behind. `MockRideService` implements it as an actor with fixed data. It delivers session changes, including new offers, through an `AsyncStream`, and takes an injected `TimeSource` so tests don't wait on real delays. It can also simulate failures and events from elsewhere in the system, such as a rider cancelling. In the demo, riders whose names describe what they do trigger these events, so a reviewer knows what to expect. Will Cancel cancels 10 seconds after the driver accepts, unless the trip has already started. Taylor Taken, in the waiting list, is taken by another driver just as this driver claims their ride.
 
 ### Project structure
 
@@ -137,7 +142,7 @@ Each issue follows the same steps:
 | #3 Mock service and store | Data flow only | Main | Main |
 | #4–#8 Required features | Main | Where async work is involved | Yes |
 | #9 Error and accessibility states | Main (accessibility, resizing, localization) | | |
-| #11, #12, #14 Map and queues | Main | Live updates | Yes |
+| #12 Rider queue | Main | Live updates | Yes |
 | #13 Self-assign | Main | Main (the conflict case) | Main |
 | #15 Offline | Yes | Main (replay and ordering) | Main |
 
@@ -166,6 +171,7 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 - Every pickup and drop-off has a recognizable name, such as "Union Station". Real addresses often don't, so with real data `Place.name` would need to become optional.
 - A driver handles one ride at a time.
 - A ride is offered to one driver at a time. It goes to another driver only after the current offer is declined or expires.
+- Other drivers are simulated. They pass on new requests, which joins them to the waiting list, and one demo rider's ride is taken by another driver just as this driver claims it. In the demo, other drivers stop passing on requests once six riders are waiting. Declines, expiries, and the driver's own cancellations still add to the list, and waiting riders never give up.
 - The app runs in portrait only, not upside down or in landscape, even though drivers may mount phones sideways.
 - *Provisional:* a driver can't go offline during an active ride.
 - An offer expires if ignored, and the driver stays available.
@@ -244,6 +250,17 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 | 2026-11-03 | Show the cancellation flow with screenshots rather than UI tests | Unit tests cover the model and service. UI tests of the first confirmation needed a coordinate tap to dismiss a popover and audit exceptions for the system's dialog, and were slow, for wiring the screenshots already show. |
 | 2026-11-03 | Read a cancelled ride saved without `cancelledBy` as cancelled by the rider | Every cancellation before #31 was a rider's, so existing history stays readable rather than being moved aside as damaged. |
 | 2026-11-03 | Turn off SwiftLint's `type_body_length` rule for `MockRideService.swift` (extends the `file_length` entry above) | `cancelRide(rideID:)` took the actor's body past 200 lines, for the same reason: its private state can't move to another file. |
+| 2026-11-03 | Do #12 and #13 together, in one PR | #13 was split from #12 only to keep PRs small, and a queue the driver can't act on isn't useful on its own. In exchange, the PR is larger. |
+| 2026-11-03 | Describe a map of other drivers (#11), a list of other drivers (#14), and status outside the app (#23) in the README's future work, rather than building them | The mock has no real locations, other drivers would be invented and never change, and status outside the app needs push updates the mock can't send. #10 describes each, with why it matters and why it wasn't built. In exchange, the app has none of them. |
+| 2026-11-03 | Offer every new request first, and list only rides that no driver took | This is closer to how dispatch works, gives the list a clear purpose, and leaves less room to pick only the best fares. In exchange, a ride can't appear in the list while it's being offered, and the demo needs simulated drivers who pass on requests, or the list would hold only rides this driver declined. |
+| 2026-11-03 | Give the rider a new request in the list when the driver cancels before the trip, with the original request time | The rider still needs a ride, and the driver's history still shows the cancellation. A ride cancelled during the trip is over, as the rider was already in the car. In exchange, the rider's new request has a new ID. |
+| 2026-11-03 | Carry the list as `DriverSession.waitingRides`, and track passed-over rides in the service | One snapshot shows a claimed ride leave the list and become active together. Being passed over is about dispatch, so the ride's status stays `awaitingDriver`. In exchange, the session grows with the list. |
+| 2026-11-03 | Show the list on a pushed Waiting Riders screen, opened from the home screen's toolbar, and keep it visible while offline | The home screen stays focused on availability, and an offline driver can decide whether going online is worth it. Take Ride is disabled while offline. |
+| 2026-11-03 | Decline a pending offer when the driver claims a ride from the list | The driver has chosen, and the offer's ride joins the list for someone else. In exchange, a driver can't hold an offer while claiming another ride. |
+| 2026-11-03 | Keep a claim's conflict message when a new offer arrives (an exception to clearing errors when an offer arrives) | The message says the rider is no longer waiting, so it can't be mistaken for one about the offer, and without it a failed claim looked like a tap that did nothing. Other errors are still cleared. |
+| 2026-11-03 | Return to the screens the driver left after an offer opened from the bar ends without a ride, and to Waiting Riders after cancelling a ride taken from it before the trip (revises "Clear the navigation path when an offer arrives or a ride starts") | A driver browsing the list stays where they were. A completed ride, a ride cancelled on trip, and a rider's cancellation still end on the home screen. In exchange, `RootView` keeps navigation state that has no unit test. |
+| 2026-11-03 | Never make a new request for a rider who already has one waiting or in progress, and give the seeded list its own riders | A driver could otherwise see the same person asking for two rides, in the list and in an offer. In exchange, if every repeating rider is waiting, no offer is made until one leaves the list. |
+| 2026-11-03 | Seed the demo's waiting list through a `waitingRides` parameter on `MockRideService` | Tests and UI tests build services that start empty, and only the app passes `MockRideData.passedOverRides(at:)`. |
 
 ## Open questions
 

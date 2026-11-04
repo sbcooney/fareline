@@ -23,6 +23,12 @@ actor MockRideService: RideService {
     private var activeRideID: Ride.ID?
     private var pastRides: [Ride] = []
 
+    /// Rides that an offer ended without placing, which the session lists while they're still waiting.
+    ///
+    /// A ride's status can't say this, as being passed over is about dispatch rather than the ride's lifecycle.
+    /// Rides that have since been taken or cancelled stay here, and the session leaves them out by status.
+    private var passedOverRideIDs: Set<Ride.ID> = []
+
     private var version = 0
     private var rideSequence = 0
     private var nextFailure: RideServiceError?
@@ -30,26 +36,35 @@ actor MockRideService: RideService {
     private var nextOfferTask: Task<Void, Never>?
     private var expiryTask: Task<Void, Never>?
     private var riderCancellationTask: Task<Void, Never>?
+    private var passedOverTask: Task<Void, Never>?
 
-    /// - Parameter pastRideStore: Where past rides are saved, or `nil` to keep them in memory only, as tests
-    ///   and previews do.
+    /// - Parameters:
+    ///   - pastRideStore: Where past rides are saved, or `nil` to keep them in memory only, as tests and previews
+    ///     do.
+    ///   - waitingRides: Rides that other drivers have already passed on, which start in the waiting list.
     init(
         configuration: MockRideServiceConfiguration = .demo,
         timeSource: any TimeSource = SystemTimeSource(),
         driver: Driver = MockRideData.driver,
-        pastRideStore: PastRideStore? = nil
+        pastRideStore: PastRideStore? = nil,
+        waitingRides: [Ride] = []
     ) {
         self.configuration = configuration
         self.timeSource = timeSource
         self.driver = driver
         self.pastRideStore = pastRideStore
         pastRides = pastRideStore?.load() ?? []
+        for ride in waitingRides {
+            rides[ride.id] = ride
+            passedOverRideIDs.insert(ride.id)
+        }
     }
 
     deinit {
         nextOfferTask?.cancel()
         expiryTask?.cancel()
         riderCancellationTask?.cancel()
+        passedOverTask?.cancel()
         subscribers.values.forEach { $0.finish() }
     }
 
@@ -74,14 +89,19 @@ actor MockRideService: RideService {
         try await beginRequest()
         try updateDriver(.wentOnline)
         scheduleNextOffer()
+        schedulePassedOverRequest()
         return publish()
     }
 
     func goOffline() async throws(RideServiceError) -> DriverSession {
         try await beginRequest()
         try updateDriver(.wentOffline)
+        if let offer = pendingOffer {
+            passedOverRideIDs.insert(offer.ride.id)
+        }
         clearPendingOffer()
         nextOfferTask?.cancel()
+        passedOverTask?.cancel()
         return publish()
     }
 
@@ -126,9 +146,48 @@ actor MockRideService: RideService {
             throw .offerNoLongerAvailable
         }
 
-        // The ride stays awaiting a driver, as another driver could still take it.
+        // The ride stays awaiting a driver, and joins the list, as another driver could still take it.
+        passedOverRideIDs.insert(offer.ride.id)
         clearPendingOffer()
         scheduleNextOffer()
+        return publish()
+    }
+
+    func claimRide(rideID: Ride.ID) async throws(RideServiceError) -> DriverSession {
+        try await beginRequest()
+        guard driver.availability == .available else {
+            throw .actionNotAllowed
+        }
+        if let ride = rides[rideID], MockRideData.isTakenByAnotherDriverWhenClaimed(ride) {
+            // The demo's conflict case: another driver's request arrived first. The session reports the change, so
+            // the driver's list drops the ride as they're told why.
+            try? updateRide(id: rideID, with: .driverAssigned(driverID: UUID()))
+            publish()
+            throw .rideNoLongerWaiting
+        }
+        guard passedOverRideIDs.contains(rideID), var ride = rides[rideID] else {
+            throw .rideNoLongerWaiting
+        }
+        var updatedDriver = driver
+
+        // As with accepting, local copies change first, so a failure can't leave the ride and driver disagreeing.
+        do {
+            try ride.apply(.driverAssigned(driverID: driver.id))
+            try updatedDriver.apply(.rideAssigned)
+        } catch {
+            throw .rideNoLongerWaiting
+        }
+
+        // The driver chose another ride, so a pending offer is declined, and its ride joins the list.
+        if let offer = pendingOffer {
+            passedOverRideIDs.insert(offer.ride.id)
+            clearPendingOffer()
+        }
+        nextOfferTask?.cancel()
+        rides[ride.id] = ride
+        driver = updatedDriver
+        activeRideID = ride.id
+        scheduleRiderCancellation(of: ride)
         return publish()
     }
 
@@ -155,9 +214,14 @@ actor MockRideService: RideService {
 
     func cancelRide(rideID: Ride.ID) async throws(RideServiceError) -> DriverSession {
         try await beginRequest()
+        let rideBefore = rides[rideID]
         // If the rider cancelled first, the ride is no longer active, so this fails rather than changing who
         // cancelled. Ending the ride also stops the rider's own scheduled cancellation.
         try updateActiveRide(id: rideID, with: .cancelled(by: .driver, date: timeSource.now))
+        // A rider who wasn't picked up yet still needs a ride. Once the trip has started, the ride is over.
+        if let rideBefore, rideBefore.status != .inProgress {
+            listNewRequest(for: rideBefore)
+        }
         endActiveRide()
         scheduleNextOffer()
         return publish()
@@ -171,8 +235,18 @@ actor MockRideService: RideService {
             driver: driver,
             pendingOffer: pendingOffer,
             activeRide: activeRideID.flatMap { rides[$0] },
-            pastRides: pastRides
+            pastRides: pastRides,
+            waitingRides: waitingRides
         )
+    }
+
+    /// Passed-over rides that still need a driver, longest wait first.
+    private var waitingRides: [Ride] {
+        passedOverRideIDs
+            .compactMap { rides[$0] }
+            .filter { $0.status == .awaitingDriver }
+            // The ID breaks ties, so rides requested at the same moment keep one order between sessions.
+            .sorted { ($0.requestedAt, $0.id.uuidString) < ($1.requestedAt, $1.id.uuidString) }
     }
 
     /// Imitates the network. This is the only suspension point in a request.
@@ -249,6 +323,22 @@ actor MockRideService: RideService {
         scheduleNextOffer()
     }
 
+    /// Adds a new request to the waiting list for a rider whose driver cancelled before picking them up.
+    ///
+    /// It keeps the original request time, as the rider has been waiting since then.
+    private func listNewRequest(for ride: Ride) {
+        let request = Ride(
+            id: UUID(),
+            rider: ride.rider,
+            pickup: ride.pickup,
+            dropoff: ride.dropoff,
+            fare: ride.fare,
+            requestedAt: ride.requestedAt
+        )
+        rides[request.id] = request
+        passedOverRideIDs.insert(request.id)
+    }
+
     /// Sends the current session to all subscribers.
     @discardableResult
     private func publish() -> DriverSession {
@@ -285,11 +375,68 @@ actor MockRideService: RideService {
         guard Task.isCancelled == false, driver.availability == .available, pendingOffer == nil else {
             return
         }
-        let ride = MockRideData.makeRide(sequence: rideSequence, requestedAt: timeSource.now)
-        rideSequence += 1
+        guard let ride = makeNextRequest() else {
+            // Every rider already has a ride waiting, so try again once one may have left the list.
+            scheduleNextOffer()
+            return
+        }
         rides[ride.id] = ride
         // The guard above and the new ride's status mean the offer can't be refused.
         try? offerRide(id: ride.id)
+    }
+
+    /// Returns a new request from the next repeating rider who doesn't already have a ride waiting or in progress,
+    /// or `nil` if every one of them does, so the same person never asks for two rides at once.
+    private func makeNextRequest() -> Ride? {
+        let busyRiderIDs = Set(
+            rides.values
+                .filter { $0.status == .awaitingDriver || $0.id == activeRideID }
+                .map(\.rider.id)
+        )
+        for _ in 0..<MockRideData.repeatingRiderCount {
+            let ride = MockRideData.makeRide(sequence: rideSequence, requestedAt: timeSource.now)
+            rideSequence += 1
+            if busyRiderIDs.contains(ride.rider.id) == false {
+                return ride
+            }
+        }
+        return nil
+    }
+
+    /// Has another driver pass on a new request after the configured interval, and repeats while the driver is
+    /// online.
+    private func schedulePassedOverRequest() {
+        passedOverTask?.cancel()
+        guard let interval = configuration.passedOverInterval else {
+            return
+        }
+        let timeSource = timeSource
+        let date = timeSource.now.addingTimeInterval(interval)
+        passedOverTask = Task { [weak self] in
+            do {
+                try await timeSource.sleep(until: date)
+            } catch {
+                return
+            }
+            await self?.addPassedOverRequest()
+        }
+    }
+
+    private func addPassedOverRequest() {
+        // Checked on the actor, as with offers: going offline can cancel this task after its sleep ends.
+        guard Task.isCancelled == false, driver.availability != .offline else {
+            return
+        }
+        schedulePassedOverRequest()
+        guard waitingRides.count < configuration.maximumWaitingRides else {
+            return
+        }
+        guard let ride = makeNextRequest() else {
+            return
+        }
+        rides[ride.id] = ride
+        passedOverRideIDs.insert(ride.id)
+        publish()
     }
 
     private func scheduleExpiry(of offer: RideOffer) {
@@ -327,6 +474,7 @@ actor MockRideService: RideService {
             scheduleExpiry(of: offer)
             return
         }
+        passedOverRideIDs.insert(offer.ride.id)
         clearPendingOffer()
         scheduleNextOffer()
         publish()
@@ -353,14 +501,16 @@ extension MockRideService {
 
     /// Offers a ride to the driver.
     ///
-    /// This is the only way an offer is created, which enforces two rules. A ride must be awaiting a driver,
-    /// and it's offered to one driver at a time. The second rule holds because this mock has a single
-    /// driver with a single pending offer. A real backend would have to track offers per ride.
+    /// This is the only way an offer is created, which enforces three rules. A ride must be awaiting a driver,
+    /// it's offered to one driver at a time, and a ride in the waiting list isn't offered again, as the driver can
+    /// already see and take it. The second rule holds because this mock has a single driver with a single pending
+    /// offer. A real backend would have to track offers per ride.
     ///
     /// - Throws: ``RideServiceError/actionNotAllowed`` if the ride can't be offered right now.
     func offerRide(id: Ride.ID) throws(RideServiceError) {
         guard driver.availability == .available,
               pendingOffer == nil,
+              passedOverRideIDs.contains(id) == false,
               let ride = rides[id],
               ride.status == .awaitingDriver else {
             throw .actionNotAllowed

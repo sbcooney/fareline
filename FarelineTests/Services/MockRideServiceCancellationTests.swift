@@ -60,6 +60,38 @@ struct MockRideServiceCancellationTests {
         #expect(ended.endedAt == time.now)
     }
 
+    @Test(arguments: [Stage.headingToPickup, .atPickup])
+    func driverCancellingBeforeTheTripGivesTheRiderANewRequest(stage: Stage) async throws {
+        try await startRide(ride)
+        try await advance(ride, to: stage)
+        time.advance(by: 120)
+
+        let session = try await service.cancelRide(rideID: ride.id)
+
+        let request = try #require(session.waitingRides.first)
+        #expect(session.waitingRides.count == 1)
+        #expect(request.id != ride.id)
+        #expect(request.rider == ride.rider)
+        #expect(request.pickup == ride.pickup)
+        #expect(request.dropoff == ride.dropoff)
+        #expect(request.fare == ride.fare)
+        // The rider has been waiting since their first request, so the new one keeps that time.
+        #expect(request.requestedAt == ride.requestedAt)
+        #expect(request.status == .awaitingDriver)
+        #expect(session.pastRides.first?.id == ride.id)
+        #expect(session.pastRides.first?.cancelledBy == .driver)
+    }
+
+    @Test func driverCancellingDuringTheTripDoesntListTheRider() async throws {
+        try await startRide(ride)
+        try await advance(ride, to: .onTrip)
+
+        let session = try await service.cancelRide(rideID: ride.id)
+
+        // The rider was already in the car, so the ride is over.
+        #expect(session.waitingRides.isEmpty)
+    }
+
     @Test func cancellingARideThatIsntCurrentIsRejected() async throws {
         try await startRide(ride)
 
