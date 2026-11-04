@@ -8,13 +8,13 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 - [x] Load `swift-testing-pro` for the service, model, and display tests
 - [x] Load `swift-concurrency-pro`, with its actors, async-streams, and testing references, for the mock's held-back updates and replaying the queue in order
-- [ ] Load `swiftui-pro`, with its accessibility and views references, for the offline banner, the disabled controls, and the demo menu
+- [x] Load `swiftui-pro`, with its accessibility and views references, for the offline banner, the disabled controls, and the demo menu
 - [x] Propose the new names, and wait for the user's decision
 
 ## Phase 1: Connectivity and the offline banner
 
-- [ ] Write failing tests: requests fail with `networkUnavailable` while disconnected and change nothing; the stream sends nothing while disconnected, then the latest session on reconnecting; the banner's text with none, one, and several steps waiting
-- [ ] Add the connectivity switch to `MockRideService`, the model's offline state, the banner, and the demo menu and launch argument
+- [x] Write failing tests: requests fail with `networkUnavailable` while disconnected and change nothing; the stream sends nothing while disconnected, then the latest session on reconnecting; the banner's text with none, one, and several steps waiting
+- [x] Add the connectivity switch to `MockRideService`, the model's offline state, the banner, and the demo menu, on every main screen
 - [ ] Verify: the tests pass, and requests ignoring the connection, or reconnecting without sending the latest session, each makes a test fail. Sending sessions while disconnected can't be told apart by a test, as the stream keeps only the newest snapshot, so it's checked by reading the code. The user checks the banner and its VoiceOver announcements in the app
 
 ## Phase 2: Live actions are disabled offline

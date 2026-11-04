@@ -19,6 +19,9 @@ final class DriverModel {
     /// the driver used rather than on the ride's next step.
     private(set) var isCancellingRide = false
 
+    /// Whether the connection is down, as the service reports it. Nothing polls for this.
+    private(set) var isOffline = false
+
     /// What the driver needs to read and acknowledge, if anything.
     ///
     /// Only one alert shows at a time, so the model decides which explanation wins. Views set this to `nil`
@@ -54,10 +57,23 @@ final class DriverModel {
         self.service = service
     }
 
-    /// Receives session updates until the calling task is cancelled.
+    /// Receives session and connection updates until the calling task is cancelled.
     func start() async {
+        await withDiscardingTaskGroup { group in
+            group.addTask { await self.receiveSessions() }
+            group.addTask { await self.receiveConnectionChanges() }
+        }
+    }
+
+    private func receiveSessions() async {
         for await session in await service.sessionUpdates() {
             apply(session)
+        }
+    }
+
+    private func receiveConnectionChanges() async {
+        for await isConnected in await service.connectionUpdates() {
+            isOffline = isConnected == false
         }
     }
 

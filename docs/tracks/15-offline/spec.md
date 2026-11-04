@@ -16,7 +16,7 @@ The mock service is the app's stand-in for a backend, and it runs inside the app
 
 ### Connectivity can be simulated, and the driver can tell they're offline
 
-The mock can be told the connection is lost or back. While it's lost, every request fails with `networkUnavailable` and changes nothing, and the session stream sends nothing. When the connection returns, the stream sends the latest session. A demo control and a launch argument for tests turn it on and off.
+The mock can be told the connection is lost or back. While it's lost, every request fails with `networkUnavailable` and changes nothing, and the session stream sends nothing. When the connection returns, the stream sends the latest session. A demo control turns it on and off.
 
 While offline, a banner at the top of every screen says the driver is offline, and how many ride steps are waiting to be sent, if any. VoiceOver announces losing and regaining the connection.
 
@@ -62,7 +62,7 @@ Tests:
 - Each queued step is applied to the ride on screen straight away, using the domain's own transition rules, so the driver can keep going. In exchange, the model holds a little logic of its own.
 - `completeTrip` and `cancelRide` take the time of the tap, so a trip completed offline keeps its real end time. Online calls pass the current time.
 - Being offline is never polled for. The service reports changes through a stream, which a real app would feed from `NWPathMonitor`, and the mock feeds from its switch.
-- A "Simulate No Connection" toggle in a Demo menu in the home screen's toolbar, in Debug builds only, turns it on and off, and the README explains it. UI tests can start offline with `-offline`.
+- A Demo menu in the main screen's toolbar, in Debug builds only, turns it on and off, and the README explains it. It shows on every main screen, home, an offer, or the current ride, so the connection can be lost mid-ride, and its item reads "Simulate No Connection" or "Restore Connection" from the model's state. There's no `-offline` launch argument: no UI tests are added, so it would be unused.
 - Names:
   - `RideService.connectionUpdates() -> AsyncStream<Bool>`, sending whether the connection is up, now and on each change.
   - `MockRideService.setConnected(_:)`, the mock's switch.
@@ -70,7 +70,7 @@ Tests:
   - `DriverModel.isOffline`, and `DriverModel.pendingSteps: [PendingRideStep]`, in order.
   - `PendingRideStep`, a ride ID and the domain's `RideEvent`.
   - `DriverAlert.offlineStepsNotSent`: "Some steps you took offline couldn't be sent. Your ride shows its latest state."
-  - `OfflineBanner`, `DemoMenu`, and the `-offline` launch argument.
+  - `OfflineBanner` and `DemoMenu`, with a Debug-only `demoService` environment value that gives the menu the mock.
   - A "Simulating no connection" section in the README.
 
 These go in the decision log in docs/PLAN.md with the PR.

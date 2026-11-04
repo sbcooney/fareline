@@ -47,9 +47,23 @@ struct RootView: View {
             // mid-tap. A link on the disappearing screen crashed SwiftUI. Changing the path here is always safe.
             .toolbar {
                 if isShowingHome {
-                    Button("Waiting Riders", systemImage: "person.2", action: openWaitingRiders)
-                    Button("Past Rides", systemImage: "clock", action: openPastRides)
+                    ToolbarItemGroup(placement: .topBarTrailing) {
+                        Button("Waiting Riders", systemImage: "person.2", action: openWaitingRiders)
+                        Button("Past Rides", systemImage: "clock", action: openPastRides)
+                    }
                 }
+                // On every root screen, so the connection can be lost mid-ride.
+                #if DEBUG
+                ToolbarItem(placement: .topBarLeading) {
+                    DemoMenu()
+                }
+                #endif
+            }
+        }
+        // Above every screen, so the driver can't miss being offline wherever they are.
+        .safeAreaInset(edge: .top, spacing: 0) {
+            if model.isOffline {
+                OfflineBanner(pendingStepCount: 0)
             }
         }
         .safeAreaInset(edge: .bottom) {
@@ -81,6 +95,9 @@ struct RootView: View {
             if id == nil {
                 returnToPathBeforeOffer()
             }
+        }
+        .onChange(of: model.isOffline) {
+            announceConnection()
         }
         .onChange(of: model.unansweredOfferID) {
             AccessibilityNotification.Announcement("The ride offer ended.").post()
@@ -134,6 +151,12 @@ struct RootView: View {
         if model.session?.activeRide == nil {
             path = savedPath
         }
+    }
+
+    /// Tells VoiceOver users the connection changed, as the banner appearing doesn't move their focus.
+    private func announceConnection() {
+        let announcement: LocalizedStringResource = model.isOffline ? "You're offline." : "You're back online."
+        AccessibilityNotification.Announcement(String(localized: announcement)).post()
     }
 
     /// Tells VoiceOver users about a new offer, which they might not notice replacing the screen.
