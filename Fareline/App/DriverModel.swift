@@ -79,7 +79,12 @@ final class DriverModel {
             // The cancellation explains more than any error showing, including a step that failed because of it.
             alert = .riderCancelled(endedRide)
         }
-        if let offer = session?.pendingOffer, newSession.pendingOffer?.id != offer.id, offer.id != answeredOfferID {
+        // An offer that ends as a ride starts, such as one declined by claiming a ride from the list, was answered
+        // by the driver's choice.
+        if let offer = session?.pendingOffer,
+           newSession.pendingOffer?.id != offer.id,
+           offer.id != answeredOfferID,
+           newSession.activeRide == nil {
             unansweredOfferID = offer.id
         }
         // An error is about an earlier action, so it could seem to describe a new offer. A claim's conflict says
@@ -150,16 +155,11 @@ final class DriverModel {
 
     /// Takes a ride from the waiting list, which the driver chose over waiting for an offer.
     ///
-    /// The service declines a pending offer, as the driver has chosen another ride, so the offer is marked as
-    /// answered and isn't announced as one that ended without a response.
+    /// The service declines a pending offer, as the driver has chosen another ride. That offer ends as the ride
+    /// starts, so ``apply(_:)`` doesn't announce it as one left without a response.
     func claimRide(rideID: Ride.ID) async {
         await perform { () async throws(RideServiceError) in
-            guard let offerID = session?.pendingOffer?.id else {
-                return try await service.claimRide(rideID: rideID)
-            }
-            return try await respond(to: offerID) { () async throws(RideServiceError) in
-                try await service.claimRide(rideID: rideID)
-            }
+            try await service.claimRide(rideID: rideID)
         }
     }
 

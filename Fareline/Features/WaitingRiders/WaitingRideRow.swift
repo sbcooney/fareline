@@ -16,8 +16,9 @@ struct WaitingRideRow: View {
                 Text("\(ride.pickup.name) to \(ride.dropoff.name)")
                     .font(.headline)
                 Text(ride.fare.amount, format: .currency(code: ride.fare.currencyCode))
-                // The wait keeps counting while the list is open, redrawn as each minute passes.
-                TimelineView(.everyMinute) { context in
+                // The wait keeps counting while the list is open. It redraws each minute from the request time, not
+                // the clock's minutes, so the shown wait never lags the real one.
+                TimelineView(.periodic(from: ride.requestedAt, by: 60)) { context in
                     Text(ride.waitDescription(at: context.date))
                         .foregroundStyle(.textSecondary)
                 }

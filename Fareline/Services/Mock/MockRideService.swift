@@ -179,8 +179,7 @@ actor MockRideService: RideService {
         }
 
         // The driver chose another ride, so a pending offer is declined, and its ride joins the list.
-        if var offer = pendingOffer {
-            try? offer.decline(at: timeSource.now)
+        if let offer = pendingOffer {
             passedOverRideIDs.insert(offer.ride.id)
             clearPendingOffer()
         }

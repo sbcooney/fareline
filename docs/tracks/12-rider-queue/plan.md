@@ -40,16 +40,16 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 - [x] Add `AppDestination.waitingRiders`, `WaitingRidersView` and `WaitingRideRow`, and the home screen's toolbar button. Rows show pickup, drop-off, fare, and wait time, redrawn once a minute, with a Take Ride button enabled only while available and no request is in progress. The empty state says no one is waiting, and offline shows a line to go online to take a ride
 - [x] Return to the screens the driver left when an offer opened from the bar ends without a ride starting, through `pathBeforeOffer` in `RootView` (found by the user: declining an offer opened from Waiting Riders went to the home screen)
 - [x] Return to Waiting Riders after the driver cancels, before the trip, a ride they took from it, through `returnsToWaitingRiders` in `RootView`
-- [ ] No unit test for the screen itself, which is view state. Verify: the user runs the app and checks the screen opens from home, rows update as rides arrive and leave, Take Ride starts the ride, a cancelled ride's rider reappears, Taylor Taken shows the conflict message, and the empty and offline states read correctly. No UI tests, per CLAUDE.md
+- [x] No unit test for the screen itself, which is view state. Verify: the user runs the app and checks the screen opens from home, rows update as rides arrive and leave, Take Ride starts the ride, a cancelled ride's rider reappears, Taylor Taken shows the conflict message, and the empty and offline states read correctly. No UI tests, per CLAUDE.md
 
 ## Before the PR
 
-- [ ] Review with `swift-testing-pro` (every new and changed test file)
-- [ ] Review with `swift-concurrency-pro` (`MockRideService.swift`, `DriverModel.swift`)
-- [ ] Review with `swiftui-pro` (`WaitingRidersView`, `WaitingRideRow`, the home screen's toolbar in `RootView`, `AppDestination`)
-- [ ] `swiftlint lint` reports no violations
+- [x] Review with `swift-testing-pro` (every new and changed test file)
+- [x] Review with `swift-concurrency-pro` (`MockRideService.swift`, `DriverModel.swift`)
+- [x] Review with `swiftui-pro` (`WaitingRidersView`, `WaitingRideRow`, the home screen's toolbar in `RootView`, `AppDestination`)
+- [x] `swiftlint lint` reports no violations
 - [ ] Run `/code-review`, and fix or record each finding
-- [ ] Update docs/PLAN.md:
+- [x] Update docs/PLAN.md:
   - Status: #12 and #13 done; #11 and #14 ➖, with #23 added as ➖, all folded into #10; rows added for #33 and #34
   - Decision log: doing #12 and #13 together; returning to the screens the driver left after an offer opened from the bar ends without a ride, and returning to Waiting Riders after cancelling a ride taken from it, both of which revise "Clear the navigation path when an offer arrives or a ride starts"; describing the map, the drivers list, and status outside the app in the README rather than building them; the two decided items in the spec; this track's other decisions
   - Domain: the list of rides no driver took, and a driver's cancellation re-listing the rider
