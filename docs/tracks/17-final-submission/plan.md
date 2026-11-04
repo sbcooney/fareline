@@ -24,7 +24,7 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 - [x] You revert your signing team, once you're done testing on your phone
 - [x] Search every commit for PDFs, keys, tokens, and absolute paths, and the project file for a signing team. None in any commit. The signing team is only in the working copy
-- [ ] Verify: the searches find nothing
+- [x] Verify: the searches find nothing
 
 ## Before the PR
 
