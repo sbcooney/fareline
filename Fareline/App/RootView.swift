@@ -6,6 +6,10 @@ struct RootView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var path: [AppDestination] = []
 
+    /// The screens the driver was on when they opened an offer from the bar, to return to if it ends without a ride
+    /// starting, such as Waiting Riders after a decline.
+    @State private var pathBeforeOffer: [AppDestination]?
+
     /// The offer to show in the pending offer bar: one that arrives while the driver is on a pushed screen.
     private var barOffer: RideOffer? {
         path.isEmpty ? nil : model.session?.pendingOffer
@@ -58,10 +62,14 @@ struct RootView: View {
         .onChange(of: model.session?.activeRide?.id) { _, id in
             if id != nil {
                 path.removeAll()
+                pathBeforeOffer = nil
             }
         }
-        .onChange(of: model.session?.pendingOffer?.id) {
+        .onChange(of: model.session?.pendingOffer?.id) { _, id in
             announceNewOffer()
+            if id == nil {
+                returnToPathBeforeOffer()
+            }
         }
         .onChange(of: model.unansweredOfferID) {
             AccessibilityNotification.Announcement("The ride offer ended.").post()
@@ -86,7 +94,20 @@ struct RootView: View {
 
     /// Returns to the root screen, where a pending offer is shown.
     private func openOffer() {
+        pathBeforeOffer = path
         path.removeAll()
+    }
+
+    /// Puts back the screens the driver left to see an offer, once it ends without a ride starting: declined,
+    /// expired, or withdrawn. An accepted offer starts a ride, which stays the root screen.
+    private func returnToPathBeforeOffer() {
+        guard let savedPath = pathBeforeOffer else {
+            return
+        }
+        pathBeforeOffer = nil
+        if model.session?.activeRide == nil {
+            path = savedPath
+        }
     }
 
     /// Tells VoiceOver users about a new offer, which they might not notice replacing the screen.

@@ -55,6 +55,13 @@ Tests:
 - The wait time reads as a duration, such as "Waiting 4 min", for a range of waits, including under a minute.
 - Checked in the simulator: the screen opens from home, rows show pickup, drop-off, fare, and wait time, the list changes as rides arrive and leave, and the empty state shows with no one waiting. No UI tests are added. The user runs the app to check.
 
+### An offer opened from the list returns to it
+
+An offer that arrives while the driver is on Waiting Riders, or any pushed screen, shows as a bar. Opening it shows the offer full screen, as before. If the offer then ends without a ride starting, declined, expired, or withdrawn, the driver is back on the screens they left. Accepting starts the ride, which stays the root screen.
+
+Tests:
+- No unit test: the saved screens are navigation state held in `RootView`. Checked in the simulator: open an offer from the bar on Waiting Riders, decline it, and see Waiting Riders again; accept one and see the current ride screen.
+
 ### The driver can take a ride from the list
 
 Each row has a button to take the ride, enabled only while the driver is available. Taking a ride starts it, and the driver sees the same current ride screen as after accepting an offer. If an offer is pending, taking a ride from the list declines it, and the offered ride joins the list.
