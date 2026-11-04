@@ -24,7 +24,7 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 - [x] You revert your signing team, once you're done testing on your phone
 - [x] Search every commit for PDFs, keys, tokens, and absolute paths, and the project file for a signing team. None in any commit. The signing team is only in the working copy
-- [ ] Verify: the searches find nothing
+- [x] Verify: the searches find nothing
 
 ## Before the PR
 
@@ -32,12 +32,12 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 - [x] `swiftlint lint` reports no violations, and all tests pass
 - [x] Run `/code-review`, and fix or record each finding
 - [x] Review with `swift-concurrency-pro`: the teardown closure is `@MainActor`, as `XCUIDevice` requires, and captures only the original appearance, a `Sendable` enum. No findings
-- [ ] Open the PR, saying "Part of #17"
+- [x] Open the PR, saying "Part of #17"
 
 ## After the PR merges
 
-- [ ] You say to make the repository public, and Claude makes it public
-- [ ] You open the public link in a private browser window, and check it's visible and the README renders
-- [ ] Optionally, you open the fresh clone in Xcode and run it with no signing team selected
-- [ ] You send the link to your recruiting contact
-- [ ] Close #17
+- [x] You say to make the repository public, and Claude makes it public
+- [x] You open the public link in a private browser window, and check it's visible and the README renders
+- [x] Optionally, you open the fresh clone in Xcode and run it with no signing team selected
+- [x] You send the link to your recruiting contact
+- [x] Close #17

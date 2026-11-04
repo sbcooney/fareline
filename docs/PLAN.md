@@ -39,7 +39,7 @@ Work proceeds top to bottom. Each row merges as its own PR and leaves the app wo
 | ✅ | #34 | Offer screen's largest-text audit fails with unattributed contrast issues | Quality |
 | ✅ | #41 | Code quality pass before submission | Quality |
 | ✅ | #10 | README and visual reference | Deliverable |
-| 🟨 | #17 | Final submission: the audits in both modes and the final checks are done, and making the repository public and sending the link follow | Deliverable |
+| ✅ | #17 | Final submission | Deliverable |
 
 Issue numbers follow the order they were filed, not the order of work. Status key: ⬜ not started, 🟨 in progress, ✅ done, ➖ not doing (with the reason in the decision log).
 
@@ -312,9 +312,9 @@ None are open. #15's question, which actions queue offline and how conflicts res
 
 ## Deliverables checklist
 
-- [ ] Public GitHub repository, with the link sent to the recruiting contact
+- [x] Public GitHub repository, with the link sent to the recruiting contact
 - [x] Clear build and run instructions
-- [ ] Clean-clone check passed: the public repo clones and runs using only the README (see #17)
+- [x] Clean-clone check passed: the repo clones and runs using only the README (see #17)
 - [x] One screenshot or a short recording of the primary flow
 - [x] README design section covering:
   - [x] Architecture and state management
