@@ -39,7 +39,7 @@ struct RideOptionsButton: View {
     }()
 
     NavigationStack {
-        Text("Current ride")
+        Text(verbatim: "Current ride")
             .toolbar {
                 RideOptionsButton(ride: ride)
             }

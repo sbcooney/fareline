@@ -123,13 +123,7 @@
         }
       }
     },
-    "Current ride" : {
-
-    },
     "Decline" : {
-
-    },
-    "Demo" : {
 
     },
     "Drop-off" : {
@@ -177,25 +171,19 @@
     "New ride offers will appear here." : {
 
     },
+    "No cancelled rides" : {
+
+    },
     "No Cancelled Rides" : {
+
+    },
+    "No completed rides" : {
 
     },
     "No Completed Rides" : {
 
     },
     "No Connection" : {
-
-    },
-    "No Past Rides" : {
-
-    },
-    "No Riders Waiting" : {
-
-    },
-    "No cancelled rides" : {
-
-    },
-    "No completed rides" : {
 
     },
     "No connection. %lld ride steps will be sent when it's back. Offers, changing your status, and taking a ride need a connection." : {
@@ -229,6 +217,12 @@
     "No past rides" : {
 
     },
+    "No Past Rides" : {
+
+    },
+    "No Riders Waiting" : {
+
+    },
     "On Trip" : {
 
     },
@@ -242,9 +236,6 @@
 
     },
     "Requested" : {
-
-    },
-    "Restore Connection" : {
 
     },
     "Ride Cancelled" : {
@@ -346,9 +337,6 @@
         }
       }
     },
-    "Simulate No Connection" : {
-
-    },
     "Some steps you took offline couldn't be sent. Your ride shows its latest state." : {
 
     },
@@ -388,13 +376,13 @@
     "Waiting %@" : {
 
     },
-    "Waiting Riders" : {
-
-    },
     "Waiting for a Driver" : {
 
     },
     "Waiting less than a minute" : {
+
+    },
+    "Waiting Riders" : {
 
     },
     "You can go offline after this ride ends." : {
