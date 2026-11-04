@@ -50,31 +50,25 @@ enum PastRideFilter: CaseIterable {
 
     /// How many rides are showing out of the driver's whole history, such as "3 of 8 rides".
     ///
-    /// The project has no String Catalog yet, so the singular is chosen here. It agrees with the total, which is
-    /// the noun being counted.
+    /// The String Catalog has the singular, which agrees with the total, as that's the noun being counted.
     static func countDescription(showing shown: Int, of total: Int) -> LocalizedStringResource {
-        total == 1 ? "\(shown) of \(total) ride" : "\(shown) of \(total) rides"
+        "\(shown) of \(total) rides"
     }
 
-    /// What VoiceOver says when the driver changes the filter, so they know what the list shows now.
+    /// What VoiceOver says when the driver changes the filter, so they know what the list shows now. The String
+    /// Catalog has the singulars.
     func announcement(showing count: Int) -> LocalizedStringResource {
         switch (self, count) {
         case (.all, 0):
             "No past rides"
-        case (.all, 1):
-            "Showing 1 ride"
         case (.all, _):
             "Showing all \(count) rides"
         case (.completed, 0):
             "No completed rides"
-        case (.completed, 1):
-            "Showing 1 completed ride"
         case (.completed, _):
             "Showing \(count) completed rides"
         case (.cancelled, 0):
             "No cancelled rides"
-        case (.cancelled, 1):
-            "Showing 1 cancelled ride"
         case (.cancelled, _):
             "Showing \(count) cancelled rides"
         }

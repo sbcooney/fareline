@@ -52,9 +52,9 @@ Each phase leaves the app building and the tests passing, in its own commit. Che
 
 ## Phase 8: String Catalog
 
-- [ ] Existing message tests cover the text
-- [ ] Add `Localizable.xcstrings` with plural variations, and remove the hand-written cases
-- [ ] Verify: message tests pass
+- [x] Existing message tests cover the text, and all six singular cases fail without the catalog
+- [x] Add `Localizable.xcstrings` with plural variations, and remove the hand-written cases. The zero cases stay in code, as they are different sentences rather than plural forms. Every other string was synced in with `xcstringstool`, so building in Xcode leaves the catalog unchanged
+- [x] Verify: message tests pass
 
 ## Phase 9: Comments
 

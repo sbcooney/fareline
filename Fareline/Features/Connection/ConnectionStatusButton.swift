@@ -24,24 +24,16 @@ struct ConnectionStatusButton: View {
         isShowingExplanation = true
     }
 
-    /// The popover's text. The project has no String Catalog yet, so the singular is chosen here.
+    /// The popover's text. The String Catalog has the singular.
     static func explanation(pendingStepCount: Int) -> LocalizedStringResource {
-        switch pendingStepCount {
-        case 0:
-            """
-            No connection. Ride steps you take will be sent when it's back. \
-            Offers, changing your status, and taking a ride need a connection.
-            """
-        case 1:
-            """
-            No connection. 1 ride step will be sent when it's back. \
-            Offers, changing your status, and taking a ride need a connection.
-            """
-        default:
-            """
-            No connection. \(pendingStepCount) ride steps will be sent when it's back. \
-            Offers, changing your status, and taking a ride need a connection.
-            """
-        }
+        pendingStepCount == 0
+            ? """
+              No connection. Ride steps you take will be sent when it's back. \
+              Offers, changing your status, and taking a ride need a connection.
+              """
+            : """
+              No connection. \(pendingStepCount) ride steps will be sent when it's back. \
+              Offers, changing your status, and taking a ride need a connection.
+              """
     }
 }

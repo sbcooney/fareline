@@ -70,16 +70,10 @@ struct ConnectionToast: View {
 
     static let savedMessage: LocalizedStringResource = "Saved. It'll be sent when the connection's back."
 
-    /// What the toast says when the connection returns. The project has no String Catalog yet, so the singular is
-    /// chosen here.
+    /// What the toast says when the connection returns. The String Catalog has the singular.
     static func restoredMessage(pendingStepCount: Int) -> LocalizedStringResource {
-        switch pendingStepCount {
-        case 0:
-            "Connection restored."
-        case 1:
-            "Connection restored. Sending 1 ride step."
-        default:
-            "Connection restored. Sending \(pendingStepCount) ride steps."
-        }
+        pendingStepCount == 0
+            ? "Connection restored."
+            : "Connection restored. Sending \(pendingStepCount) ride steps."
     }
 }
