@@ -46,6 +46,18 @@ struct AppNavigationTests {
         #expect(navigation.path.isEmpty)
     }
 
+    @Test mutating func rideStartingForgetsTheScreensLeftForAnOffer() {
+        navigation.open(.waitingRiders)
+        navigation.openOffer()
+
+        // Sessions can be skipped, so the ride can start without the offer's ending being seen.
+        navigation.rideStarted()
+        navigation.rideEnded(cancelledByDriver: false)
+        navigation.offerEnded(rideStarted: false)
+
+        #expect(navigation.path.isEmpty)
+    }
+
     @Test mutating func offerEndingOnTheRootScreenChangesNothing() {
         navigation.offerEnded(rideStarted: false)
 
@@ -105,6 +117,16 @@ struct AppNavigationTests {
     @Test mutating func rideFromAnotherScreenDoesntReturnToWaitingRiders() {
         navigation.open(.pastRides)
         navigation.rideStarted()
+
+        navigation.rideEnded(cancelledByDriver: true)
+
+        #expect(navigation.path.isEmpty)
+    }
+
+    @Test mutating func rideEndingForgetsWhereItCameFrom() {
+        navigation.open(.waitingRiders)
+        navigation.rideStarted()
+        navigation.rideEnded(cancelledByDriver: false)
 
         navigation.rideEnded(cancelledByDriver: true)
 

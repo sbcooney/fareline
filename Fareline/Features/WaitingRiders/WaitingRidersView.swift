@@ -7,7 +7,6 @@ struct WaitingRidersView: View {
     var body: some View {
         let rides = model.session?.waitingRides ?? []
         let availability = model.session?.driver.availability
-        let canTake = model.canClaimRide
 
         Group {
             if rides.isEmpty {
@@ -20,7 +19,7 @@ struct WaitingRidersView: View {
                 List {
                     Section {
                         ForEach(rides) { ride in
-                            WaitingRideRow(ride: ride, canTake: canTake)
+                            WaitingRideRow(ride: ride, canTake: model.canClaimRide)
                         }
                     } footer: {
                         if model.isOffline {

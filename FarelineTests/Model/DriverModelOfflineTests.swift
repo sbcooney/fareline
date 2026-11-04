@@ -203,7 +203,7 @@ struct DriverModelOfflineTests {
 
     @Test func connectionLostDuringReplayKeepsTheQueue() async throws {
         let delayedService = MockRideService.forModelTests(time: time, responseDelay: 1)
-        let delayedModel = DriverModel(service: delayedService)
+        let delayedModel = DriverModel(service: delayedService, timeSource: time)
         let updates = Task { await delayedModel.start() }
         defer { updates.cancel() }
         try await startRideThenGoOffline(on: delayedService, model: delayedModel)
@@ -222,7 +222,7 @@ struct DriverModelOfflineTests {
 
     @Test func dismissedRiderCancellationIsntFollowedByTheConflictMessage() async throws {
         let delayedService = MockRideService.forModelTests(time: time, responseDelay: 1)
-        let delayedModel = DriverModel(service: delayedService)
+        let delayedModel = DriverModel(service: delayedService, timeSource: time)
         let updates = Task { await delayedModel.start() }
         defer { updates.cancel() }
         try await startRideThenGoOffline(on: delayedService, model: delayedModel)

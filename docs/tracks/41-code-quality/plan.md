@@ -30,7 +30,7 @@ Each phase leaves the app building and the tests passing, in its own commit. Che
 
 - [x] Write failing tests: every `AppNavigation` case in the spec, plus an offer ending before its ride starts
 - [x] Add `AppNavigation`, and have `RootView` use it
-- [x] Verify: tests pass, mutation checks, and UI tests pass. Mutation checks showed two lines carried over from `RootView` were redundant, so they were removed
+- [x] Verify: tests pass, mutation checks, and UI tests pass. Mutation checks showed two lines carried over from `RootView` had no test. They were removed, then restored with tests after `/code-review`, as they guard against sessions arriving in another order than the mock sends them
 
 ## Phase 5: Queued steps as a pure function
 
@@ -67,5 +67,5 @@ Each phase leaves the app building and the tests passing, in its own commit. Che
 - [ ] The user reviews in the app once, with everything done
 - [x] Review with `swiftui-pro`, `swift-concurrency-pro`, and `swift-testing-pro`, and record each in the PR
 - [x] `swiftlint lint` reports no violations
-- [ ] Run `/code-review`, and fix or record each finding
+- [x] Run `/code-review`, and fix or record each finding
 - [x] Update docs/PLAN.md: status, decision log, and project structure

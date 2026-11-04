@@ -25,8 +25,8 @@ struct AppNavigation {
     }
 
     /// Puts back the screens the driver left to see an offer, once it ends without a ride starting: declined,
-    /// expired, or withdrawn. An accepted offer starts a ride, which stays the root screen, whether the offer ending
-    /// or the ride starting is handled first.
+    /// expired, or withdrawn. An accepted offer starts a ride, which stays the root screen, whichever of the two the
+    /// view handles first when they arrive in one session.
     mutating func offerEnded(rideStarted: Bool) {
         guard let savedPath = pathBeforeOffer else {
             return
@@ -42,6 +42,8 @@ struct AppNavigation {
     mutating func rideStarted() {
         returnsToWaitingRiders = path.last == .waitingRiders
         path.removeAll()
+        // The ride replaces whatever the driver left, so a later offer ending has nothing to put back.
+        pathBeforeOffer = nil
     }
 
     /// Once the rider is in the car, a cancelled ride is over rather than a reason to choose another.
@@ -55,5 +57,6 @@ struct AppNavigation {
         if returnsToWaitingRiders, cancelledByDriver {
             path = [.waitingRiders]
         }
+        returnsToWaitingRiders = false
     }
 }

@@ -23,6 +23,8 @@ struct OfferResponseButtons: View {
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
+                // The same size as `PrimaryActionButton`, which Accept uses.
+                .controlSize(.large)
                 .accessibilityValue(model.isPerformingAction ? Text("Updating") : Text(""))
 
                 // Progress shows over both buttons, as either could be the one waiting, so Accept shows none itself.
@@ -30,7 +32,6 @@ struct OfferResponseButtons: View {
                     .accessibilityValue(model.isPerformingAction ? Text("Updating") : Text(""))
             }
         }
-        .controlSize(.large)
         .disabled(model.canAnswerOffer == false)
         // Accept appears where Go Offline was, so a tap meant for Go Offline could otherwise take the ride.
         .ignoresTapsBriefly(after: offerID)
