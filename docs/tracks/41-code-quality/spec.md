@@ -58,7 +58,7 @@ Tests:
 `SubscriberList<Element>` replaces the two subscriber dictionaries, one private helper runs the four timers, and `WaitingList` holds the passed-over rides and their ordering.
 
 Tests:
-- `SubscriberList` sends to every subscriber, and stops sending to one that's removed.
+- `SubscriberList` starts a stream with its initial value, sends to every subscriber, keeps only the newest unread value, reports a stream's ending with its ID so it can be removed, and finishes every stream.
 - `WaitingList` lists only rides still awaiting a driver, longest wait first, with ties broken by ID.
 - Every existing mock test still passes.
 

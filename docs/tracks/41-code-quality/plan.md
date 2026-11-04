@@ -40,9 +40,9 @@ Each phase leaves the app building and the tests passing, in its own commit. Che
 
 ## Phase 6: A smaller mock
 
-- [ ] Write failing tests: `SubscriberList`, `WaitingList`
-- [ ] Add them and the timer helper, and use them in `MockRideService`
-- [ ] Verify: every mock test passes, and record whether the lint exceptions could go
+- [x] Write failing tests: `SubscriberList`, `WaitingList`
+- [x] Add them and the timer helper, `runTask(at:_:)`, and use them in `MockRideService`
+- [x] Verify: every mock test passes, and seven mutation checks. The file went from 621 to 593 lines, still over both lint limits, so the exceptions stay with a more accurate reason
 
 ## Phase 7: Folders
 
