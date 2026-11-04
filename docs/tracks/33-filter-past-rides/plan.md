@@ -6,15 +6,15 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Before starting
 
-- [ ] Load `swift-testing-pro` for `PastRideFilterTests`
-- [ ] Load `swiftui-pro`, with its accessibility, localization, and views references, for the filter menu, the empty state, the header, and the announcement in `PastRidesView`
-- [ ] `swift-concurrency-pro` doesn't apply: the filter is synchronous view state with no async work
+- [x] Load `swift-testing-pro` for `PastRideFilterTests`
+- [x] Load `swiftui-pro`, with its accessibility, localization, and views references, for the filter menu, the empty state, the header, and the announcement in `PastRidesView`
+- [x] `swift-concurrency-pro` doesn't apply: the filter is synchronous view state with no async work
 
 ## Phase 1: The filter's rule and text
 
-- [ ] Write failing tests: each filter matches the right rides and keeps their order; each filter's menu title; the empty state's title for Completed and Cancelled; the header text with singular and plural counts; the announcement for each filter with singular and plural counts
-- [ ] Add `PastRideFilter`, with the matching rule and its text
-- [ ] Verify: the tests pass, and matching only rides the driver cancelled for Cancelled, or getting a plural wrong, each makes a test fail
+- [x] Write failing tests: each filter matches the right rides and keeps their order; each filter's menu title; the empty state's title for Completed and Cancelled; the header text with singular and plural counts; the announcement for each filter with singular and plural counts
+- [x] Add `PastRideFilter`, with the matching rule and its text
+- [x] Verify: the tests pass, and matching only rides the driver cancelled for Cancelled, or getting a plural wrong, each makes a test fail
 
 ## Phase 2: The filter on Past Rides
 
