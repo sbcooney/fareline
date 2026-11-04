@@ -1,6 +1,6 @@
 # Fareline
 
-A simplified rideshare app for drivers, built with Swift and SwiftUI for iOS 27. A driver goes online, answers ride offers, takes riders from a waiting list, works through each ride, and reviews past rides, including with no connection. All data comes from a mock service, so there's nothing to sign in to or configure.
+Fareline is a demo project, built as a take-home assignment: a simplified rideshare app for drivers, in Swift and SwiftUI for iOS 27. A driver goes online, answers ride offers, takes riders from a waiting list, works through each ride, and reviews past rides, including with no connection. All data comes from a mock service, so there's nothing to sign in to or configure.
 
 <p>
   <img src="docs/images/available.png" width="200" alt="The home screen, saying You're Available, with a Go Offline button at the bottom">

@@ -1,6 +1,6 @@
 # Fareline: Project Plan
 
-Fareline is a simplified rideshare app for drivers, built in Swift and SwiftUI for the Mark43 OnScene take-home assignment. All data is mocked. There is no authentication, payment processing, live backend, real GPS, or external API key.
+Fareline is a simplified rideshare app for drivers, built in Swift and SwiftUI as a demo project for a take-home assignment. All data is mocked. There is no authentication, payment processing, live backend, real GPS, or external API key.
 
 **This is a living document.** Any change that completes an issue or alters a decision also updates this file. See [Keeping this plan current](#keeping-this-plan-current).
 
