@@ -34,9 +34,9 @@ Each phase leaves the app building and the tests passing, in its own commit. Che
 
 ## Phase 5: Queued steps as a pure function
 
-- [ ] Write failing tests: `DriverSession.applying(_:)`
-- [ ] Move the overlay out of `DriverModel`
-- [ ] Verify: new and offline tests pass
+- [x] Write failing tests: `DriverSession.applying(_:)`
+- [x] Move the overlay out of `DriverModel`, done before phase 4 because phase 2 took the model past the file length limit
+- [x] Verify: new and offline tests pass, and four mutation checks
 
 ## Phase 6: A smaller mock
 

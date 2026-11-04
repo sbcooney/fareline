@@ -20,7 +20,7 @@ final class DriverModel {
     /// The session on screen: the latest from the service, with any queued steps applied on top, so the driver
     /// sees where they've got to. Without queued steps, it's the service's session as it is.
     var session: DriverSession? {
-        receivedSession.map(showingPendingSteps)
+        receivedSession?.applying(pendingSteps)
     }
 
     /// Whether a request is in progress. Views use this to show progress and prevent repeat taps.
@@ -308,38 +308,6 @@ final class DriverModel {
                 return
             }
         }
-    }
-
-    /// Returns a session from the service with the queued steps applied to its current ride.
-    ///
-    /// A step that no longer applies is skipped: during replay, one the service has just confirmed, whose session can
-    /// arrive before the step leaves the queue. Replay still sends every step, and the service's answer decides.
-    /// Steps for another ride are skipped too, so a ride the rider has since cancelled shows as the service has it.
-    private func showingPendingSteps(on received: DriverSession) -> DriverSession {
-        guard pendingSteps.isEmpty == false, var ride = received.activeRide else {
-            return received
-        }
-        for step in pendingSteps where step.rideID == ride.id {
-            try? ride.apply(step.event)
-        }
-        var driver = received.driver
-        var activeRide: Ride? = ride
-        var pastRides = received.pastRides
-        if ride.status == .completed || ride.status == .cancelled {
-            // The ride ended offline, so it moves to the driver's history, and they're free again, as the service
-            // will record once the steps are sent.
-            try? driver.apply(.rideEnded)
-            activeRide = nil
-            pastRides.insert(ride, at: 0)
-        }
-        return DriverSession(
-            version: received.version,
-            driver: driver,
-            pendingOffer: received.pendingOffer,
-            activeRide: activeRide,
-            pastRides: pastRides,
-            waitingRides: received.waitingRides
-        )
     }
 
     /// Sends a response to an offer, marking it as answered unless the response fails.
