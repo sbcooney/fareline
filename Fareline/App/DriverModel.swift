@@ -275,11 +275,16 @@ final class DriverModel {
                 return
             } catch {
                 pendingSteps.removeAll()
-                // A rider's cancellation explains more, and arrives with the service's session.
+                // A rider's cancellation explains more, and arrives with the service's session, even if the driver
+                // has already dismissed it, as `show(_:)` also checks.
+                let riderCancelled = receivedSession?.activeRide == nil
+                    && receivedSession?.pastRides.first?.cancelledBy == .rider
                 if case .riderCancelled = alert {
                     return
                 }
-                alert = .offlineStepsNotSent
+                if riderCancelled == false {
+                    alert = .offlineStepsNotSent
+                }
                 return
             }
         }
@@ -287,18 +292,15 @@ final class DriverModel {
 
     /// Returns a session from the service with the queued steps applied to its current ride.
     ///
-    /// A step that no longer applies, such as one for a ride the rider has since cancelled, is left out, and so
-    /// are the steps after it. Replay sends them anyway, and the service's answer decides.
+    /// A step that no longer applies is skipped: during replay, one the service has just confirmed, whose session can
+    /// arrive before the step leaves the queue. Replay still sends every step, and the service's answer decides.
+    /// Steps for another ride are skipped too, so a ride the rider has since cancelled shows as the service has it.
     private func showingPendingSteps(on received: DriverSession) -> DriverSession {
         guard pendingSteps.isEmpty == false, var ride = received.activeRide else {
             return received
         }
         for step in pendingSteps where step.rideID == ride.id {
-            do {
-                try ride.apply(step.event)
-            } catch {
-                break
-            }
+            try? ride.apply(step.event)
         }
         var driver = received.driver
         var activeRide: Ride? = ride

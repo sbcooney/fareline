@@ -13,6 +13,9 @@ struct ConnectionToast: View {
     /// The message showing, if any.
     @State private var message: LocalizedStringResource?
 
+    /// Counts the messages shown, so each one, even a repeat of the last, gets its full time on screen.
+    @State private var shownCount = 0
+
     var body: some View {
         VStack {
             if let message {
@@ -40,13 +43,14 @@ struct ConnectionToast: View {
                 show(Self.savedMessage)
             }
         }
-        .task(id: message) {
+        .task(id: shownCount) {
             await hideAfterAWhile()
         }
     }
 
     private func show(_ newMessage: LocalizedStringResource) {
         message = newMessage
+        shownCount += 1
     }
 
     private func hideAfterAWhile() async {

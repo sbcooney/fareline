@@ -163,11 +163,12 @@ struct DriverModelOfflineTests {
         #expect(model.session?.activeRide == nil)
     }
 
-    @Test func connectionLostDuringReplayKeepsTheQueue() async throws {
-        let delayedService = MockRideService.forModelTests(time: time, responseDelay: 1)
-        let delayedModel = DriverModel(service: delayedService)
-        let updates = Task { await delayedModel.start() }
-        defer { updates.cancel() }
+    /// Puts the driver on the fixture ride online, through a service that takes a second to respond, then loses the
+    /// connection. The caller starts the model's updates.
+    private func startRideThenGoOffline(
+        on delayedService: MockRideService,
+        model delayedModel: DriverModel
+    ) async throws {
         await delayedService.addRide(ride)
         let goingOnline = Task { await delayedModel.goOnline() }
         await time.waitForSleeper()
@@ -183,6 +184,14 @@ struct DriverModelOfflineTests {
         await accepting.value
         await delayedService.setConnected(false)
         await waitUntil { delayedModel.isOffline }
+    }
+
+    @Test func connectionLostDuringReplayKeepsTheQueue() async throws {
+        let delayedService = MockRideService.forModelTests(time: time, responseDelay: 1)
+        let delayedModel = DriverModel(service: delayedService)
+        let updates = Task { await delayedModel.start() }
+        defer { updates.cancel() }
+        try await startRideThenGoOffline(on: delayedService, model: delayedModel)
         await delayedModel.markArrived(rideID: ride.id)
 
         await delayedService.setConnected(true)
@@ -194,5 +203,51 @@ struct DriverModelOfflineTests {
 
         #expect(delayedModel.pendingSteps.map(\.event) == [.driverArrived])
         #expect(delayedModel.alert == nil)
+    }
+
+    @Test func dismissedRiderCancellationIsntFollowedByTheConflictMessage() async throws {
+        let delayedService = MockRideService.forModelTests(time: time, responseDelay: 1)
+        let delayedModel = DriverModel(service: delayedService)
+        let updates = Task { await delayedModel.start() }
+        defer { updates.cancel() }
+        try await startRideThenGoOffline(on: delayedService, model: delayedModel)
+        await delayedModel.markArrived(rideID: ride.id)
+        try await delayedService.simulateRideCancelled(id: ride.id)
+
+        await delayedService.setConnected(true)
+        await waitUntil { delayedModel.alert?.cancelledRideID == ride.id }
+        // The replayed step is on its way when the driver dismisses the rider's cancellation.
+        await time.waitForSleeper()
+        delayedModel.alert = nil
+        time.advance(by: 1)
+        await waitUntil { delayedModel.pendingSteps.isEmpty }
+
+        // The cancellation already explained why the step couldn't be sent.
+        #expect(delayedModel.alert == nil)
+    }
+
+    @Test func stepTheServiceAlreadyConfirmedDoesntHideLaterSteps() async throws {
+        let updates = try await startRideThenGoOffline()
+        defer { updates.cancel() }
+        await model.markArrived(rideID: ride.id)
+        await model.startTrip(rideID: ride.id)
+        var arrived = try #require(model.session?.pastRides.isEmpty == true ? ride : nil)
+        try arrived.apply(.driverAssigned(driverID: TestFixtures.driverID))
+        try arrived.apply(.driverArrived)
+        let received = try #require(model.session)
+
+        // During replay, the service's session for the first step can arrive before it leaves the queue.
+        model.apply(
+            DriverSession(
+                version: received.version + 1,
+                driver: received.driver,
+                pendingOffer: nil,
+                activeRide: arrived,
+                pastRides: received.pastRides,
+                waitingRides: received.waitingRides
+            )
+        )
+
+        #expect(model.session?.activeRide?.status == .inProgress)
     }
 }
