@@ -8,7 +8,15 @@
 /// or a cancelled ride, arrive through ``sessionUpdates()``.
 protocol RideService: Sendable {
     /// Returns a stream that immediately provides the current session, followed by each later change.
+    ///
+    /// While the connection is down, nothing arrives, and the latest session follows when it returns.
     func sessionUpdates() async -> AsyncStream<DriverSession>
+
+    /// Returns a stream that immediately provides whether the connection is up, followed by each change.
+    ///
+    /// Nothing polls for this. A client of a real backend would feed it from `NWPathMonitor`, which reports
+    /// changes as they happen.
+    func connectionUpdates() async -> AsyncStream<Bool>
 
     /// Makes the driver available for rides.
     func goOnline() async throws(RideServiceError) -> DriverSession
