@@ -42,7 +42,7 @@ struct MockRideServiceRideTests {
 
         _ = try await service.markArrived(rideID: ride.id)
         _ = try await service.startTrip(rideID: ride.id)
-        let session = try await service.completeTrip(rideID: ride.id)
+        let session = try await service.completeTrip(rideID: ride.id, at: time.now)
 
         #expect(session.activeRide == nil)
         #expect(session.driver.availability == .available)
@@ -54,10 +54,10 @@ struct MockRideServiceRideTests {
         try await startRide(ride)
         _ = try await service.markArrived(rideID: ride.id)
         _ = try await service.startTrip(rideID: ride.id)
-        _ = try await service.completeTrip(rideID: ride.id)
+        _ = try await service.completeTrip(rideID: ride.id, at: time.now)
 
         await #expect(throws: RideServiceError.rideNoLongerAvailable) {
-            try await service.completeTrip(rideID: ride.id)
+            try await service.completeTrip(rideID: ride.id, at: time.now)
         }
         #expect(try await service.currentSession().pastRides.count == 1)
     }
@@ -66,7 +66,7 @@ struct MockRideServiceRideTests {
         try await startRide(ride)
 
         await #expect(throws: RideServiceError.actionNotAllowed) {
-            try await service.completeTrip(rideID: ride.id)
+            try await service.completeTrip(rideID: ride.id, at: time.now)
         }
 
         let session = try await service.currentSession()
@@ -91,7 +91,7 @@ struct MockRideServiceRideTests {
         try await startRide(ride)
         _ = try await service.markArrived(rideID: ride.id)
         _ = try await service.startTrip(rideID: ride.id)
-        _ = try await service.completeTrip(rideID: ride.id)
+        _ = try await service.completeTrip(rideID: ride.id, at: time.now)
 
         time.advance(by: 60)
         let cancelledRide = Ride(
@@ -137,7 +137,7 @@ struct MockRideServiceRideTests {
         _ = try await service.markArrived(rideID: ride.id)
         _ = try await service.startTrip(rideID: ride.id)
         time.advance(by: delay)
-        let session = try await service.completeTrip(rideID: ride.id)
+        let session = try await service.completeTrip(rideID: ride.id, at: time.now)
 
         #expect(session.pastRides.first?.status == .completed)
     }
@@ -146,7 +146,7 @@ struct MockRideServiceRideTests {
         try await startRide(ride)
         _ = try await service.markArrived(rideID: ride.id)
         _ = try await service.startTrip(rideID: ride.id)
-        _ = try await service.completeTrip(rideID: ride.id)
+        _ = try await service.completeTrip(rideID: ride.id, at: time.now)
 
         let nextRide = Ride(
             id: UUID(testValue: 10),

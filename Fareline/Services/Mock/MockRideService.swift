@@ -222,20 +222,21 @@ actor MockRideService: RideService {
         return publish()
     }
 
-    func completeTrip(rideID: Ride.ID) async throws(RideServiceError) -> DriverSession {
+    func completeTrip(rideID: Ride.ID, at date: Date) async throws(RideServiceError) -> DriverSession {
         try await beginRequest()
-        try updateActiveRide(id: rideID, with: .tripCompleted(date: timeSource.now))
+        // The driver's time is trusted, as a step queued offline happened before it was sent.
+        try updateActiveRide(id: rideID, with: .tripCompleted(date: date))
         endActiveRide()
         scheduleNextOffer()
         return publish()
     }
 
-    func cancelRide(rideID: Ride.ID) async throws(RideServiceError) -> DriverSession {
+    func cancelRide(rideID: Ride.ID, at date: Date) async throws(RideServiceError) -> DriverSession {
         try await beginRequest()
         let rideBefore = rides[rideID]
         // If the rider cancelled first, the ride is no longer active, so this fails rather than changing who
         // cancelled. Ending the ride also stops the rider's own scheduled cancellation.
-        try updateActiveRide(id: rideID, with: .cancelled(by: .driver, date: timeSource.now))
+        try updateActiveRide(id: rideID, with: .cancelled(by: .driver, date: date))
         // A rider who wasn't picked up yet still needs a ride. Once the trip has started, the ride is over.
         if let rideBefore, rideBefore.status != .inProgress {
             listNewRequest(for: rideBefore)

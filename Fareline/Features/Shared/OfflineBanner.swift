@@ -11,7 +11,7 @@ struct OfflineBanner: View {
     var body: some View {
         if model.isOffline {
             Label {
-                Text(Self.message(pendingStepCount: 0))
+                Text(Self.message(pendingStepCount: model.pendingSteps.count))
             } icon: {
                 Image(systemName: "wifi.slash")
             }

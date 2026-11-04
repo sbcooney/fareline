@@ -1,16 +1,27 @@
+import Foundation
 import Observation
 
 /// The app's single source of truth, and the one path for every user action.
 ///
 /// Views read ``session`` and call intent methods such as ``acceptOffer(id:)``. The model doesn't apply
 /// business rules itself. It sends requests to the service and replaces its state with the result, so
-/// the app and the service can't disagree. Keeping all actions here also gives offline support one
-/// place to queue them.
+/// the app and the service can't disagree. The one exception is offline: ride steps queue in
+/// ``pendingSteps``, and the session on screen shows them by the domain's own transition rules until the service
+/// confirms them.
 @MainActor
 @Observable
 final class DriverModel {
-    /// The latest session, or `nil` until the first one arrives.
-    private(set) var session: DriverSession?
+    /// The latest session from the service, or `nil` until the first one arrives.
+    private var receivedSession: DriverSession?
+
+    /// Ride steps taken while offline, in order, waiting to be sent when the connection returns.
+    private(set) var pendingSteps: [PendingRideStep] = []
+
+    /// The session on screen: the latest from the service, with any queued steps applied on top, so the driver
+    /// sees where they've got to. Without queued steps, it's the service's session as it is.
+    var session: DriverSession? {
+        receivedSession.map(showingPendingSteps)
+    }
 
     /// Whether a request is in progress. Views use this to show progress and prevent repeat taps.
     private(set) var isPerformingAction = false
@@ -76,13 +87,21 @@ final class DriverModel {
     private func receiveConnectionChanges() async {
         for await isConnected in await service.connectionUpdates() {
             isOffline = isConnected == false
+            if isConnected {
+                // Changes that arrive meanwhile wait until the replay has finished, which keeps the order simple.
+                await replayPendingSteps()
+            }
         }
     }
 
     /// Updates the state, unless a newer session has already been applied.
     ///
     /// A request's result and a stream update travel separately, so they can arrive out of order.
+    ///
+    /// It compares against the service's last session, not the one on screen, so steps queued offline, such as a
+    /// completed trip, aren't mistaken for news from the service.
     func apply(_ newSession: DriverSession) {
+        let session = receivedSession
         if let session, newSession.version <= session.version {
             return
         }
@@ -113,7 +132,7 @@ final class DriverModel {
            error != .rideNoLongerWaiting {
             alert = nil
         }
-        session = newSession
+        receivedSession = newSession
     }
 
     func goOnline() async {
@@ -153,22 +172,18 @@ final class DriverModel {
     ///
     /// Like ``acceptOffer(id:)``, the ride steps take the ID of the ride on screen, so a tap can't apply
     /// to a different ride.
+    ///
+    /// Offline, a ride step is queued and shown straight away. See ``pendingSteps``.
     func markArrived(rideID: Ride.ID) async {
-        await perform { () async throws(RideServiceError) in
-            try await service.markArrived(rideID: rideID)
-        }
+        await takeStep(PendingRideStep(rideID: rideID, event: .driverArrived))
     }
 
     func startTrip(rideID: Ride.ID) async {
-        await perform { () async throws(RideServiceError) in
-            try await service.startTrip(rideID: rideID)
-        }
+        await takeStep(PendingRideStep(rideID: rideID, event: .tripStarted))
     }
 
     func completeTrip(rideID: Ride.ID) async {
-        await perform { () async throws(RideServiceError) in
-            try await service.completeTrip(rideID: rideID)
-        }
+        await takeStep(PendingRideStep(rideID: rideID, event: .tripCompleted(date: .now)))
     }
 
     /// Takes a ride from the waiting list, which the driver chose over waiting for an offer.
@@ -181,14 +196,132 @@ final class DriverModel {
         }
     }
 
-    /// Cancels the ride the driver is looking at, after they've confirmed it.
+    /// Cancels the ride the driver is looking at, after they've confirmed it. Offline, it queues like a ride step,
+    /// so a driver can end an unsafe trip without signal.
     func cancelRide(rideID: Ride.ID) async {
+        let step = PendingRideStep(rideID: rideID, event: .cancelled(by: .driver, date: .now))
+        guard isOffline == false else {
+            queue(step)
+            return
+        }
         await perform { () async throws(RideServiceError) in
             // Set inside the request, so a cancellation that `perform` drops doesn't show as in progress.
             isCancellingRide = true
             defer { isCancellingRide = false }
-            return try await service.cancelRide(rideID: rideID)
+            return try await send(step)
         }
+    }
+
+    /// Sends a ride step, or queues it while offline.
+    private func takeStep(_ step: PendingRideStep) async {
+        guard isOffline == false else {
+            queue(step)
+            return
+        }
+        await perform { () async throws(RideServiceError) in
+            try await send(step)
+        }
+    }
+
+    /// Queues a step taken offline, if it follows from the ride on screen, as the service would check online.
+    private func queue(_ step: PendingRideStep) {
+        guard var ride = session?.activeRide, ride.id == step.rideID else {
+            show(.rideNoLongerAvailable)
+            return
+        }
+        do {
+            try ride.apply(step.event)
+        } catch {
+            show(.actionNotAllowed)
+            return
+        }
+        pendingSteps.append(step)
+    }
+
+    private func send(_ step: PendingRideStep) async throws(RideServiceError) -> DriverSession {
+        switch step.event {
+        case .driverArrived:
+            return try await service.markArrived(rideID: step.rideID)
+        case .tripStarted:
+            return try await service.startTrip(rideID: step.rideID)
+        case .tripCompleted(let date):
+            return try await service.completeTrip(rideID: step.rideID, at: date)
+        case .cancelled(_, let date):
+            return try await service.cancelRide(rideID: step.rideID, at: date)
+        case .driverAssigned:
+            // Not a ride step: a driver takes a ride by accepting or claiming it, which needs a live answer.
+            throw .actionNotAllowed
+        }
+    }
+
+    /// Sends the steps queued offline, in order, one request at a time.
+    ///
+    /// The service wins a conflict. If it refuses a step, the steps after it build on a ride that no longer exists
+    /// as the driver saw it, so they're dropped, and the service's session stands.
+    private func replayPendingSteps() async {
+        guard pendingSteps.isEmpty == false, isPerformingAction == false else {
+            return
+        }
+        isPerformingAction = true
+        defer { isPerformingAction = false }
+
+        while let step = pendingSteps.first {
+            do {
+                let newSession = try await send(step)
+                pendingSteps.removeFirst()
+                apply(newSession)
+            } catch .networkUnavailable {
+                // The connection dropped again, so the steps wait for the next reconnect.
+                return
+            } catch {
+                pendingSteps.removeAll()
+                // A rider's cancellation explains more, and arrives with the service's session.
+                if case .riderCancelled = alert {
+                    return
+                }
+                alert = .offlineStepsNotSent
+                return
+            }
+        }
+    }
+
+    /// Returns a session from the service with the queued steps applied to its current ride.
+    ///
+    /// A step that no longer applies, such as one for a ride the rider has since cancelled, is left out, and so
+    /// are the steps after it. Replay sends them anyway, and the service's answer decides.
+    private func showingPendingSteps(on received: DriverSession) -> DriverSession {
+        guard pendingSteps.isEmpty == false, var ride = received.activeRide else {
+            return received
+        }
+        for step in pendingSteps where step.rideID == ride.id {
+            do {
+                try ride.apply(step.event)
+            } catch {
+                break
+            }
+        }
+        guard ride.status == .completed || ride.status == .cancelled else {
+            return DriverSession(
+                version: received.version,
+                driver: received.driver,
+                pendingOffer: received.pendingOffer,
+                activeRide: ride,
+                pastRides: received.pastRides,
+                waitingRides: received.waitingRides
+            )
+        }
+        // The ride ended offline, so it moves to the driver's history, and they're free again, as the service will
+        // record once the steps are sent.
+        var driver = received.driver
+        try? driver.apply(.rideEnded)
+        return DriverSession(
+            version: received.version,
+            driver: driver,
+            pendingOffer: received.pendingOffer,
+            activeRide: nil,
+            pastRides: [ride] + received.pastRides,
+            waitingRides: received.waitingRides
+        )
     }
 
     /// Sends a response to an offer, marking it as answered unless the response fails.

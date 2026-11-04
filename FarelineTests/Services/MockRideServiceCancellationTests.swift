@@ -49,7 +49,7 @@ struct MockRideServiceCancellationTests {
         try await startRide(ride)
         try await advance(ride, to: stage)
 
-        let session = try await service.cancelRide(rideID: ride.id)
+        let session = try await service.cancelRide(rideID: ride.id, at: time.now)
 
         #expect(session.activeRide == nil)
         #expect(session.driver.availability == .available)
@@ -66,7 +66,7 @@ struct MockRideServiceCancellationTests {
         try await advance(ride, to: stage)
         time.advance(by: 120)
 
-        let session = try await service.cancelRide(rideID: ride.id)
+        let session = try await service.cancelRide(rideID: ride.id, at: time.now)
 
         let request = try #require(session.waitingRides.first)
         #expect(session.waitingRides.count == 1)
@@ -86,7 +86,7 @@ struct MockRideServiceCancellationTests {
         try await startRide(ride)
         try await advance(ride, to: .onTrip)
 
-        let session = try await service.cancelRide(rideID: ride.id)
+        let session = try await service.cancelRide(rideID: ride.id, at: time.now)
 
         // The rider was already in the car, so the ride is over.
         #expect(session.waitingRides.isEmpty)
@@ -96,7 +96,7 @@ struct MockRideServiceCancellationTests {
         try await startRide(ride)
 
         await #expect(throws: RideServiceError.rideNoLongerAvailable) {
-            try await service.cancelRide(rideID: UUID(testValue: 99))
+            try await service.cancelRide(rideID: UUID(testValue: 99), at: time.now)
         }
 
         let session = try await service.currentSession()
@@ -110,7 +110,7 @@ struct MockRideServiceCancellationTests {
         await service.failNextRequest(with: .networkUnavailable)
 
         await #expect(throws: RideServiceError.networkUnavailable) {
-            try await service.cancelRide(rideID: ride.id)
+            try await service.cancelRide(rideID: ride.id, at: time.now)
         }
 
         let session = try await service.currentSession()
@@ -124,7 +124,7 @@ struct MockRideServiceCancellationTests {
         try await service.simulateRideCancelled(id: ride.id)
 
         await #expect(throws: RideServiceError.rideNoLongerAvailable) {
-            try await service.cancelRide(rideID: ride.id)
+            try await service.cancelRide(rideID: ride.id, at: time.now)
         }
 
         let pastRides = try await service.currentSession().pastRides
@@ -138,7 +138,7 @@ struct MockRideServiceCancellationTests {
         try await startRide(ride)
         await time.waitForSleeper()
 
-        _ = try await service.cancelRide(rideID: ride.id)
+        _ = try await service.cancelRide(rideID: ride.id, at: time.now)
         time.advance(by: delay)
 
         let pastRides = try await service.currentSession().pastRides

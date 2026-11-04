@@ -56,7 +56,7 @@ struct MockRideServiceOfferLoopTests {
         _ = try await service.acceptOffer(id: offer.id)
         _ = try await service.markArrived(rideID: rideID)
         _ = try await service.startTrip(rideID: rideID)
-        _ = try await service.completeTrip(rideID: rideID)
+        _ = try await service.completeTrip(rideID: rideID, at: time.now)
         time.advance(by: 5)
 
         _ = try await waitForOffer(from: service, otherThan: offer.id)
@@ -66,7 +66,7 @@ struct MockRideServiceOfferLoopTests {
         let (service, offer) = try await makeServiceWithAutomaticOffer()
 
         _ = try await service.acceptOffer(id: offer.id)
-        _ = try await service.cancelRide(rideID: offer.ride.id)
+        _ = try await service.cancelRide(rideID: offer.ride.id, at: time.now)
         time.advance(by: 5)
 
         _ = try await waitForOffer(from: service, otherThan: offer.id)

@@ -50,7 +50,7 @@ final class MockRideServiceHistoryTests {
         _ = try await service.markArrived(rideID: ride.id)
         _ = try await service.startTrip(rideID: ride.id)
 
-        let session = try await service.completeTrip(rideID: ride.id)
+        let session = try await service.completeTrip(rideID: ride.id, at: time.now)
 
         #expect(pastRideStore.load() == session.pastRides)
         #expect(pastRideStore.load().first?.status == .completed)
@@ -70,7 +70,7 @@ final class MockRideServiceHistoryTests {
         let service = makeService()
         try await startRide(on: service)
 
-        _ = try await service.cancelRide(rideID: ride.id)
+        _ = try await service.cancelRide(rideID: ride.id, at: time.now)
 
         #expect(pastRideStore.load().map(\.id) == [ride.id])
         #expect(pastRideStore.load().first?.cancelledBy == .driver)
