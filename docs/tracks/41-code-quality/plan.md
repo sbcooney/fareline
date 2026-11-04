@@ -65,7 +65,7 @@ Each phase leaves the app building and the tests passing, in its own commit. Che
 ## Before the PR
 
 - [ ] The user reviews in the app once, with everything done
-- [ ] Review with `swiftui-pro`, `swift-concurrency-pro`, and `swift-testing-pro`, and record each in the PR
-- [ ] `swiftlint lint` reports no violations
+- [x] Review with `swiftui-pro`, `swift-concurrency-pro`, and `swift-testing-pro`, and record each in the PR
+- [x] `swiftlint lint` reports no violations
 - [ ] Run `/code-review`, and fix or record each finding
-- [ ] Update docs/PLAN.md: status, decision log, and project structure
+- [x] Update docs/PLAN.md: status, decision log, and project structure
