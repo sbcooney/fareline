@@ -48,10 +48,17 @@ Building in Xcode re-sorted the catalog and dropped the Demo menu's titles and a
 Tests:
 - The message tests still pass, as their plural entries are unchanged.
 
+### Section text passes contrast in light mode
+
+Running the UI tests with the simulator in light mode, left that way by the screenshots, showed Past Rides' count header falling short of contrast. It and Waiting Riders' footer used the system's gray rather than `textSecondary`.
+
+Tests:
+- The Past Rides accessibility audit fails in light mode before the fix and passes after. Every UI test passes in both modes.
+
 ## Out of scope
 
-- The clean-clone check, making the repository public, and submitting, which are #17.
-- Any app code.
+- The clean-clone check, making the repository public, and submitting, which are #17. #17 also makes the audits run in both modes.
+- App code beyond the String Catalog fix and the contrast fix above.
 
 ## Decisions
 

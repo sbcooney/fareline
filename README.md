@@ -28,7 +28,7 @@ To run on a physical iPhone, select your own team and a unique bundle identifier
 
 ## Trying the app
 
-The demo is set up so every feature can be reached in a few minutes. Offers come from four riders in turn, and the waiting list starts with riders who have already waited a few minutes.
+The demo is set up so every feature can be reached in a few minutes. New requests come from four repeating riders, as offers and as rides other drivers pass on to the waiting list. A rider with a ride waiting or in progress isn't asked again, so if you decline every offer, all four end up in Waiting Riders and offers stop. Taking and finishing their rides from the list brings offers back. The waiting list also starts with riders who have already waited a few minutes.
 
 ### The main flow
 
@@ -50,7 +50,7 @@ Declining an offer, or letting it expire, puts the ride in **Waiting Riders**, t
 ### Cancellations
 
 - **You cancelling:** on the current ride, tap the **⋯** button, then **Cancel Ride**, and confirm. You earn no fare. Before the trip starts, the rider gets a new request in Waiting Riders, and if you took the ride from there, you're returned to the list.
-- **A rider cancelling:** decline offers until one from **Will Cancel** arrives, from Eastern Market to The Wharf, and accept it. Will Cancel cancels 10 seconds after you accept, unless the trip has started, and you're told why your ride ended.
+- **A rider cancelling:** take **Will Cancel**'s ride, from Eastern Market to The Wharf, either by accepting its offer or with Take Ride in Waiting Riders, wherever it turns up first. Will Cancel cancels 10 seconds after you take the ride, unless the trip has started, and you're told why your ride ended.
 
 ### Simulating no connection
 
@@ -75,7 +75,7 @@ To try it:
 3. Tap **I've Arrived**, then **Start Trip**. The ride moves on, a toast confirms each step is saved, and the bar's badge shows 2.
 4. Choose **Restore Connection**. A toast says 2 ride steps are being sent, the bar's button goes away, and the service records both steps.
 
-To see a conflict, decline offers until one from **Will Cancel** arrives, and accept it. Will Cancel cancels 10 seconds after you accept. Lose the connection straight away and tap **I've Arrived**. After 10 seconds, restore the connection: the service refuses the step, as the rider has cancelled, and you're told the rider cancelled. If the service refuses a queued step for another reason, the steps after it are dropped, the ride shows as the service has it, and you're told your offline steps couldn't all be sent.
+To see a conflict, take **Will Cancel**'s ride, from Eastern Market to The Wharf, as an offer or from Waiting Riders. Will Cancel cancels 10 seconds after you take it. Lose the connection straight away and tap **I've Arrived**. After 10 seconds, restore the connection: the service refuses the step, as the rider has cancelled, and you're told the rider cancelled. If the service refuses a queued step for another reason, the steps after it are dropped, the ride shows as the service has it, and you're told your offline steps couldn't all be sent.
 
 ## Run the tests
 
@@ -189,7 +189,7 @@ The assignment says a Rider Companion app may follow. No rider code is built, bu
 - **A map of other drivers.** Nearby drivers and their status on a map, so a driver can see where others are waiting and position themselves. Drivers bunched in one area wait longer for offers, while other areas go unserved. It wasn't built because the mock has no real locations, so the map would show invented positions that never move. A useful version needs live locations from a backend, and location permission.
 - **A list of other drivers and their statuses.** Whether each is available, on a ride, or offline, so a driver can tell how busy the area is and whether going online now is likely to bring offers. It wasn't built because the mock's other drivers would be invented and never change. A real version needs the backend's live view of all drivers, and showing drivers each other's status raises privacy questions.
 - **Status outside the app.** A Live Activity on the Lock Screen and in the Dynamic Island showing whether the driver is online, so they can tell without opening the app. A driver who thinks they're online can miss offers, and one who forgets to go offline keeps receiving them. It wasn't built because it needs a backend sending push updates to stay correct while the app isn't running, which the in-process mock can't do.
-- **A real network layer.** A `DriverService` that talks to a backend. Every method in the protocol is already `async throws`, so requests map straight onto `URLSession`'s async API, such as `data(for:)`. Live updates, such as a new offer, would arrive over a WebSocket and feed the same `AsyncStream` that `sessionUpdates()` returns now, and the connection would be reported by `NWPathMonitor`. The model and views wouldn't change.
+- **A real network layer.** A `DriverService` that talks to a backend. Every request in the protocol is already `async throws`, so requests map straight onto `URLSession`'s async API, such as `data(for:)`. Live updates, such as a new offer, would arrive over a WebSocket and feed the same `AsyncStream` that `sessionUpdates()` returns now, and the connection would be reported by `NWPathMonitor`. The model and views wouldn't change.
 - **Offline steps that survive a relaunch,** by saving the queue and the last session on the device.
 - **Translations.** Text is already in a String Catalog, with plural forms, so adding a language is a matter of translating it.
 - **Landscape and iPad layouts,** for drivers with a phone mounted sideways.
