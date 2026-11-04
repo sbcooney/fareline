@@ -39,7 +39,7 @@ Work proceeds top to bottom. Each row merges as its own PR and leaves the app wo
 | ✅ | #34 | Offer screen's largest-text audit fails with unattributed contrast issues | Quality |
 | ✅ | #41 | Code quality pass before submission | Quality |
 | ✅ | #10 | README and visual reference | Deliverable |
-| ⬜ | #17 | Final submission | Deliverable |
+| 🟨 | #17 | Final submission: the audits in both modes and the final checks are done, and making the repository public and sending the link follow | Deliverable |
 
 Issue numbers follow the order they were filed, not the order of work. Status key: ⬜ not started, 🟨 in progress, ✅ done, ➖ not doing (with the reason in the decision log).
 
@@ -153,6 +153,7 @@ Each issue follows the same steps:
 | #33 Past rides filter | Main | | Yes |
 | #15 Offline | Yes | Main (replay and ordering) | Main |
 | #16 Rider Companion | | Light (the renamed protocol) | |
+| #17 Final submission | | | Not used: only XCTest UI tests change |
 | #41 Code quality pass | Main (shared views, navigation) | Main (the mock's timers and subscribers) | Main |
 
 Skill findings are suggestions:
@@ -299,6 +300,9 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 | 2026-11-04 | Show the app with four light mode screenshots and one in dark mode, rather than a recording | GitHub shows images reliably at a glance, each has alt text, and they're small. A temporary UI test captured them and isn't kept, so #17 runs one again if the screens change. In exchange, the README doesn't show motion, such as an offer arriving. |
 | 2026-11-04 | Order the README for a reviewer: what it looks like, how to run and try it, then the design | A reviewer can run the app before reading the reasoning, and every feature has steps to reach it. The design section covers the assignment's questions, and links to this log for the rest. |
 | 2026-11-04 | Use `textSecondary` for Past Rides' count header and Waiting Riders' footer | The system's header gray fell just short of contrast in light mode. The audits hadn't caught it, as they run in whichever appearance the simulator is in, and it had been in dark mode. The token is checked in both modes by `ColorTokenTests`. |
+| 2026-11-04 | Run every accessibility audit in light and dark mode | The audits ran in whichever appearance the simulator was in, which let a light mode contrast problem go unseen until #10. Each test now sets the appearance through `XCUIDevice` and restores it afterwards. In exchange, the UI tests take about four minutes rather than two and a half. |
+| 2026-11-04 | Shorten the clean-clone check to a fresh clone built from the terminal, a search for private details, and a look at the public page | Xcode compiles every file in the project's folders, committed or not, so a fresh clone is what catches a missing file. Cloning without credentials, a full walkthrough, and a second person were dropped, as a private browser window and the user's earlier review cover them. |
+| 2026-11-04 | Don't add a screen recording | The screenshots meet the assignment, and the app hasn't changed since they were taken. |
 
 ## Open questions
 

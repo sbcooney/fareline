@@ -6,24 +6,24 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Before starting
 
-- [ ] Load the Swift skills this issue needs: none of the three. The only code change is to the XCTest UI tests in `FarelineUITests/FarelineUITestCase.swift` and `FarelineUITests/AccessibilityAuditTests.swift`, which `swift-testing-pro` doesn't cover, and no app code changes
+- [x] Load the Swift skills this issue needs: none of the three. The only code change is to the XCTest UI tests in `FarelineUITests/FarelineUITestCase.swift` and `FarelineUITests/AccessibilityAuditTests.swift`, which `swift-testing-pro` doesn't cover, and no app code changes
 
 ## Phase 1: Audits in both modes
 
-- [ ] Write the failing check first: with #10's contrast fix reverted, the Past Rides audit must fail, whatever the simulator's appearance
-- [ ] Set and restore the appearance in `FarelineUITestCase`, and loop each audit over light and dark
-- [ ] Verify: every UI test passes, starting from the simulator in light and again in dark, the reverted fix fails, and the simulator ends in the appearance it started in
+- [x] Write the failing check first: with #10's contrast fix reverted, the Past Rides audit must fail, whatever the simulator's appearance
+- [x] Set and restore the appearance in `FarelineUITestCase`, and loop each audit over light and dark
+- [x] Verify: every UI test passes, starting from the simulator in light and again in dark, the reverted fix fails in light mode with the simulator starting in dark, and the simulator ends in the appearance it started in
 
 ## Phase 2: Final documents
 
-- [ ] No unit test: documentation
-- [ ] Update the README's test section, and `docs/PLAN.md`'s status, decision log, and any section that no longer matches
-- [ ] Verify: the README and plan read against the code, and no issue other than #17 is open
+- [x] No unit test: documentation
+- [x] Update the README's test section, and `docs/PLAN.md`'s status, decision log, and any section that no longer matches
+- [x] Verify: the README and plan read against the code, and no issue other than #17 is open
 
 ## Phase 3: Nothing private
 
 - [ ] You revert your signing team, once you're done testing on your phone
-- [ ] Search every commit for PDFs, keys, tokens, and absolute paths, and the project file for a signing team
+- [x] Search every commit for PDFs, keys, tokens, and absolute paths, and the project file for a signing team. None in any commit. The signing team is only in the working copy
 - [ ] Verify: the searches find nothing
 
 ## Before the PR

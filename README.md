@@ -82,7 +82,7 @@ To see a conflict, take **Will Cancel**'s ride, from Eastern Market to The Wharf
 In Xcode, press **Cmd+U**. This runs both test targets:
 
 - **`FarelineTests`:** unit and integration tests in Swift Testing. They take under a second.
-- **`FarelineUITests`:** UI tests in XCTest, which Swift Testing doesn't support. They run Apple's accessibility audit on every screen at the default and largest text sizes, and check how offers reach the driver. They take a few minutes.
+- **`FarelineUITests`:** UI tests in XCTest, which Swift Testing doesn't support. They run Apple's accessibility audit on every screen, in light and dark mode, at the default and largest text sizes, and check how offers reach the driver. They take about four minutes.
 
 From the terminal, replace `iPhone 18 Pro` with any iPhone simulator you have on iOS 27.2 or later. To see which ones are available, run `xcrun simctl list devices available`.
 

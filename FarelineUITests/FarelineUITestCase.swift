@@ -4,13 +4,33 @@ import XCTest
 ///
 /// Each test launches the app with `UITestLaunchOptions` arguments, then taps through it like a driver.
 class FarelineUITestCase: XCTestCase {
+    /// Whether this test has changed the simulator's appearance, and so restores it when it ends.
+    private var restoresAppearance = false
+
     override func setUp() {
         continueAfterFailure = false
     }
 
-    /// Launches the app in a known state, optionally at the largest accessibility text size.
+    /// Launches the app in a known state, optionally at the largest accessibility text size, and in light or dark mode.
+    ///
+    /// - Parameter appearance: The simulator's appearance for this launch, or `nil` to leave it as it is. The
+    ///   simulator is put back as the test found it when the test ends, as the setting outlives the app.
     @MainActor
-    func launch(_ arguments: [String] = [], largestText: Bool = false) -> XCUIApplication {
+    func launch(
+        _ arguments: [String] = [],
+        largestText: Bool = false,
+        appearance: XCUIDevice.Appearance? = nil
+    ) -> XCUIApplication {
+        if let appearance {
+            if restoresAppearance == false {
+                let original = XCUIDevice.shared.appearance
+                addTeardownBlock { @MainActor in
+                    XCUIDevice.shared.appearance = original
+                }
+                restoresAppearance = true
+            }
+            XCUIDevice.shared.appearance = appearance
+        }
         let app = XCUIApplication()
         app.launchArguments = ["-uiTesting"] + arguments
         if largestText {
@@ -57,7 +77,8 @@ class FarelineUITestCase: XCTestCase {
             // Each issue is recorded here and reported together below.
             return true
         }
-        XCTAssertTrue(issues.isEmpty, "Accessibility audit issues:\n" + issues.joined(separator: "\n"))
+        let mode = XCUIDevice.shared.appearance == .dark ? "dark" : "light"
+        XCTAssertTrue(issues.isEmpty, "Accessibility audit issues in \(mode) mode:\n" + issues.joined(separator: "\n"))
     }
 
     /// Waits for an element to appear, failing the test if it doesn't.
