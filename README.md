@@ -84,10 +84,10 @@ The assignment says a Rider Companion app may follow. No rider code is built, bu
 
 **What a rider app would reuse:**
 
-- **The domain, unchanged.** `Domain/` imports only Foundation and knows nothing of the app, the service, or SwiftUI. Ride statuses describe the ride rather than the driver's view of it, such as `driverEnRoute` rather than `goingToPickup`, so a rider reads the same values. `RideRole` records who cancelled without taking a side.
+- **The ride domain.** `Domain/` imports only Foundation and knows nothing of the app, the service, or SwiftUI. Ride statuses describe the ride rather than the driver's view of it, such as `driverEnRoute` rather than `goingToPickup`, so a rider reads the same values. `RideRole` records who cancelled without taking a side. Rides, their events, and their rules carry over as they are, while the driver's own types, such as `DriverAvailability` and `RideOffer`, would simply go unused by a rider.
 - **The rules for both parties.** The ride's lifecycle already holds the rider's rule, cancelling until the trip starts, and `RideStatus.canBeCancelled(by:)` answers it for either role. Ride state is separate from the driver's availability, which a rider never needs.
-- **The service's conventions.** Complete, versioned snapshots, `connectionUpdates()`, typed `RideServiceError`s, and the injected `TimeSource` don't depend on who the client is.
-- **The mock backend.** `MockRideService` plays the whole backend, riders included: `simulateRideCancelled(id:)` already applies a rider's cancellation through the domain's rules. A rider contract would be a second conformance on the same actor.
+- **The service's conventions.** Complete, versioned snapshots, a `connectionUpdates()` stream, typed errors, and the injected `TimeSource` don't depend on who the client is. Some of `RideServiceError`'s cases, such as `networkUnavailable`, apply to either client, while others, such as `offerNoLongerAvailable`, are the driver's, and a rider contract would add its own.
+- **The mock backend's state and rules.** `MockRideService` plays the whole backend, riders included: `simulateRideCancelled(id:)` already applies a rider's cancellation through the domain's rules. It can't simply conform to a rider contract too, as it serves one implied driver, and methods such as `sessionUpdates()` would clash. A rider app would add a rider-facing type over the same backend state, with the simulations becoming its real actions.
 
 **What it would add:**
 

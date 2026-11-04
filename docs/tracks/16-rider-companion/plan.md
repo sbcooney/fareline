@@ -24,8 +24,8 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Before the PR
 
-- [ ] The user reviews the README section and the rename once, with everything done
-- [ ] Review with `swift-concurrency-pro` (the renamed protocol, `MockRideService.swift`, `DriverModel.swift`), and record it in the PR's "Swift skill reviews" section
+- [x] The user reviews the README section and the rename once, with everything done
+- [x] Review with `swift-concurrency-pro` (the renamed protocol, `MockRideService.swift`, `DriverModel.swift`), and record it in the PR's "Swift skill reviews" section
 - [x] `swiftlint lint` reports no violations
-- [ ] Run `/code-review`, and fix or record each finding
+- [x] Run `/code-review`, and fix or record each finding
 - [x] Update docs/PLAN.md: #16's status, the decision log (the rename and the package timing), and the skills table

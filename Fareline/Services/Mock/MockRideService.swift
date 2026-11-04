@@ -6,8 +6,9 @@ import Foundation
 
 /// An in-memory stand-in for a backend, including its role in deciding who gets offered which ride.
 ///
-/// It's named for rides rather than the driver because it plays the whole backend, riders included. A rider
-/// app's contract would be a second conformance here.
+/// It's named for rides rather than the driver because it plays the whole backend, riders included. It serves one
+/// implied driver, so a rider app would add a rider-facing type over the same state rather than a second
+/// conformance here.
 ///
 /// Each request has at most one suspension point, at the start, for the simulated network delay. All state
 /// is read and changed after that with no further `await`, so the actor's serial execution makes each

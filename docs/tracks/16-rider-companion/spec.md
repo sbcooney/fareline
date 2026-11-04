@@ -67,5 +67,5 @@ Tests:
 Decided with the user on 2026-11-04, and recorded in the decision log:
 
 - The protocol is renamed `DriverService`, pairing with `DriverSession` and `DriverModel`.
-- `MockRideService` and `RideServiceError` keep their names: the mock plays the whole backend, and most errors apply to either client.
+- `MockRideService` and `RideServiceError` keep their names: the mock plays the whole backend, and the errors come from the ride backend, with some cases, such as `networkUnavailable`, applying to either client.
 - The README describes when to move to a shared package, once a second app exists, rather than creating one. Discussing it, not doing it, suits a take-home.

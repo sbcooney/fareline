@@ -110,7 +110,7 @@ The assignment says a Rider Companion app may be built later. No rider code is b
 
 - Domain names describe the ride, not the driver's view of it. For example, `driverEnRoute` rather than `goingToPickup`.
 - Ride state is separate from driver state, so a rider app needs only the ride lifecycle, whose rules already cover the rider's cancellation.
-- `DriverService` is the driver's contract, returning a `DriverSession`. A rider app would add a `RiderService` and `RiderSession` beside it, keeping the same conventions, and `MockRideService` would conform to both.
+- `DriverService` is the driver's contract, returning a `DriverSession`. A rider app would add a `RiderService` and `RiderSession` beside it, keeping the same conventions, served from the same backend state as `MockRideService`.
 - Domain code imports only Foundation, so it could move into a shared Swift package once a second app exists.
 - A rider app would still need what the driver app doesn't: the driver's name and vehicle, a history that includes rides cancelled before a driver was assigned, and its own display wording.
 
@@ -281,7 +281,7 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 | 2026-11-03 | Let the service win a conflict when replaying | Steps after a refused one would build on a ride that no longer exists as the driver saw it, so they're dropped, and the driver is told. A rider's cancellation shows its own alert instead. |
 | 2026-11-03 | Report the connection through a stream from the service, and simulate it with a Debug-only Demo menu | Nothing polls. A real client would feed the same stream from `NWPathMonitor`. The menu is on every main screen, so the connection can be lost mid-ride. |
 | 2026-11-03 | Show a lost connection with a brief toast, and a status button in the navigation bar while it lasts, saying "no connection" | Losing the connection is usually brief, so a toast over the content tells the driver without moving the screen. A button stays in the bar for a longer loss, so an available driver knows why no offers arrive. A banner was tried first: it moved the screen, and the ride and offer screens had to switch to small titles. "Offline" already means a driver who isn't taking rides. |
-| 2026-11-04 | Rename `RideService` to `DriverService` | Every method is a driver action and it returns a `DriverSession`, so the old name suggested a contract a rider app could share, which it couldn't. The new name pairs with `DriverSession` and `DriverModel`, and leaves room for a `RiderService`. `MockRideService` and `RideServiceError` keep their names, as the mock plays the whole backend and most errors apply to either client. |
+| 2026-11-04 | Rename `RideService` to `DriverService` | Every method is a driver action and it returns a `DriverSession`, so the old name suggested a contract a rider app could share, which it couldn't. The new name pairs with `DriverSession` and `DriverModel`, and leaves room for a `RiderService`. `MockRideService` and `RideServiceError` keep their names, as the mock plays the whole backend and the errors come from the ride backend, with some cases, such as `networkUnavailable`, applying to either client. |
 | 2026-11-04 | Describe a shared Swift package in the README rather than create one | One app gains nothing from a package, which would need `public` on every shared type and its own test target. The README says when to move: once a second app target exists. In exchange, a rider app would start with that move. |
 
 ## Open questions
