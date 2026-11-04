@@ -12,7 +12,6 @@ struct OfferResponseButtons: View {
         let layout = dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout()) : AnyLayout(HStackLayout())
 
         VStack {
-            // The buttons are disabled offline, so this says why.
             if model.isOffline {
                 Text("Answering an offer needs a connection.")
                     .font(.footnote)

@@ -23,7 +23,6 @@ struct WaitingRidersView: View {
                             WaitingRideRow(ride: ride, canTake: canTake)
                         }
                     } footer: {
-                        // Offline, the list shows what was last received, and taking a ride waits for the connection.
                         if model.isOffline {
                             Text("Taking a ride needs a connection.")
                         } else if availability == .offline {

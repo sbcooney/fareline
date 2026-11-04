@@ -180,7 +180,6 @@ actor MockRideService: DriverService {
             throw .rideNoLongerWaiting
         }
 
-        // The driver chose another ride, so a pending offer is declined, and its ride joins the list.
         if let offer = pendingOffer {
             waitingList.add(offer.ride.id)
             clearPendingOffer()

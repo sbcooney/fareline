@@ -58,9 +58,9 @@ Each phase leaves the app building and the tests passing, in its own commit. Che
 
 ## Phase 9: Comments
 
-- [ ] No unit test: reading
-- [ ] Remove comments that only restate the code
-- [ ] Verify: build and lint pass
+- [x] No unit test: reading
+- [x] Remove comments that only restate the code. Of 208 inline comments, 5 did. The rest give a reason the code can't show, such as an accessibility behavior, a race, or a product rule
+- [x] Verify: build and lint pass
 
 ## Before the PR
 
