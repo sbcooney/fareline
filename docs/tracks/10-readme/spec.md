@@ -61,5 +61,5 @@ Decided with the user on 2026-11-04, and recorded in the decision log:
 - Captured by a temporary UI test, deleted afterwards. #17 runs it again if the screens change.
 - Featured trade-offs: one app model rather than a view model per screen, complete versioned snapshots, one app target rather than a shared package, and an offer as the whole home screen.
 - The past rides filter is left out of future work, as #33 built it.
-- The README's order: intro and screenshots, requirements, build and run, trying the app, tests, lint, design, AI tools, and future work.
+- The README's order: intro and screenshots, requirements, build and run, trying the app, tests, lint, and design. Future work and AI tools sit inside the design section, as the assignment lists them as part of it. The AI note stays detailed rather than short.
 - Debug-only and preview text is marked as not for translation, so building doesn't change the String Catalog.

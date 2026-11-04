@@ -182,7 +182,28 @@ The assignment says a Rider Companion app may follow. No rider code is built, bu
 
 **When to move to a shared package:** once a second app target exists, and not before. The package would hold `Domain/`, both service contracts with their sessions, and the mock, so each app could build and demo against it. With one app, a package adds cost and no benefit: every shared type and method would need to be `public`, and the package would need its own test target. Because the domain already depends on nothing in the app, the move would be mechanical.
 
-## AI tools used and how
+### What I'd change or add with more time
+
+#### In the app
+
+- **A map of other drivers.** Nearby drivers and their status on a map, so a driver can see where others are waiting and position themselves. Drivers bunched in one area wait longer for offers, while other areas go unserved. It wasn't built because the mock has no real locations, so the map would show invented positions that never move. A useful version needs live locations from a backend, and location permission.
+- **A list of other drivers and their statuses.** Whether each is available, on a ride, or offline, so a driver can tell how busy the area is and whether going online now is likely to bring offers. It wasn't built because the mock's other drivers would be invented and never change. A real version needs the backend's live view of all drivers, and showing drivers each other's status raises privacy questions.
+- **Status outside the app.** A Live Activity on the Lock Screen and in the Dynamic Island showing whether the driver is online, so they can tell without opening the app. A driver who thinks they're online can miss offers, and one who forgets to go offline keeps receiving them. It wasn't built because it needs a backend sending push updates to stay correct while the app isn't running, which the in-process mock can't do.
+- **A real network layer.** A `DriverService` backed by `URLSession`, with the connection reported by `NWPathMonitor`. The protocol was shaped for this, so the model and views wouldn't change.
+- **Offline steps that survive a relaunch,** by saving the queue and the last session on the device.
+- **Translations.** Text is already in a String Catalog, with plural forms, so adding a language is a matter of translating it.
+- **Landscape and iPad layouts,** for drivers with a phone mounted sideways.
+
+#### In the development process
+
+These would help a larger project, but would cost more than they return here:
+
+- **Living specs with OpenSpec,** in place of per-issue tracks. Specs that stay current describe the whole system rather than one change, but need tooling and a custom workflow to be worth it.
+- **Parallel agents in separate git worktrees,** so independent issues can progress at once. Here, issues are worked one at a time so each can be reviewed closely.
+- **CI** that runs the tests and SwiftLint on every PR. Here, both run locally before each PR.
+- **Automated pre-PR gates as skills,** such as a single skill that runs the tests, lint, and reviews, and refuses to open a PR until they pass. Here, the plan's checklist does this by hand.
+
+### AI tools used and how
 
 The app was built with Claude Code, with a person directing each step and reviewing every change. The workflow:
 
@@ -193,24 +214,3 @@ The app was built with Claude Code, with a person directing each step and review
 - **A whole-project review.** Before the README, the project was reviewed as a Swift expert would evaluate it, and #41 fixed what that found: copied view code, rules that lived in views, untested navigation, and folders that mixed concerns.
 - **Review by a person.** Every PR is read, questioned, and merged by a person, who must be able to explain all of the code.
 - **Lessons file.** `CLAUDE.md` holds rules for the agent. A mistake it makes twice becomes a rule there, with the reason.
-
-## What I'd change or add with more time
-
-### In the app
-
-- **A map of other drivers.** Nearby drivers and their status on a map, so a driver can see where others are waiting and position themselves. Drivers bunched in one area wait longer for offers, while other areas go unserved. It wasn't built because the mock has no real locations, so the map would show invented positions that never move. A useful version needs live locations from a backend, and location permission.
-- **A list of other drivers and their statuses.** Whether each is available, on a ride, or offline, so a driver can tell how busy the area is and whether going online now is likely to bring offers. It wasn't built because the mock's other drivers would be invented and never change. A real version needs the backend's live view of all drivers, and showing drivers each other's status raises privacy questions.
-- **Status outside the app.** A Live Activity on the Lock Screen and in the Dynamic Island showing whether the driver is online, so they can tell without opening the app. A driver who thinks they're online can miss offers, and one who forgets to go offline keeps receiving them. It wasn't built because it needs a backend sending push updates to stay correct while the app isn't running, which the in-process mock can't do.
-- **A real network layer.** A `DriverService` backed by `URLSession`, with the connection reported by `NWPathMonitor`. The protocol was shaped for this, so the model and views wouldn't change.
-- **Offline steps that survive a relaunch,** by saving the queue and the last session on the device.
-- **Translations.** Text is already in a String Catalog, with plural forms, so adding a language is a matter of translating it.
-- **Landscape and iPad layouts,** for drivers with a phone mounted sideways.
-
-### In the development process
-
-These would help a larger project, but would cost more than they return here:
-
-- **Living specs with OpenSpec,** in place of per-issue tracks. Specs that stay current describe the whole system rather than one change, but need tooling and a custom workflow to be worth it.
-- **Parallel agents in separate git worktrees,** so independent issues can progress at once. Here, issues are worked one at a time so each can be reviewed closely.
-- **CI** that runs the tests and SwiftLint on every PR. Here, both run locally before each PR.
-- **Automated pre-PR gates as skills,** such as a single skill that runs the tests, lint, and reviews, and refuses to open a PR until they pass. Here, the plan's checklist does this by hand.
