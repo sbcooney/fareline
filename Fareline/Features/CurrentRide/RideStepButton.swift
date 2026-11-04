@@ -6,6 +6,13 @@ struct RideStepButton: View {
 
     let ride: Ride
 
+    /// Whether the button has been showing its step long enough to take a tap. See ``ignoreTapsBriefly()``.
+    @State private var isReady = false
+
+    private var isDisabled: Bool {
+        model.isPerformingAction || isReady == false
+    }
+
     var body: some View {
         if let title = ride.status.nextStepTitle {
             Button(action: takeNextStep) {
@@ -22,13 +29,28 @@ struct RideStepButton: View {
             .buttonStyle(.borderedProminent)
             // In dark mode the brand color is light, so white text on it wouldn't be readable. A disabled button
             // keeps the system's dimmed label, so it doesn't look tappable.
-            .foregroundStyle(model.isPerformingAction ? AnyShapeStyle(.tertiary) : AnyShapeStyle(.textOnBrand))
+            .foregroundStyle(isDisabled ? AnyShapeStyle(.tertiary) : AnyShapeStyle(.textOnBrand))
             .controlSize(.large)
-            .disabled(model.isPerformingAction)
+            .disabled(isDisabled)
+            .task(id: ride.status, ignoreTapsBriefly)
             // VoiceOver can skip fully transparent text, so the name is set explicitly.
             .accessibilityLabel(Text(title))
             .accessibilityValue(isTakingStep ? Text("Updating") : Text(""))
         }
+    }
+
+    /// Offline, a step shows at once, so the next step's title appears under the driver's finger, and a double tap
+    /// would take a step they never saw. Online, the request in progress covers that gap. `AvailabilityButton` uses
+    /// the same delay.
+    private func ignoreTapsBriefly() async {
+        isReady = false
+        do {
+            try await Task.sleep(for: .seconds(0.75))
+        } catch {
+            // A cancelled wait belongs to a step that's gone, so it mustn't ready the button for the next one.
+            return
+        }
+        isReady = true
     }
 
     /// Whether the request in progress is this button's step. Cancelling shows its progress on the Ride Options

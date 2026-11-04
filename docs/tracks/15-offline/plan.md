@@ -39,6 +39,6 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 - [x] Review with `swift-concurrency-pro` (`MockRideService.swift`, `DriverModel.swift`)
 - [x] Review with `swiftui-pro` (the offline banner, the demo menu, and every view whose controls are disabled offline)
 - [x] `swiftlint lint` reports no violations
-- [ ] Run `/code-review`, and fix or record each finding
+- [x] Run `/code-review`, and fix or record each finding. Fixed: a double tap offline could take a step the driver never saw, so the step button ignores taps briefly after its step changes, as Accept and Go Offline do; the session on screen is built once. Recorded in the PR: queuing a step whose request is cut off, replaying after any request, and the other findings
 - [x] Add a "Simulating no connection" section to the README: where the Demo menu is, what it does, and a walk-through of a ride completed offline
 - [x] Update docs/PLAN.md: #15's status, the decision log entries for this track, the assumptions it adds, the architecture note that the model now holds queued steps, and the open question about #15, now answered

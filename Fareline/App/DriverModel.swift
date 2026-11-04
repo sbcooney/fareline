@@ -300,26 +300,22 @@ final class DriverModel {
                 break
             }
         }
-        guard ride.status == .completed || ride.status == .cancelled else {
-            return DriverSession(
-                version: received.version,
-                driver: received.driver,
-                pendingOffer: received.pendingOffer,
-                activeRide: ride,
-                pastRides: received.pastRides,
-                waitingRides: received.waitingRides
-            )
-        }
-        // The ride ended offline, so it moves to the driver's history, and they're free again, as the service will
-        // record once the steps are sent.
         var driver = received.driver
-        try? driver.apply(.rideEnded)
+        var activeRide: Ride? = ride
+        var pastRides = received.pastRides
+        if ride.status == .completed || ride.status == .cancelled {
+            // The ride ended offline, so it moves to the driver's history, and they're free again, as the service
+            // will record once the steps are sent.
+            try? driver.apply(.rideEnded)
+            activeRide = nil
+            pastRides.insert(ride, at: 0)
+        }
         return DriverSession(
             version: received.version,
             driver: driver,
             pendingOffer: received.pendingOffer,
-            activeRide: nil,
-            pastRides: [ride] + received.pastRides,
+            activeRide: activeRide,
+            pastRides: pastRides,
             waitingRides: received.waitingRides
         )
     }
