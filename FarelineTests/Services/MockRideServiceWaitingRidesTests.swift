@@ -170,6 +170,92 @@ struct MockRideServiceWaitingRidesTests {
         #expect(try await service.currentSession().waitingRides.count == 2)
     }
 
+    // MARK: - One request per rider
+
+    /// Returns a service that makes its own offers and passed-over requests, starting with the given waiting rides.
+    private func makeServiceWithAutomaticRequests(
+        waitingRides: [Ride],
+        passedOverInterval: TimeInterval?
+    ) -> MockRideService {
+        MockRideService(
+            configuration: MockRideServiceConfiguration(
+                offerDelay: passedOverInterval == nil ? 5 : nil,
+                offerLifetime: MockRideServiceTests.offerLifetime,
+                responseDelay: 0,
+                passedOverInterval: passedOverInterval,
+                maximumWaitingRides: 10
+            ),
+            timeSource: time,
+            driver: Driver(id: TestFixtures.driverID, name: PersonNameComponents()),
+            waitingRides: waitingRides
+        )
+    }
+
+    /// Waits for an offer other than the one given.
+    private func nextOffer(from service: MockRideService, otherThan id: RideOffer.ID? = nil) async -> RideOffer? {
+        for await session in await service.sessionUpdates() {
+            if let offer = session.pendingOffer, offer.id != id {
+                return offer
+            }
+        }
+        return nil
+    }
+
+    @Test func seededRidersArentAlsoOffered() async throws {
+        let seeded = MockRideData.passedOverRides(at: time.now)
+        let service = makeServiceWithAutomaticRequests(waitingRides: seeded, passedOverInterval: nil)
+        _ = try await service.goOnline()
+        await time.waitForSleeper()
+
+        time.advance(by: 5)
+        let offer = try #require(await nextOffer(from: service))
+
+        #expect(seeded.contains { $0.rider == offer.ride.rider } == false)
+    }
+
+    @Test func declinedRiderIsntOfferedAgainWhileWaiting() async throws {
+        let service = makeServiceWithAutomaticRequests(waitingRides: [], passedOverInterval: nil)
+        _ = try await service.goOnline()
+        await time.waitForSleeper()
+        time.advance(by: 5)
+        let firstOffer = try #require(await nextOffer(from: service))
+        _ = try await service.declineOffer(id: firstOffer.id)
+
+        // Declining the other three repeating riders puts every one of them in the list.
+        var previousID = firstOffer.id
+        for _ in 0..<3 {
+            await time.waitForSleeper()
+            time.advance(by: 5)
+            let offer = try #require(await nextOffer(from: service, otherThan: previousID))
+            #expect(offer.ride.rider != firstOffer.ride.rider)
+            previousID = offer.id
+            _ = try await service.declineOffer(id: offer.id)
+        }
+        await time.waitForSleeper()
+        time.advance(by: 5)
+        // The offer timer tries again later, so its next wait shows this attempt has run.
+        await time.waitForSleeper()
+
+        // The cycle would come back to the first rider here, but they're already waiting.
+        let session = try await service.currentSession()
+        #expect(session.pendingOffer == nil)
+        #expect(session.waitingRides.count == 4)
+    }
+
+    @Test func passedOverRequestSkipsARiderWhoIsAlreadyWaiting() async throws {
+        let waiting = MockRideData.makeRide(sequence: 0, requestedAt: time.now)
+        let service = makeServiceWithAutomaticRequests(waitingRides: [waiting], passedOverInterval: 20)
+        _ = try await service.goOnline()
+        await time.waitForSleeper()
+
+        time.advance(by: 20)
+
+        for await session in await service.sessionUpdates() where session.waitingRides.count == 2 {
+            #expect(session.waitingRides.filter { $0.rider == waiting.rider }.count == 1)
+            break
+        }
+    }
+
     @Test func rideInTheListIsntOfferedAgain() async throws {
         _ = try await service.goOnline()
         try await offerAndDecline(ride)

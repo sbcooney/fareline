@@ -46,6 +46,8 @@ Tests:
 - The service starts with the seeded rides in the list, each with a past request time.
 - A passed-over request arrives after the configured interval, and none arrive beyond the limit.
 - Claiming the named rider's ride fails as taken by another driver, and the ride leaves the list.
+- The seeded riders are their own, so none of them is also offered.
+- A rider who already has a ride waiting or in progress isn't offered again, and isn't passed over again. If every repeating rider is waiting, no offer is made, and the offer timer tries again later.
 
 ### The driver can see the list
 

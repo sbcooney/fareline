@@ -56,6 +56,31 @@ enum MockRideData {
         )
     ]
 
+    /// Riders who start in the waiting list, kept apart from the repeating offers so a rider can't be in both.
+    private static let seededTemplates = [
+        makeTemplate(
+            givenName: "Margaret",
+            familyName: "Hamilton",
+            pickup: Place(name: "Smithsonian Castle", address: "1000 Jefferson Dr SW"),
+            dropoff: Place(name: "Georgetown University", address: "3700 O St NW"),
+            cents: 2210
+        ),
+        makeTemplate(
+            givenName: "Dorothy",
+            familyName: "Vaughan",
+            pickup: Place(name: "Lincoln Memorial", address: "2 Lincoln Memorial Cir NW"),
+            dropoff: Place(name: "Nationals Park", address: "1500 S Capitol St SE"),
+            cents: 1980
+        ),
+        makeTemplate(
+            givenName: "Mary",
+            familyName: "Jackson",
+            pickup: Place(name: "Howard University", address: "2400 6th St NW"),
+            dropoff: Place(name: "Union Station", address: "50 Massachusetts Ave NE"),
+            cents: 1350
+        )
+    ]
+
     /// A rider who demonstrates the conflict case. Another driver takes their ride just as this driver claims it,
     /// so they appear only in the waiting list, and never in an offer.
     private static let takenTemplate = makeTemplate(
@@ -65,6 +90,11 @@ enum MockRideData {
         dropoff: Place(name: "Union Market", address: "1309 5th St NE"),
         cents: 1620
     )
+
+    /// How many riders ``makeRide(sequence:requestedAt:)`` cycles through.
+    static var repeatingRiderCount: Int {
+        templates.count
+    }
 
     /// Creates a new ride from a repeating list, so a demo never runs out of offers.
     static func makeRide(sequence: Int, requestedAt: Date) -> Ride {
@@ -83,7 +113,9 @@ enum MockRideData {
     /// have waited several minutes.
     static func passedOverRides(at date: Date) -> [Ride] {
         // Taylor Taken shows the conflict case. The others don't trigger demo events.
-        let waits = [(templates[2], 540), (takenTemplate, 420), (templates[3], 300), (templates[0], 120)]
+        let waits = [
+            (seededTemplates[0], 540), (takenTemplate, 420), (seededTemplates[1], 300), (seededTemplates[2], 120)
+        ]
         return waits.map { template, secondsWaited in
             Ride(
                 id: UUID(),

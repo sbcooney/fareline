@@ -48,7 +48,7 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 - [x] Review with `swift-concurrency-pro` (`MockRideService.swift`, `DriverModel.swift`)
 - [x] Review with `swiftui-pro` (`WaitingRidersView`, `WaitingRideRow`, the home screen's toolbar in `RootView`, `AppDestination`)
 - [x] `swiftlint lint` reports no violations
-- [ ] Run `/code-review`, and fix or record each finding
+- [x] Run `/code-review`, and fix or record each finding. Fixed: an offer ending as a claimed ride starts was announced as unanswered; the wait time lagged the clock's minutes; a no-op decline; the list limit's assumption; the same rider in the list and an offer, fixed with separate seeded riders and one request per rider. Recorded in the PR: the unpruned record of passed-over rides, a cancelled ride reappearing in the list, and inferring a claim from the screen
 - [x] Update docs/PLAN.md:
   - Status: #12 and #13 done; #11 and #14 ➖, with #23 added as ➖, all folded into #10; rows added for #33 and #34
   - Decision log: doing #12 and #13 together; returning to the screens the driver left after an offer opened from the bar ends without a ride, and returning to Waiting Riders after cancelling a ride taken from it, both of which revise "Clear the navigation path when an offer arrives or a ride starts"; describing the map, the drivers list, and status outside the app in the README rather than building them; the two decided items in the spec; this track's other decisions

@@ -375,11 +375,32 @@ actor MockRideService: RideService {
         guard Task.isCancelled == false, driver.availability == .available, pendingOffer == nil else {
             return
         }
-        let ride = MockRideData.makeRide(sequence: rideSequence, requestedAt: timeSource.now)
-        rideSequence += 1
+        guard let ride = makeNextRequest() else {
+            // Every rider already has a ride waiting, so try again once one may have left the list.
+            scheduleNextOffer()
+            return
+        }
         rides[ride.id] = ride
         // The guard above and the new ride's status mean the offer can't be refused.
         try? offerRide(id: ride.id)
+    }
+
+    /// Returns a new request from the next repeating rider who doesn't already have a ride waiting or in progress,
+    /// or `nil` if every one of them does, so the same person never asks for two rides at once.
+    private func makeNextRequest() -> Ride? {
+        let busyRiderIDs = Set(
+            rides.values
+                .filter { $0.status == .awaitingDriver || $0.id == activeRideID }
+                .map(\.rider.id)
+        )
+        for _ in 0..<MockRideData.repeatingRiderCount {
+            let ride = MockRideData.makeRide(sequence: rideSequence, requestedAt: timeSource.now)
+            rideSequence += 1
+            if busyRiderIDs.contains(ride.rider.id) == false {
+                return ride
+            }
+        }
+        return nil
     }
 
     /// Has another driver pass on a new request after the configured interval, and repeats while the driver is
@@ -410,8 +431,9 @@ actor MockRideService: RideService {
         guard waitingRides.count < configuration.maximumWaitingRides else {
             return
         }
-        let ride = MockRideData.makeRide(sequence: rideSequence, requestedAt: timeSource.now)
-        rideSequence += 1
+        guard let ride = makeNextRequest() else {
+            return
+        }
         rides[ride.id] = ride
         passedOverRideIDs.insert(ride.id)
         publish()
