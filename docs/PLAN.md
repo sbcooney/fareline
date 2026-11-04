@@ -30,12 +30,12 @@ Work proceeds top to bottom. Each row merges as its own PR and leaves the app wo
 | ✅ | #31 | Let the driver cancel their current ride | Extended |
 | ✅ | #12 | See a queue of waiting riders | Extended |
 | ✅ | #13 | Self-assign to a ride | Extended |
+| ✅ | #33 | Filter past rides | Extended |
 | ➖ | #14 | See a queue of other drivers and their statuses: described in #10 instead | Extended |
 | ➖ | #11 | See other drivers on a map: described in #10 instead | Extended |
 | ➖ | #23 | Status outside the app: described in #10 instead | Extended |
 | ⬜ | #15 | Offline capability | Extended |
 | ⬜ | #16 | Rider Companion readiness | Extended |
-| ⬜ | #33 | Filter past rides | Extended |
 | ⬜ | #34 | Offer screen's largest-text audit fails with unattributed contrast issues | Quality |
 | ⬜ | #10 | README and visual reference | Deliverable |
 | ⬜ | #17 | Final submission | Deliverable |
@@ -144,6 +144,7 @@ Each issue follows the same steps:
 | #9 Error and accessibility states | Main (accessibility, resizing, localization) | | |
 | #12 Rider queue | Main | Live updates | Yes |
 | #13 Self-assign | Main | Main (the conflict case) | Main |
+| #33 Past rides filter | Main | | Yes |
 | #15 Offline | Yes | Main (replay and ordering) | Main |
 
 Skill findings are suggestions:
@@ -261,6 +262,10 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 | 2026-11-03 | Return to the screens the driver left after an offer opened from the bar ends without a ride, and to Waiting Riders after cancelling a ride taken from it before the trip (revises "Clear the navigation path when an offer arrives or a ride starts") | A driver browsing the list stays where they were. A completed ride, a ride cancelled on trip, and a rider's cancellation still end on the home screen. In exchange, `RootView` keeps navigation state that has no unit test. |
 | 2026-11-03 | Never make a new request for a rider who already has one waiting or in progress, and give the seeded list its own riders | A driver could otherwise see the same person asking for two rides, in the list and in an offer. In exchange, if every repeating rider is waiting, no offer is made until one leaves the list. |
 | 2026-11-03 | Seed the demo's waiting list through a `waitingRides` parameter on `MockRideService` | Tests and UI tests build services that start empty, and only the app passes `MockRideData.passedOverRides(at:)`. |
+| 2026-11-03 | Build the past rides filter (#33) next, rather than leave it as future work | A driver's history now holds rides cancelled by either party, so finding the rides they were paid for gets harder as it grows. In exchange, #15 and #16 move later. |
+| 2026-11-03 | Open Past Rides on Completed, with one Cancelled choice for both parties | The rides a driver was paid for come first, and each cancelled row already says who cancelled. A count header, such as "3 of 8 rides", shows that some rides are hidden. |
+| 2026-11-03 | Keep the past rides filter in the screen's own state, resetting to Completed each time Past Rides opens | The screen always opens the same way, and a choice survives viewing a ride's details. Remembering it until the app closes would depend on a restart the driver can't see. In exchange, a driver who prefers All Rides chooses it each visit. |
+| 2026-11-03 | Write singular and plural text in code, in `PastRideFilter` | The project has no String Catalog yet, so the text is English only. A catalog's plural variations would replace these cases. |
 
 ## Open questions
 
