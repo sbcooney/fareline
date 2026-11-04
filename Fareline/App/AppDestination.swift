@@ -20,13 +20,19 @@ struct AppDestinationView: View {
     let destination: AppDestination
 
     var body: some View {
-        switch destination {
-        case .pastRides:
-            PastRidesView()
-        case .pastRide(let id):
-            PastRideDetailView(rideID: id)
-        case .waitingRiders:
-            WaitingRidersView()
+        Group {
+            switch destination {
+            case .pastRides:
+                PastRidesView()
+            case .pastRide(let id):
+                PastRideDetailView(rideID: id)
+            case .waitingRiders:
+                WaitingRidersView()
+            }
+        }
+        // Pushed screens show the offline banner below their navigation bar too, as the root screen does.
+        .safeAreaBar(edge: .top, spacing: 0) {
+            OfflineBanner()
         }
     }
 }

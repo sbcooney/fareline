@@ -42,6 +42,10 @@ struct RootView: View {
                     ProgressView("Connecting")
                 }
             }
+            // Below the navigation bar, so its buttons, including the demo menu, stay reachable offline.
+            .safeAreaBar(edge: .top, spacing: 0) {
+                OfflineBanner()
+            }
             .navigationDestination(for: AppDestination.self, destination: AppDestinationView.init)
             // The buttons live here rather than on the home screen, because an offer can replace the home screen
             // mid-tap. A link on the disappearing screen crashed SwiftUI. Changing the path here is always safe.
@@ -58,12 +62,6 @@ struct RootView: View {
                     DemoMenu()
                 }
                 #endif
-            }
-        }
-        // Above every screen, so the driver can't miss being offline wherever they are.
-        .safeAreaInset(edge: .top, spacing: 0) {
-            if model.isOffline {
-                OfflineBanner(pendingStepCount: 0)
             }
         }
         .safeAreaInset(edge: .bottom) {
@@ -155,7 +153,7 @@ struct RootView: View {
 
     /// Tells VoiceOver users the connection changed, as the banner appearing doesn't move their focus.
     private func announceConnection() {
-        let announcement: LocalizedStringResource = model.isOffline ? "You're offline." : "You're back online."
+        let announcement: LocalizedStringResource = model.isOffline ? "Connection lost." : "Connection restored."
         AccessibilityNotification.Announcement(String(localized: announcement)).post()
     }
 

@@ -18,7 +18,7 @@ The mock service is the app's stand-in for a backend, and it runs inside the app
 
 The mock can be told the connection is lost or back. While it's lost, every request fails with `networkUnavailable` and changes nothing, and the session stream sends nothing. When the connection returns, the stream sends the latest session. A demo control turns it on and off.
 
-While offline, a banner at the top of every screen says the driver is offline, and how many ride steps are waiting to be sent, if any. VoiceOver announces losing and regaining the connection.
+While offline, a banner below each screen's navigation bar says there's no connection, and how many ride steps are waiting to be sent, if any. It says "no connection" rather than "offline", which the app already uses for a driver who isn't taking rides. The ride and offer screens show their title small in the bar while offline, as the banner sits where a large title would. VoiceOver announces "Connection lost" and "Connection restored".
 
 Tests:
 - While disconnected, each request fails with `networkUnavailable`, and the mock's state is unchanged.

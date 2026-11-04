@@ -1,38 +1,44 @@
 import SwiftUI
 
-/// Tells the driver they're offline, and how many of their ride steps are waiting to be sent.
+/// Tells the driver the connection is lost, and how many of their ride steps are waiting to be sent.
+///
+/// It says "no connection" rather than "offline", which the app already uses for a driver who isn't taking rides.
+///
+/// Each screen shows it below its navigation bar, so it never covers the bar's buttons. It shows nothing online.
 struct OfflineBanner: View {
-    let pendingStepCount: Int
+    @Environment(DriverModel.self) private var model
 
     var body: some View {
-        Label {
-            Text(Self.message(pendingStepCount: pendingStepCount))
-        } icon: {
-            Image(systemName: "wifi.slash")
+        if model.isOffline {
+            Label {
+                Text(Self.message(pendingStepCount: 0))
+            } icon: {
+                Image(systemName: "wifi.slash")
+            }
+            .font(.subheadline)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding()
+            .background(.surfaceRaised)
+            .accessibilityElement(children: .combine)
         }
-        .font(.subheadline)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
-        .background(.surfaceRaised)
-        .accessibilityElement(children: .combine)
     }
 
     /// The banner's text. The project has no String Catalog yet, so the singular is chosen here.
     static func message(pendingStepCount: Int) -> LocalizedStringResource {
         switch pendingStepCount {
         case 0:
-            "You're offline. Ride steps you take will be sent when you reconnect."
+            "No connection. Ride steps you take will be sent when it's back."
         case 1:
-            "You're offline. 1 ride step will be sent when you reconnect."
+            "No connection. 1 ride step will be sent when it's back."
         default:
-            "You're offline. \(pendingStepCount) ride steps will be sent when you reconnect."
+            "No connection. \(pendingStepCount) ride steps will be sent when it's back."
         }
     }
 }
 
 #Preview {
-    VStack {
-        OfflineBanner(pendingStepCount: 0)
-        OfflineBanner(pendingStepCount: 2)
-    }
+    @Previewable @State var model = DriverModel(service: MockRideService())
+
+    OfflineBanner()
+        .environment(model)
 }
