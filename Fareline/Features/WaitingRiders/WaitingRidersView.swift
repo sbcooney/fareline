@@ -22,13 +22,17 @@ struct WaitingRidersView: View {
                             WaitingRideRow(ride: ride, canTake: model.canClaimRide)
                         }
                     } footer: {
-                        if model.isOffline {
-                            Text("Taking a ride needs a connection.")
-                        } else if availability == .offline {
-                            // The list still shows while the driver is offline, so they can decide whether to go
-                            // online.
-                            Text("Go online to take a ride.")
+                        Group {
+                            if model.isOffline {
+                                Text("Taking a ride needs a connection.")
+                            } else if availability == .offline {
+                                // The list still shows while the driver is offline, so they can decide whether to go
+                                // online.
+                                Text("Go online to take a ride.")
+                            }
                         }
+                        // As in Past Rides' header, the system's gray falls short of contrast in light mode.
+                        .foregroundStyle(.textSecondary)
                     }
                 }
             }

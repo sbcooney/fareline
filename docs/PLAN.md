@@ -298,6 +298,7 @@ Each of these goes in the README's design section. Those marked *provisional* ca
 | 2026-11-04 | Keep Debug-only and preview text out of the String Catalog (corrects "Add a String Catalog for plural text") | That entry said building in Xcode doesn't change the catalog. It did: Xcode re-sorted it and dropped the Demo menu's titles and a preview's placeholder, for a reason that wasn't found. That text is now marked as not for translation, so no build adds or removes it. A developer tool and preview text never needed translating. |
 | 2026-11-04 | Show the app with four light mode screenshots and one in dark mode, rather than a recording | GitHub shows images reliably at a glance, each has alt text, and they're small. A temporary UI test captured them and isn't kept, so #17 runs one again if the screens change. In exchange, the README doesn't show motion, such as an offer arriving. |
 | 2026-11-04 | Order the README for a reviewer: what it looks like, how to run and try it, then the design | A reviewer can run the app before reading the reasoning, and every feature has steps to reach it. The design section covers the assignment's questions, and links to this log for the rest. |
+| 2026-11-04 | Use `textSecondary` for Past Rides' count header and Waiting Riders' footer | The system's header gray fell just short of contrast in light mode. The audits hadn't caught it, as they run in whichever appearance the simulator is in, and it had been in dark mode. The token is checked in both modes by `ColorTokenTests`. |
 
 ## Open questions
 

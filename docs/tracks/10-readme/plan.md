@@ -29,7 +29,7 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Before the PR
 
-- [ ] The user reviews the README once, with everything done
+- [x] The user reviews the README once, with everything done
 - [x] `swiftlint lint` reports no violations, and all tests pass
 - [ ] Run `/code-review`, and fix or record each finding
 - [x] Update docs/PLAN.md: #10's status, the decision log (the visual reference, and correcting the String Catalog entry), and the deliverables checklist
