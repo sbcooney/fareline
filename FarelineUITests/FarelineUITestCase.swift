@@ -24,15 +24,32 @@ class FarelineUITestCase: XCTestCase {
     ///
     /// The audit's own failures stop at the first issue and don't say which element it was.
     ///
-    /// - Parameter ignoredLabels: Buttons whose contrast is checked another way. Each use explains why.
+    /// - Parameters:
+    ///   - types: The checks to run. Run contrast on its own when issues need their elements, as the full audit can
+    ///     report a contrast issue without one.
+    ///   - ignoredLabels: Buttons whose contrast is checked another way. Each use explains why.
+    ///   - coveredTop: Text whose top is at or below this point, hidden behind a bar pinned to the bottom of the
+    ///     screen. The audit measures hidden text against whatever covers it. Each use explains why.
     @MainActor
-    func audit(_ app: XCUIApplication, ignoringContrastOn ignoredLabels: Set<String> = []) throws {
+    func audit(
+        _ app: XCUIApplication,
+        for types: XCUIAccessibilityAuditType = .all,
+        ignoringContrastOn ignoredLabels: Set<String> = [],
+        ignoringContrastBelow coveredTop: CGFloat? = nil
+    ) throws {
         var issues: [String] = []
-        try app.performAccessibilityAudit { issue in
+        try app.performAccessibilityAudit(for: types) { issue in
             if issue.auditType == .contrast,
                let element = issue.element,
                element.elementType == .button,
                ignoredLabels.contains(element.label) {
+                return true
+            }
+            if issue.auditType == .contrast,
+               let coveredTop,
+               let element = issue.element,
+               element.elementType == .staticText,
+               element.frame.minY >= coveredTop {
                 return true
             }
             let element = issue.element.map { "\($0.elementType) \"\($0.label)\"" } ?? "no element"

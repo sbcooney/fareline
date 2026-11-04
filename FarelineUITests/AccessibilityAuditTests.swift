@@ -18,7 +18,7 @@ final class AccessibilityAuditTests: FarelineUITestCase {
         try auditOfferScreen(largestText: false)
     }
 
-    // A separate test, so that the expected failure in the default-size audit can't stop this one from running.
+    // A separate test, so a failure at one size can't stop the other from running.
     @MainActor
     func testOfferScreenAtTheLargestTextSize() throws {
         try auditOfferScreen(largestText: true)
@@ -32,23 +32,16 @@ final class AccessibilityAuditTests: FarelineUITestCase {
         waitUntilEnabled(app.buttons["Decline"])
         // The audit reports Decline's text on its glass capsule as failing contrast, but measured on screen
         // it's 6.3:1 against the capsule, and `ColorTokenTests` checks brandPrimary on every background.
-        //
-        // The audit sometimes reports one contrast failure with no element, which goes away only if the
-        // countdown row is removed. Its styling, redrawing, and accessibility setup were each ruled out. The
-        // expectation isn't strict because the failure is intermittent.
-        let options = XCTExpectedFailure.Options()
-        options.isStrict = false
-        // Any other audit issue on this screen still fails the test.
-        options.issueMatcher = { issue in
-            issue.compactDescription.hasSuffix("Accessibility audit issues:\nContrast failed on no element")
+        guard largestText else {
+            try audit(app, ignoringContrastOn: ["Decline"])
+            return
         }
-        XCTExpectFailure("Intermittent unattributed contrast issue from the countdown row", options: options) {
-            do {
-                try audit(app, ignoringContrastOn: ["Decline"])
-            } catch {
-                XCTFail("The audit couldn't run: \(error)")
-            }
-        }
+        // At the largest text size, the last rows scroll under the Accept and Decline bar, hidden but still on
+        // screen, and the audit measures their text against the bar. Contrast runs on its own so each issue names
+        // its element, and only text under the bar is skipped. Any other contrast issue still fails.
+        let barTop = app.buttons["Decline"].frame.minY
+        try audit(app, for: XCUIAccessibilityAuditType.all.subtracting(.contrast))
+        try audit(app, for: .contrast, ignoringContrastOn: ["Decline"], ignoringContrastBelow: barTop)
     }
 
     @MainActor
