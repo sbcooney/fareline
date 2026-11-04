@@ -36,7 +36,7 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## The user's check
 
-- [ ] The user tries the whole feature in the app once, after the reviews below, rather than after each phase
+- [x] The user tries the whole feature in the app once, after the reviews below, rather than after each phase
 
 ## Before the PR
 
