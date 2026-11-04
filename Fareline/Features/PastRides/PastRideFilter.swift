@@ -59,6 +59,8 @@ enum PastRideFilter: CaseIterable {
     /// What VoiceOver says when the driver changes the filter, so they know what the list shows now.
     func announcement(showing count: Int) -> LocalizedStringResource {
         switch (self, count) {
+        case (.all, 0):
+            "No past rides"
         case (.all, 1):
             "Showing 1 ride"
         case (.all, _):

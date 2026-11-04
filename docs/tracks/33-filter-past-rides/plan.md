@@ -20,15 +20,15 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 - [x] No unit test: the chosen filter is state held in `PastRidesView`
 - [x] Add the filter as `PastRidesView`'s own state, starting on Completed, and the toolbar menu, which shows a different symbol while a filter other than All Rides is on, the filtered list with its count header, the no-match empty state with a button to show all rides, and the announcement when the filter changes
-- [ ] Verify: the user runs the app and checks that Past Rides opens on Completed, that a choice survives viewing a ride's details and resets after leaving, each filter, the header, the empty state and its button, and the announcement with VoiceOver. No UI tests, per CLAUDE.md
+- [x] Verify: the user runs the app and checks that Past Rides opens on Completed, that a choice survives viewing a ride's details and resets after leaving, each filter, the header, the empty state and its button, and the announcement with VoiceOver. No UI tests, per CLAUDE.md
 
 ## Before the PR
 
-- [ ] Review with `swift-testing-pro` (`PastRideFilterTests`)
-- [ ] Review with `swiftui-pro` (`PastRidesView`, `PastRideFilter`)
-- [ ] `swiftlint lint` reports no violations
-- [ ] Run `/code-review`, and fix or record each finding
-- [ ] Update docs/PLAN.md:
+- [x] Review with `swift-testing-pro` (`PastRideFilterTests`)
+- [x] Review with `swiftui-pro` (`PastRidesView`, `PastRideFilter`)
+- [x] `swiftlint lint` reports no violations
+- [x] Run `/code-review`, and fix or record each finding. Fixed: the announcement could be cut off as focus moved, now posted at high priority; the header's capitals; comments that said rides were hidden; "Showing all 0 rides"; the skills table's order. Recorded in the PR: the filter resetting after an offer interrupts Past Rides, the announcement filtering again, and All Rides' unused no-match text
+- [x] Update docs/PLAN.md:
   - Status: #33 done, moved up to follow #12 and #13, with the reason in the decision log
   - Decision log: this track's decisions
   - The skills table: a row for #33

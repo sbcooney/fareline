@@ -34,9 +34,12 @@ struct PastRidesView: View {
                             }
                         }
                     } header: {
-                        // The count shows that some rides are hidden, which VoiceOver users also hear on a change.
+                        // While a filter is on, the count shows how much of the history is showing. VoiceOver users
+                        // also hear it when the filter changes.
                         if filter != .all {
                             Text(PastRideFilter.countDescription(showing: shownRides.count, of: rides.count))
+                                // Section headers can default to capitals, and this reads as a sentence.
+                                .textCase(nil)
                         }
                     }
                 }
@@ -52,7 +55,8 @@ struct PastRidesView: View {
                         }
                     }
                 } label: {
-                    // Filled while some rides are hidden, so a sighted driver can tell the list is filtered.
+                    // Filled while a filter other than All Rides is on, so a sighted driver can tell the list is
+                    // filtered.
                     Label(
                         "Filter",
                         systemImage: filter == .all
@@ -75,7 +79,10 @@ struct PastRidesView: View {
     /// Tells VoiceOver users what the list shows now, as the rows change without moving their focus.
     private func announceFilter() {
         let count = (model.session?.pastRides ?? []).filter(filter.matches).count
-        AccessibilityNotification.Announcement(String(localized: filter.announcement(showing: count))).post()
+        var announcement = AttributedString(localized: filter.announcement(showing: count))
+        // The menu closes and focus moves as the filter changes, which could otherwise cut this off.
+        announcement.accessibilitySpeechAnnouncementPriority = .high
+        AccessibilityNotification.Announcement(announcement).post()
     }
 }
 

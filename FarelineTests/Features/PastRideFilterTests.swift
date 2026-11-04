@@ -76,7 +76,8 @@ struct PastRideFilterTests {
     }
 
     @Test(arguments: [
-        (PastRideFilter.all, 1, "Showing 1 ride"),
+        (PastRideFilter.all, 0, "No past rides"),
+        (.all, 1, "Showing 1 ride"),
         (.all, 5, "Showing all 5 rides"),
         (.completed, 1, "Showing 1 completed ride"),
         (.completed, 3, "Showing 3 completed rides"),
