@@ -62,6 +62,13 @@ An offer that arrives while the driver is on Waiting Riders, or any pushed scree
 Tests:
 - No unit test: the saved screens are navigation state held in `RootView`. Checked in the simulator: open an offer from the bar on Waiting Riders, decline it, and see Waiting Riders again; accept one and see the current ride screen.
 
+### Cancelling a ride taken from the list returns to it
+
+If the driver took a ride from Waiting Riders and cancels it before the trip starts, they're back on Waiting Riders, where they were choosing rides. A completed ride, a ride cancelled during the trip, and a ride the rider cancelled all end on the home screen, as before.
+
+Tests:
+- No unit test: this is navigation state held in `RootView`. Checked in the simulator: take a ride from the list and cancel it at pickup, and see Waiting Riders; take one and complete it, and see the home screen.
+
 ### The driver can take a ride from the list
 
 Each row has a button to take the ride, enabled only while the driver is available. Taking a ride starts it, and the driver sees the same current ride screen as after accepting an offer. If an offer is pending, taking a ride from the list declines it, and the offered ride joins the list.

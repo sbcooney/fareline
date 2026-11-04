@@ -10,6 +10,10 @@ struct RootView: View {
     /// starting, such as Waiting Riders after a decline.
     @State private var pathBeforeOffer: [AppDestination]?
 
+    /// Whether the current ride was taken from Waiting Riders and its trip hasn't started, so cancelling it returns
+    /// the driver to the list they were choosing from.
+    @State private var returnsToWaitingRiders = false
+
     /// The offer to show in the pending offer bar: one that arrives while the driver is on a pushed screen.
     private var barOffer: RideOffer? {
         path.isEmpty ? nil : model.session?.pendingOffer
@@ -59,10 +63,17 @@ struct RootView: View {
             .animation(.default, value: barOffer?.id)
         }
         // A ride replaces the root screen, and unlike an offer it has no bar, so the driver is taken to it.
-        .onChange(of: model.session?.activeRide?.id) { _, id in
+        .onChange(of: model.session?.activeRide?.id) { oldID, id in
             if id != nil {
-                path.removeAll()
-                pathBeforeOffer = nil
+                startRide()
+            } else if oldID != nil {
+                endRide()
+            }
+        }
+        .onChange(of: model.session?.activeRide?.status) { _, status in
+            // Once the rider is in the car, a cancelled ride is over rather than a reason to choose another.
+            if status == .inProgress {
+                returnsToWaitingRiders = false
             }
         }
         .onChange(of: model.session?.pendingOffer?.id) { _, id in
@@ -96,6 +107,21 @@ struct RootView: View {
     private func openOffer() {
         pathBeforeOffer = path
         path.removeAll()
+    }
+
+    /// Makes a ride the root screen. A ride taken from Waiting Riders remembers it, so cancelling can return there.
+    private func startRide() {
+        returnsToWaitingRiders = path.last == .waitingRiders
+        path.removeAll()
+        pathBeforeOffer = nil
+    }
+
+    /// Returns to Waiting Riders after the driver cancels a ride they took from it, before the trip started.
+    private func endRide() {
+        defer { returnsToWaitingRiders = false }
+        if returnsToWaitingRiders, model.session?.pastRides.first?.cancelledBy == .driver {
+            path = [.waitingRiders]
+        }
     }
 
     /// Puts back the screens the driver left to see an offer, once it ends without a ride starting: declined,
