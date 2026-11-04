@@ -8,6 +8,7 @@ import SwiftUI
 /// underneath a pushed one can't announce them twice.
 struct ConnectionToast: View {
     @Environment(DriverModel.self) private var model
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     /// The message showing, if any.
     @State private var message: LocalizedStringResource?
@@ -25,7 +26,7 @@ struct ConnectionToast: View {
                 .padding(.vertical, 12)
                 .background(.surfaceRaised, in: .capsule)
                 .padding()
-                .transition(.move(edge: .top).combined(with: .opacity))
+                .transition(reduceMotion ? .opacity : .move(edge: .top).combined(with: .opacity))
             }
         }
         .animation(.default, value: message)
