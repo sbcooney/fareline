@@ -94,12 +94,14 @@ Folders follow features, with one primary type per file. Each folder is created 
 
 ```
 Fareline/
-  App/         App entry point and dependency wiring
+  App/         Entry point, dependency wiring, root view, and navigation
+  Model/       DriverModel, the app's state and intents, and what it shows offline
   Domain/      Rides, offers, drivers, state machines
   Services/    DriverService protocol and mock implementation
-  Features/    Availability, Offers, CurrentRide, PastRides, Shared, ...
+  Features/    Availability, Offers, CurrentRide, PastRides, WaitingRiders, Connection, Shared
+  Debug/       The Demo menu and UI test launch options, in Debug builds only
   Resources/   Asset catalog, including the design system's color tokens
-FarelineTests/
+FarelineTests/ The same folders, plus TestSupport/ for fixtures and the manual time source
 ```
 
 The Xcode project uses folder-synced groups, so files added to these folders join their target automatically.

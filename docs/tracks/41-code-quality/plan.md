@@ -46,9 +46,9 @@ Each phase leaves the app building and the tests passing, in its own commit. Che
 
 ## Phase 7: Folders
 
-- [ ] No unit test: moves
-- [ ] Move files, rename `RideServiceError+Message`, and update `docs/PLAN.md`'s project structure
-- [ ] Verify: build and every test pass
+- [x] No unit test: moves
+- [x] Move files, rename `RideServiceError+Message`, and update `docs/PLAN.md`'s project structure
+- [x] Verify: build and every unit test pass. The UI tests run once more before the PR
 
 ## Phase 8: String Catalog
 
