@@ -69,7 +69,7 @@ struct RideOptionsSheet: View {
         return ride
     }()
 
-    Text("Current ride")
+    Text(verbatim: "Current ride")
         .sheet(isPresented: .constant(true)) {
             RideOptionsSheet(ride: ride)
         }

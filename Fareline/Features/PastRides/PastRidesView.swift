@@ -40,6 +40,9 @@ struct PastRidesView: View {
                             Text(PastRideFilter.countDescription(showing: shownRides.count, of: rides.count))
                                 // Section headers can default to capitals, and this reads as a sentence.
                                 .textCase(nil)
+                                // The system's header gray falls short of contrast in light mode, and the token is
+                                // checked in both.
+                                .foregroundStyle(.textSecondary)
                         }
                     }
                 }
