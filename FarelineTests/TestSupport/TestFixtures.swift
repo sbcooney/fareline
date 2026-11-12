@@ -20,7 +20,8 @@ enum TestFixtures {
             id: UUID(testValue: 2),
             rider: Rider(
                 id: UUID(testValue: 3),
-                name: PersonNameComponents(givenName: "Ada", familyName: "Lovelace")
+                name: PersonNameComponents(givenName: "Ada", familyName: "Lovelace"),
+                phoneNumber: "202-555-0101"
             ),
             pickup: Place(name: "Union Station", address: "50 Massachusetts Ave NE"),
             dropoff: Place(name: "National Mall", address: "900 Ohio Dr SW"),

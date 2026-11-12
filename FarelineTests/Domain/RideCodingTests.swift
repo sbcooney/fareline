@@ -80,6 +80,17 @@ struct RideCodingTests {
         #expect(try JSONDecoder().decode(Ride.self, from: data).cancelledBy == .rider)
     }
 
+    @Test func rideSavedWithoutAPhoneNumberHasNoPhoneNumber() throws {
+        // Rides saved before riders had phone numbers have none, and history must still load.
+        let data = try savedJSON(of: TestFixtures.completedRide()) { object in
+            var rider = object["rider"] as? [String: Any]
+            rider?["phoneNumber"] = nil
+            object["rider"] = rider
+        }
+
+        #expect(try JSONDecoder().decode(Ride.self, from: data).rider.phoneNumber == nil)
+    }
+
     @Test func rideCancelledByADriverWithNoDriverIsRejected() throws {
         var ride = TestFixtures.ride()
         try ride.apply(.driverAssigned(driverID: TestFixtures.driverID))

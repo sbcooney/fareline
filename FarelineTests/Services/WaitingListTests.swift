@@ -9,7 +9,7 @@ struct WaitingListTests {
     private func ride(_ testValue: UInt8, requestedAt offset: TimeInterval) -> Ride {
         Ride(
             id: UUID(testValue: testValue),
-            rider: Rider(id: UUID(testValue: testValue + 100), name: PersonNameComponents()),
+            rider: Rider(id: UUID(testValue: testValue + 100), name: PersonNameComponents(), phoneNumber: nil),
             pickup: Place(name: "Union Station", address: "50 Massachusetts Ave NE"),
             dropoff: Place(name: "National Mall", address: "900 Ohio Dr SW"),
             fare: Fare(amount: 10, currencyCode: "USD"),
