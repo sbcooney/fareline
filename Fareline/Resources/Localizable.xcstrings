@@ -71,6 +71,9 @@
     "At Pickup" : {
 
     },
+    "Call Rider" : {
+
+    },
     "Cancel Ride" : {
 
     },
@@ -123,6 +126,9 @@
         }
       }
     },
+    "Contact Fareline Support" : {
+
+    },
     "Decline" : {
 
     },
@@ -144,6 +150,9 @@
     "Filter" : {
 
     },
+    "Get Help" : {
+
+    },
     "Go Offline" : {
 
     },
@@ -157,6 +166,9 @@
 
     },
     "Heading to Pickup" : {
+
+    },
+    "Help" : {
 
     },
     "I've Arrived" : {

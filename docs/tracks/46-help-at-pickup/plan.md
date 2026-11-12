@@ -7,7 +7,7 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 ## Before starting
 
 - [x] Load `swift-testing-pro` for `RideCodingTests` and the mock data tests
-- [ ] Load `swiftui-pro`, with its accessibility reference, for `CurrentRideView` and `RideHelpSheet`
+- [x] Load `swiftui-pro`, with its accessibility reference, for `CurrentRideView` and `RideHelpSheet`
 - [x] `swift-concurrency-pro` isn't loaded: no async code changes, and `Rider` stays `Sendable` with a `String?` property
 
 ## Phase 1: Riders have phone numbers
@@ -18,11 +18,11 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Phase 2: Get Help and the Help sheet
 
-- [ ] No unit test: the button's visibility is a status check in the view, and the actions are `Link`s (see the spec)
-- [ ] Add `RideHelpSheet` with Call Rider and Contact Fareline Support as `tel:` links, and Cancel Ride with its confirmation
-- [ ] Add Get Help under `RideStepButton` in `CurrentRideView`'s bottom inset, shown only at `driverArrived`, disabled like the Ride Options button
-- [ ] Add the new strings to `Localizable.xcstrings`, without staging the uncommitted changes already on `main`
-- [ ] Verify: the unit tests and existing UI audits pass. Screenshots, from a temporary UI test that isn't kept, show en route and on trip without Get Help, pickup with it, and the sheet, at the default and largest text sizes in light and dark. Accessibility Inspector reports no issues on the pickup screen and the sheet
+- [x] No unit test: the button's visibility is a status check in the view, and the actions are `Link`s (see the spec)
+- [x] Add `RideHelpSheet` with Call Rider and Contact Fareline Support as `tel:` links, and Cancel Ride with its confirmation
+- [x] Add Get Help under `RideStepButton` in `CurrentRideView`'s bottom inset, shown only at `driverArrived`, disabled like the Ride Options button
+- [x] Add the new strings to `Localizable.xcstrings`, without staging the uncommitted changes already on `main`
+- [ ] Verify: the user checks the screens by eye, at their request, in place of screenshots and audits. A first run of a temporary UI test, deleted afterwards, confirmed Get Help is hidden en route and shown at pickup, then stopped when the light mode audit failed Get Help's contrast. The label now uses the primary color. That fix, the sheet, dark mode, the largest text size, and on trip weren't checked by a test
 
 ## Before the PR
 
