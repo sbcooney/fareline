@@ -36,31 +36,27 @@ struct CurrentRideView: View {
                 RideStepButton(ride: ride)
                 // Waiting is when a driver most needs to reach the rider, so help shows only at pickup for now.
                 if ride.status == .driverArrived {
-                    getHelpButton
+                    // Bordered under the filled step button, so the next step stays the main action.
+                    Button {
+                        isShowingHelp = true
+                    } label: {
+                        Text("Get Help")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    // The brand color on the bordered button's light fill fails contrast in light mode.
+                    .foregroundStyle(.primary)
+                    .controlSize(.large)
+                    // The sheet holds Cancel Ride, so it's unavailable during a request, as Ride Options is.
+                    .disabled(model.canTakeRideStep == false)
+                    .sheet(isPresented: $isShowingHelp) {
+                        RideHelpSheet(ride: ride)
+                    }
                 }
             }
             .padding()
             // The list scrolls behind the buttons at large text sizes.
             .background(.bar)
-        }
-    }
-
-    /// Opens the Help sheet. Bordered under the filled step button, so the next step stays the main action.
-    private var getHelpButton: some View {
-        Button {
-            isShowingHelp = true
-        } label: {
-            Text("Get Help")
-                .frame(maxWidth: .infinity)
-        }
-        .buttonStyle(.bordered)
-        // The brand color on the bordered button's light fill fails contrast in light mode.
-        .foregroundStyle(.primary)
-        .controlSize(.large)
-        // The sheet holds Cancel Ride, so it's unavailable during a request, as Ride Options is.
-        .disabled(model.canTakeRideStep == false)
-        .sheet(isPresented: $isShowingHelp) {
-            RideHelpSheet(ride: ride)
         }
     }
 }

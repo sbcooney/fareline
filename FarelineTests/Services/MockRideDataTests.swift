@@ -5,7 +5,7 @@ import Testing
 /// Covers the mock riders' phone numbers, which must never reach a real person.
 struct MockRideDataTests {
     /// Every mock rider, from both the repeating offers and the seeded waiting list.
-    private let riders: [Rider] = {
+    static let riders: [Rider] = {
         let offered = (0..<MockRideData.repeatingRiderCount).map {
             MockRideData.makeRide(sequence: $0, requestedAt: TestFixtures.date).rider
         }
@@ -13,19 +13,18 @@ struct MockRideDataTests {
         return offered + waiting
     }()
 
-    @Test func everyRiderHasAFictionalNumber() {
+    @Test(arguments: riders)
+    func riderHasAFictionalNumber(rider: Rider) {
         // 555-0100 to 555-0199 is the range reserved for fiction.
-        for rider in riders {
-            #expect(
-                rider.phoneNumber?.wholeMatch(of: /202-555-01\d\d/) != nil,
-                "\(rider.name.formatted()) has \(rider.phoneNumber ?? "no number")"
-            )
-        }
+        #expect(
+            rider.phoneNumber?.wholeMatch(of: /202-555-01\d\d/) != nil,
+            "\(rider.name.formatted()) has \(rider.phoneNumber ?? "no number")"
+        )
     }
 
     @Test func everyRiderHasADifferentNumber() {
-        let numbers = riders.compactMap(\.phoneNumber)
+        let numbers = Self.riders.compactMap(\.phoneNumber)
 
-        #expect(Set(numbers).count == riders.count)
+        #expect(Set(numbers).count == Self.riders.count)
     }
 }

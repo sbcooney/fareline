@@ -26,9 +26,9 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 
 ## Before the PR
 
-- [ ] Review with `swift-testing-pro` (`RideCodingTests`, `MockRideDataTests`, `TestFixtures`)
-- [ ] Review with `swiftui-pro` (`CurrentRideView`, `RideHelpSheet`)
-- [ ] Record both reviews, and why `swift-concurrency-pro` wasn't needed, in the PR's "Swift skill reviews" section
-- [ ] `swiftlint lint` reports no violations
+- [x] Review with `swift-testing-pro` (`RideCodingTests`, `MockRideDataTests`, `TestFixtures`)
+- [x] Review with `swiftui-pro` (`CurrentRideView`, `RideHelpSheet`)
+- [x] Record both reviews, and why `swift-concurrency-pro` wasn't needed, in the PR's "Swift skill reviews" section
+- [x] `swiftlint lint` reports no violations
 - [ ] Run `/code-review`, and fix or record each finding
-- [ ] Update docs/PLAN.md: a #46 row in the status table, decision log entries for this track (including the revision of the 2026-11-03 decision about the bottom of the ride screen), and the README's feature list and "What I'd do with more time" (number masking)
+- [x] Update docs/PLAN.md: a #46 row in the status table, decision log entries for this track (including the revision of the 2026-11-03 decision about the bottom of the ride screen), and the README's feature list and "What I'd do with more time" (number masking)
