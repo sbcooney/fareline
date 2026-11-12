@@ -71,7 +71,13 @@
     "At Pickup" : {
 
     },
+    "Call %@ from a phone instead." : {
+
+    },
     "Call Rider" : {
+
+    },
+    "Can't Make Calls on This Device" : {
 
     },
     "Cancel Ride" : {

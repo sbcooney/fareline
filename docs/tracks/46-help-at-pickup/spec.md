@@ -17,10 +17,10 @@ Tests:
 
 ### The Help sheet
 
-The Help sheet lists Call Rider, Contact Fareline Support, and Cancel Ride, in that order. Call Rider and Contact Support open a `tel:` link, so iOS asks the driver to confirm before it calls. Cancel Ride asks for the same confirmation as in Ride Options, and either answer closes the sheet.
+The Help sheet lists Call Rider, Contact Fareline Support, and Cancel Ride, in that order. Call Rider and Contact Support open a `tel:` link, so iOS asks the driver to confirm before it calls. On a device that can't make calls, such as the Simulator, an alert says so and shows the number, rather than the tap silently doing nothing. Cancel Ride asks for the same confirmation as in Ride Options, and either answer closes the sheet.
 
 Tests:
-- No unit test for the links, which are view wiring, or for the confirmation, which `RideStatus.cancellationMessage` tests already cover. Screenshots show the sheet at the default and largest text sizes. The Simulator can't place calls, so the screenshots show the buttons, not a call.
+- No unit test for the calls, which are view wiring, or for the confirmation, which `RideStatus.cancellationMessage` tests already cover. Screenshots show the sheet at the default and largest text sizes. In the Simulator, each call shows the alert with its number.
 
 ### Every rider has a fake phone number
 
