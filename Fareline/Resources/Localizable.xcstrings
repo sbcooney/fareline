@@ -71,6 +71,15 @@
     "At Pickup" : {
 
     },
+    "Call %@ from a phone instead." : {
+
+    },
+    "Call Rider" : {
+
+    },
+    "Can't Make Calls on This Device" : {
+
+    },
     "Cancel Ride" : {
 
     },
@@ -123,6 +132,9 @@
         }
       }
     },
+    "Contact Fareline Support" : {
+
+    },
     "Decline" : {
 
     },
@@ -144,6 +156,9 @@
     "Filter" : {
 
     },
+    "Get Help" : {
+
+    },
     "Go Offline" : {
 
     },
@@ -157,6 +172,9 @@
 
     },
     "Heading to Pickup" : {
+
+    },
+    "Help" : {
 
     },
     "I've Arrived" : {

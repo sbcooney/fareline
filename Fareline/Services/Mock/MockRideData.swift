@@ -26,6 +26,7 @@ enum MockRideData {
         makeTemplate(
             givenName: "Ada",
             familyName: "Lovelace",
+            phoneNumber: "202-555-0101",
             pickup: Place(name: "Union Station", address: "50 Massachusetts Ave NE"),
             dropoff: Place(name: "National Mall", address: "900 Ohio Dr SW"),
             cents: 1840
@@ -35,6 +36,7 @@ enum MockRideData {
         makeTemplate(
             givenName: "Will",
             familyName: "Cancel",
+            phoneNumber: "202-555-0102",
             pickup: Place(name: "Eastern Market", address: "225 7th St SE"),
             dropoff: Place(name: "The Wharf", address: "760 Maine Ave SW"),
             cents: 1490,
@@ -43,6 +45,7 @@ enum MockRideData {
         makeTemplate(
             givenName: "Alan",
             familyName: "Turing",
+            phoneNumber: "202-555-0103",
             pickup: Place(name: "Dupont Circle", address: "1 Dupont Cir NW"),
             dropoff: Place(name: "Reagan National Airport", address: "2401 Smith Blvd"),
             cents: 3225
@@ -50,6 +53,7 @@ enum MockRideData {
         makeTemplate(
             givenName: "Katherine",
             familyName: "Johnson",
+            phoneNumber: "202-555-0104",
             pickup: Place(name: "Georgetown Waterfront", address: "3303 Water St NW"),
             dropoff: Place(name: "Capitol Hill", address: "101 Independence Ave SE"),
             cents: 2675
@@ -61,6 +65,7 @@ enum MockRideData {
         makeTemplate(
             givenName: "Margaret",
             familyName: "Hamilton",
+            phoneNumber: "202-555-0105",
             pickup: Place(name: "Smithsonian Castle", address: "1000 Jefferson Dr SW"),
             dropoff: Place(name: "Georgetown University", address: "3700 O St NW"),
             cents: 2210
@@ -68,6 +73,7 @@ enum MockRideData {
         makeTemplate(
             givenName: "Dorothy",
             familyName: "Vaughan",
+            phoneNumber: "202-555-0106",
             pickup: Place(name: "Lincoln Memorial", address: "2 Lincoln Memorial Cir NW"),
             dropoff: Place(name: "Nationals Park", address: "1500 S Capitol St SE"),
             cents: 1980
@@ -75,6 +81,7 @@ enum MockRideData {
         makeTemplate(
             givenName: "Mary",
             familyName: "Jackson",
+            phoneNumber: "202-555-0107",
             pickup: Place(name: "Howard University", address: "2400 6th St NW"),
             dropoff: Place(name: "Union Station", address: "50 Massachusetts Ave NE"),
             cents: 1350
@@ -86,6 +93,7 @@ enum MockRideData {
     private static let takenTemplate = makeTemplate(
         givenName: "Taylor",
         familyName: "Taken",
+        phoneNumber: "202-555-0108",
         pickup: Place(name: "Navy Yard", address: "1100 1st St SE"),
         dropoff: Place(name: "Union Market", address: "1309 5th St NE"),
         cents: 1620
@@ -138,16 +146,23 @@ enum MockRideData {
         templates.first { $0.rider.id == ride.rider.id }?.riderCancelsAfter
     }
 
+    // Each argument is one labeled field of a mock rider's template.
+    // swiftlint:disable:next function_parameter_count
     private static func makeTemplate(
         givenName: String,
         familyName: String,
+        phoneNumber: String,
         pickup: Place,
         dropoff: Place,
         cents: Int,
         riderCancelsAfter: TimeInterval? = nil
     ) -> Template {
         Template(
-            rider: Rider(id: UUID(), name: PersonNameComponents(givenName: givenName, familyName: familyName)),
+            rider: Rider(
+                id: UUID(),
+                name: PersonNameComponents(givenName: givenName, familyName: familyName),
+                phoneNumber: phoneNumber
+            ),
             pickup: pickup,
             dropoff: dropoff,
             fare: Fare(amount: Decimal(cents) / 100, currencyCode: "USD"),

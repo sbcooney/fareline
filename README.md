@@ -37,6 +37,8 @@ The demo is set up so every feature can be reached in a few minutes. New request
 3. Tap **I've Arrived**, **Start Trip**, then **Complete Trip**. You're available again, and the next offer is on its way.
 4. Tap the clock button to see **Past Rides**. It opens on completed rides, and the filter button shows cancelled rides or all of them. Tap a ride for its details.
 
+At pickup, **Get Help** under Start Trip lets you call the rider or Fareline support, or cancel. The numbers are fictional 555 numbers. The Simulator can't make calls, so it shows the number in an alert instead.
+
 Go Online, Go Offline, Accept, Decline, and each ride step ignore taps for a moment after they appear. Accept appears where Go Offline was, and a tap meant for one shouldn't trigger the other.
 
 ### Waiting Riders
@@ -191,6 +193,7 @@ The assignment says a Rider Companion app may follow. No rider code is built, bu
 - **Status outside the app.** A Live Activity on the Lock Screen and in the Dynamic Island showing whether the driver is online, so they can tell without opening the app. A driver who thinks they're online can miss offers, and one who forgets to go offline keeps receiving them. It wasn't built because it needs a backend sending push updates to stay correct while the app isn't running, which the in-process mock can't do.
 - **A real network layer.** A `DriverService` that talks to a backend. Every request in the protocol is already `async throws`, so requests map straight onto `URLSession`'s async API, such as `data(for:)`. Live updates, such as a new offer, would arrive over a WebSocket and feed the same `AsyncStream` that `sessionUpdates()` returns now, and the connection would be reported by `NWPathMonitor`. The model and views wouldn't change.
 - **Offline steps that survive a relaunch,** by saving the queue and the last session on the device.
+- **Masked phone numbers.** Calls between driver and rider would go through a temporary number from the backend, as real rideshare apps do, so neither sees the other's own number and past rides don't keep it. Here, each mock rider has a fictional number stored with the ride.
 - **Translations.** Text is already in a String Catalog, with plural forms, so adding a language is a matter of translating it.
 - **Landscape and iPad layouts,** for drivers with a phone mounted sideways.
 
