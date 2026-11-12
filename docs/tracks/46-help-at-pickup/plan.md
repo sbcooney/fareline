@@ -22,7 +22,7 @@ Each phase leaves the app building and the tests passing. Check off tasks as the
 - [x] Add `RideHelpSheet` with Call Rider and Contact Fareline Support as `tel:` links, and Cancel Ride with its confirmation
 - [x] Add Get Help under `RideStepButton` in `CurrentRideView`'s bottom inset, shown only at `driverArrived`, disabled like the Ride Options button
 - [x] Add the new strings to `Localizable.xcstrings`, without staging the uncommitted changes already on `main`
-- [ ] Verify: the user checks the screens by eye, at their request, in place of screenshots and audits. A first run of a temporary UI test, deleted afterwards, confirmed Get Help is hidden en route and shown at pickup, then stopped when the light mode audit failed Get Help's contrast. The label now uses the primary color. That fix, the sheet, dark mode, the largest text size, and on trip weren't checked by a test
+- [x] Verify: the user checks the screens by eye, at their request, in place of screenshots and audits. A first run of a temporary UI test, deleted afterwards, confirmed Get Help is hidden en route and shown at pickup, then stopped when the light mode audit failed Get Help's contrast. The label now uses the primary color. That fix, the sheet, dark mode, the largest text size, and on trip weren't checked by a test. The user then ran the app and confirmed the screens and the calls alert look right
 
 ## Before the PR
 
